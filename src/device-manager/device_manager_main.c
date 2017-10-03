@@ -1622,12 +1622,18 @@ int device_manager_main( int argc, char *argv[] )
 		if ( app_arg_count( args, 's', "service" ) > 0u )
 		{
 			const char *remove_args[] = { "-s", "--service" };
+
+/* android does not have an hdc supported service handler */
+#ifdef __ANDROID__
+			result = EXIT_SUCCESS;
+#else 
 			result = os_service_run(
 				IOT_DEVICE_MANAGER_TARGET, device_manager_main,
 				argc, argv,
 				sizeof( remove_args ) / sizeof( const char* ),
 				remove_args, &device_manager_sig_handler,
 				APP_DATA.runtime_dir );
+#endif
 		}
 		else
 		{
