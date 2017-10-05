@@ -25,7 +25,32 @@
  * @retval EXIT_SUCCESS      application completed successfully
  * @retval EXIT_FAILURE      application encountered an error
  */
+#include "iot.h"                      /* for iot types */
+
+/**
+ * @brief Main entry-point for the application
+ *
+ * @param[in]      argc                          number of arguments passed to
+ *                                               the application
+ * @param[in]      argv                          array of arguments passed to
+ *                                               the application
+ *
+ * @retval EXIT_SUCCESS      application completed successfully
+ * @retval EXIT_FAILURE      application encountered an error
+ */
 int control_main( int argc, char* argv[] );
+
+/**
+ * @brief Shutdown function
+ *
+ * @param[in]      shutdown                      boolean where true is
+ *                                               reboot and false is shutdown
+ * @param[in]      delay                         delay in seconds
+ *
+ * @retval EXIT_SUCCESS      application completed successfully
+ * @retval EXIT_FAILURE      application encountered an error
+ */
+int control_device_shutdown( iot_bool_t shutdown, unsigned int delay);
 
 #endif /* ifndef CONTROL_MAIN_H */
 

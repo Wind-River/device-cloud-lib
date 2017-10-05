@@ -16,6 +16,7 @@
 #include "control_config.h"
 #include "api/shared/iot_types.h"   /* for iot_host structure */
 #include "utilities/app_arg.h"
+#include "iot_build.h"
 
 #include <iot_json.h>
 #include <os.h>
@@ -25,6 +26,12 @@
  * @brief Report the application build information
  */
 static IOT_SECTION void control_build_information( void );
+
+int control_device_shutdown( iot_bool_t shutdown, unsigned int delay )
+{
+	return ( os_system_shutdown( shutdown, delay ) ==
+		OS_STATUS_INVOKED ? EXIT_SUCCESS : EXIT_FAILURE );
+}
 
 int control_main( int argc, char *argv[] )
 {
@@ -54,14 +61,14 @@ int control_main( int argc, char *argv[] )
 		if ( result == EXIT_SUCCESS &&
 			app_arg_count( args, 0u, "reboot" ) )
 		{
-			/*result = control_device_shutdown(IOT_TRUE, delay );*/
-			os_printf("reboot device\n");
+			result = control_device_shutdown(IOT_TRUE, IOT_REBOOT_DELAY);
+			os_printf("reboot device delay=%d seconds\n", IOT_REBOOT_DELAY);
 		}
 		if ( result == EXIT_SUCCESS &&
 			app_arg_count( args, 0u, "shutdown" ) )
 		{
-			/*result = control_device_shutdown( IOT_FALSE, delay );*/
-			os_printf("shutdown device\n");
+			result = control_device_shutdown( IOT_FALSE, IOT_REBOOT_DELAY);
+			os_printf("shutdown device delay=%d seconds\n", IOT_REBOOT_DELAY);
 		}
 	}
 	return result;
