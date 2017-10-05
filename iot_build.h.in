@@ -159,4 +159,7 @@
 /** @brief Default log file name when installing updates */
 #define IOT_UPDATE_LOGFILE             "@IOT_UPDATE_LOGFILE@"
 
+/** @brief Default delay in seconds before rebooting */
+#define IOT_REBOOT_DELAY               @IOT_REBOOT_DELAY@
+
 #endif /* ifndef IOT_BUILD_H */

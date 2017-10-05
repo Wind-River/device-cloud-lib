@@ -67,3 +67,9 @@ IOT_DEFAULT_UPLOAD_REMOVE_ON_SUCCESS: true
 IOT_DEFAULT_CERT_PATH: "/etc/ssl/certs/ca-certificates.crt"
 
 IOT_UPDATE_LOGFILE: "iot_install_updates.log"
+
+IOT_CONTROL_TARGET: "iot-control"
+
+# number of seconds to wait before rebooting
+IOT_REBOOT_DELAY: 5
+
