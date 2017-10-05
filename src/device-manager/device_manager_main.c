@@ -44,11 +44,11 @@
 #define DEVICE_MANAGER_DECOMMISSION_DEVICE     "decommission_device"
 #endif
 /** @brief Name of the device shutdown action*/
-#define DEVICE_MANAGER_DEVICE_SHUTDOWN         "device_shutdown"
+#define DEVICE_MANAGER_DEVICE_SHUTDOWN         "shutdown_device"
 /** @brief Name of the device reboot action*/
-#define DEVICE_MANAGER_DEVICE_REBOOT           "device_reboot"
+#define DEVICE_MANAGER_DEVICE_REBOOT           "reboot_device"
 /** @brief Name of the agent reset action*/
-#define DEVICE_MANAGER_AGENT_RESET             "agent_reset"
+#define DEVICE_MANAGER_AGENT_RESET             "reset_agent"
 
 /** @brief Name of the remote login action */
 #define DEVICE_MANAGER_REMOTE_LOGIN            "remote-access"
