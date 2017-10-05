@@ -829,6 +829,8 @@ iot_status_t iot_action_execute_command(
 					action->name, system_ret );
 				if ( system_ret != 0 )
 					result = IOT_STATUS_EXECUTION_ERROR;
+				else
+					result = IOT_STATUS_SUCCESS;
 			}
 			else if ( ( action->flags & IOT_ACTION_NO_RETURN ) &&
 				result == IOT_STATUS_INVOKED )
