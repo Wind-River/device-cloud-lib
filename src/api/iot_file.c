@@ -200,6 +200,7 @@ iot_status_t iot_file_transfer(
 	void *user_data )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+
 	if ( lib && file_path )
 	{
 		char *heap_name = NULL;
@@ -239,7 +240,7 @@ iot_status_t iot_file_transfer(
 					IOT_DIR_RUNTIME, heap_path,
 					heap_len );
 				os_snprintf( &heap_path[dir_len],
-					heap_len - dir_len,
+					heap_len - dir_len + 1,
 					"%c%s%c%s",
 					OS_DIR_SEP, subdir,
 					OS_DIR_SEP, file_path );
@@ -310,7 +311,6 @@ iot_status_t iot_file_transfer(
 				transfer.name = os_strrchr( transfer.path,
 					OS_DIR_SEP ) + 1u;
 		}
-
 		if ( op == IOT_OPERATION_FILE_UPLOAD )
 		{
 			if ( os_directory_exists( transfer.path ) )
