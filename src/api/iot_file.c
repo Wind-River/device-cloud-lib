@@ -201,7 +201,7 @@ iot_status_t iot_file_transfer(
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 
-	if ( lib && file_path )
+	if ( lib )
 	{
 		char *heap_name = NULL;
 		char *heap_path = NULL;
@@ -215,7 +215,7 @@ iot_status_t iot_file_transfer(
 
 		/* Use default directory if the path provided is not absolute */
 		/** @todo update this to be a real absolute path check */
-		if ( file_path[0] == OS_DIR_SEP )
+		if ( file_path && file_path[0] == OS_DIR_SEP )
 			transfer.path = file_path;
 		else
 		{
@@ -230,7 +230,10 @@ iot_status_t iot_file_transfer(
 			/* +1 for directory seperator */
 			heap_len += os_strlen( subdir ) + 1u;
 			/* +1 for directory seperator */
-			heap_len += os_strlen( file_path ) + 1u;
+			/* if no file path was specified, use the
+			 * default path, but don't strlen it */
+			if ( file_path )
+				heap_len += os_strlen( file_path ) + 1u;
 
 			heap_path = os_malloc( heap_len + 1u );
 			if ( heap_path )
@@ -456,7 +459,7 @@ iot_status_t iot_file_upload(
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 
-	if ( lib && file_path )
+	if ( lib  )
 		result = iot_file_transfer(
 			lib, txn, max_time_out,
 			flags, IOT_OPERATION_FILE_UPLOAD,

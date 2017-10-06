@@ -786,7 +786,7 @@ iot_status_t device_manager_actions_register(
 			/* file path */
 			iot_action_parameter_add( file_upload,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH,
-				IOT_PARAMETER_IN_REQUIRED, IOT_TYPE_STRING, 0u );
+				IOT_PARAMETER_IN, IOT_TYPE_STRING, 0u );
 
 			result = iot_action_register_callback( file_upload,
 				&device_manager_file_upload, device_manager, NULL, 0u );
