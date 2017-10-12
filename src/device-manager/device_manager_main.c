@@ -1151,46 +1151,6 @@ static const char *const action_cfg_names[] ={
 	NULL
 };
 
-static iot_status_t device_manager_check_service_listening( int port_number )
-{
-	iot_status_t result = IOT_STATUS_NOT_SUPPORTED;
-
-	/*FIXME:*/
-	/* windows can do something like netstat -anp tcp | find ":%d " I
-	 * think a better way is to do a getsockopt on the port */
-#if defined( __ANDROID__ )
-#	define CMD_TEMPLATE  "netstat | grep %d | grep -c LISTEN"
-#else
-#	define CMD_TEMPLATE  "netstat -tln | grep -c ':%d ' "
-#endif
-#	define MAX_CMD_LEN 128
-#	define buf_sz 32u
-	char cmd[MAX_CMD_LEN];
-	char buf_std[buf_sz] = "\0";
-	char buf_err[buf_sz] = "\0";
-	char *out_buf[2u] = { buf_std, buf_err };
-	size_t out_len[2u] = { buf_sz, buf_sz };
-	int retval = -1;
-
-	IOT_LOG( NULL, IOT_LOG_INFO, "%s",
-		"  * Checking for available remote login ports..." );
-	os_snprintf( cmd, MAX_CMD_LEN, CMD_TEMPLATE, port_number);
-	if ( os_system_run_wait( cmd, &retval, out_buf,
-		out_len, 0u ) == OS_STATUS_SUCCESS &&
-			retval == 0 )
-	{
-		result = IOT_STATUS_SUCCESS;
-		IOT_LOG( NULL, IOT_LOG_INFO,
-			"  * Protocol port %d is listening", port_number );
-	}
-	else
-		IOT_LOG( NULL, IOT_LOG_ERROR,
-			"No service for port %d. netstat: stdout: %s, "
-			"stderr: %s, return code: %d",
-			port_number, buf_std, buf_err, retval );
-	return result;
-}
-
 iot_status_t device_manager_config_read(
 	struct device_manager_info *device_manager_info,
 	const char *app_path, const char *config_file )
@@ -1207,17 +1167,6 @@ iot_status_t device_manager_config_read(
 		os_file_t fd;
 		struct device_manager_file_io_info *const file_io =
 			&device_manager_info->file_io_info;
-		char install_dir[PATH_MAX + 1u];
-		char *p_path;
-		iot_bool_t has_rdp = IOT_FALSE;
-
-		/* Find install dir to be used later */
-		os_strncpy( install_dir, app_path, PATH_MAX );
-		p_path = os_strstr( install_dir, IOT_BIN_DIR );
-		if ( p_path )
-			*p_path = '\0';
-		else
-			os_strncpy( install_dir, ".", PATH_MAX );
 
 		/* Default values */
 		iot_directory_name_get( IOT_DIR_RUNTIME,
@@ -1228,79 +1177,6 @@ iot_status_t device_manager_config_read(
 		IOT_LOG( NULL, IOT_LOG_INFO,
 			"  * Setting default runtime dir to %s",
 			device_manager_info->runtime_dir );
-
-		/* set the default value for remote login.  Can be
-		 * overriden in the iot.cfg file. */
-#ifdef _WIN32
-		iot_status_t service_status = IOT_STATUS_BAD_PARAMETER;
-		iot_bool_t self_started = IOT_FALSE;
-		has_rdp = IOT_TRUE;
-
-		/* query query_count times with a sleep interval_ms in between */
-		iot_millisecond_t interval_ms = 1000;
-		unsigned int query_count = 10u;
-		unsigned int i;
-		service_status = os_service_query ( IOT_REMOTE_DESKTOP_ID, 0u );
-		if ( service_status != IOT_STATUS_SUCCESS )
-		{
-			for ( i = 0; i < query_count;  i++ )
-			{
-				service_status = os_service_query (
-					IOT_DEVICE_MANAGER_ID, 0u );
-
-				if ( service_status == IOT_STATUS_SUCCESS )
-				{
-					self_started = IOT_TRUE;
-					break;
-				}
-				os_time_sleep( interval_ms, IOT_FALSE );
-			}
-			if ( self_started == IOT_TRUE )
-			{
-				service_status = os_service_start (
-					IOT_REMOTE_DESKTOP_ID, 0u );
-				if ( service_status != IOT_STATUS_SUCCESS )
-					has_rdp = IOT_FALSE;
-			}
-			else
-				has_rdp = IOT_FALSE;
-		}
-#endif
-		if ( has_rdp != IOT_FALSE )
-		{
-			os_strncpy( p_path, "rdp,",
-				REMOTE_LOGIN_PROTOCOL_MAX );
-			p_path += os_strlen( "rdp," );
-		}
-
-		/* check if vnc is available */
-		if ( app_path_which( NULL, 0u, NULL, "vncserver" ) > 0u )
-		{
-			os_strncpy( p_path, "vnc,",
-				REMOTE_LOGIN_PROTOCOL_MAX );
-			p_path += os_strlen( "vnc," );
-		}
-
-#if !defined( _WIN32 )
-		/* for linux and android, check to see if a port is
-		 * listening */
-		/* check if sshd is available */
-		if ( device_manager_check_service_listening( 22 ) != IOT_STATUS_SUCCESS )
-		{
-			os_strncpy( p_path, "ssh,",
-				REMOTE_LOGIN_PROTOCOL_MAX );
-			p_path += os_strlen( "ssh," );
-		}
-
-		/* check if telnetd is available */
-		if ( device_manager_check_service_listening( 23 ) != IOT_STATUS_SUCCESS )
-		{
-			os_strncpy( p_path, "telnet,",
-				REMOTE_LOGIN_PROTOCOL_MAX );
-			p_path += os_strlen( "telnet," );
-		}
-
-#endif /* !defined( _WIN32) */
 
 		/* standard actions */
 		device_manager_info->enabled_actions = 0u;
@@ -1337,10 +1213,6 @@ iot_status_t device_manager_config_read(
 		if ( IOT_DEFAULT_ENABLE_REMOTE_LOGIN )
 			device_manager_action_enable( device_manager_info,
 				DEVICE_MANAGER_ENABLE_REMOTE_LOGIN, IOT_TRUE );
-
-		/* set default directories for file transfer */
-		/*FIXME*/
-		/*device_manager_file_set_default_directories( device_manager_info );*/
 
 		/* set default of uploaded file removal */
 		file_io->upload_file_remove = IOT_DEFAULT_UPLOAD_REMOVE_ON_SUCCESS;
@@ -1641,24 +1513,9 @@ int device_manager_main( int argc, char *argv[] )
 				while ( APP_DATA.iot_lib &&
 					APP_DATA.iot_lib->to_quit == IOT_FALSE )
 				{
-#ifdef	__ANDROID__
-					/*FIXME*/
-					/* tbd
-					device_manager_file_create_default_directories( &APP_DATA, 1u );
-					*/
-#endif
 					os_time_sleep( POLL_INTERVAL_MSEC,
 						IOT_FALSE );
-#ifndef NO_FILEIO_SUPPORT
-					/*FIXME*/
-					/*device_manager_file_check_pending_transfers(*/
-					/*&APP_DATA );*/
-#endif
 				}
-#ifndef NO_FILEIO_SUPPORT
-				/*FIXME*/
-				/*device_manager_file_cancel_all( &APP_DATA );*/
-#endif
 				IOT_LOG(APP_DATA.iot_lib, IOT_LOG_INFO, "%s",
 					"Exiting..." );
 				result = EXIT_SUCCESS;
