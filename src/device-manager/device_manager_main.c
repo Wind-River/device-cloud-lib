@@ -39,10 +39,9 @@
 /** @brief Name of the Dump Log Files action*/
 #define DEVICE_MANAGER_DUMP_LOG_FILES          "Dump Log Files"
 
-#if 0
 /** @brief Name of the decommission device action */
 #define DEVICE_MANAGER_DECOMMISSION_DEVICE     "decommission_device"
-#endif
+
 /** @brief Name of the device shutdown action*/
 #define DEVICE_MANAGER_DEVICE_SHUTDOWN         "shutdown_device"
 /** @brief Name of the device reboot action*/
@@ -322,9 +321,9 @@ iot_status_t on_action_agent_decommission(
 		char cmd_reboot[] = "iot-control --reboot --delay 5000 &";
 		result = device_manager_run_os_command(
 			cmd_decommission, IOT_TRUE );
-		if ( result == IOT_STATUS_SUCCESS )
-			result = device_manager_run_os_command(
-				cmd_reboot, IOT_FALSE );
+		/*if ( result == IOT_STATUS_SUCCESS )*/
+		/*result = device_manager_run_os_command(*/
+		/*cmd_reboot, IOT_FALSE );*/
 	}
 	return result;
 }
@@ -707,7 +706,7 @@ iot_status_t device_manager_actions_register(
 #ifndef _WRS_KERNEL
 		iot_action_t *dump_log_files = NULL;
 		iot_action_t *agent_reset = NULL;
-		/*iot_action_t *decommission_device = NULL;*/
+		iot_action_t *decommission_device = NULL;
 		iot_action_t *device_shutdown = NULL;
 		iot_action_t *remote_login = NULL;
 		iot_action_t *file_upload = NULL;
@@ -826,39 +825,33 @@ iot_status_t device_manager_actions_register(
 
 		/* decommission device */
 		/*FIXME*/
-		/*if ( device_manager->enabled_actions &*/
-		/*DEVICE_MANAGER_ENABLE_DECOMMISSION_DEVICE )*/
-		/*{*/
-		/*decommission_device = iot_action_allocate( iot_lib,*/
-		/*DEVICE_MANAGER_DECOMMISSION_DEVICE );*/
-		/*iot_action_flags_set( decommission_device,*/
-		/*IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );*/
-		/*#if defined( __ANDROID__ )*/
-		/*result = iot_action_register_callback(*/
-		/*decommission_device, &on_action_agent_decommission,*/
-		/*(void*)device_manager, NULL, 0u );*/
-		/*#else*/
-		/*#	if defined( _WIN32 )*/
-		/*result = device_manager_make_control_command( command_path,*/
-		/*PATH_MAX, device_manager, " --decommission --reboot" );*/
-		/*#	else *//* defined( _WIN32 ) */
-		/*result = os_make_path( command_path, PATH_MAX,*/
-		/*device_manager->app_path,*/
-		/*DEVICE_MANAGER_DECOMMISSION_SCRIPT, NULL );*/
-		/*#	endif *//* defined( _WIN32 ) */
-		/*if ( result == IOT_STATUS_SUCCESS )*/
-		/*result = iot_action_register_command( decommission_device,*/
-		/*command_path, NULL, 0u );*/
-		/*#endif*/
-		/*if ( result == IOT_STATUS_SUCCESS )*/
-		/*device_manager->decommission_device =*/
-		/*decommission_device;*/
-		/*else*/
-		/*IOT_LOG( iot_lib, IOT_LOG_ERROR,*/
-		/*"Failed to register %s action. Reason: %s",*/
-		/*DEVICE_MANAGER_DECOMMISSION_DEVICE,*/
-		/*iot_error(result) );*/
-		/*}*/
+		if ( device_manager->enabled_actions &
+				DEVICE_MANAGER_ENABLE_DECOMMISSION_DEVICE )
+		{
+			decommission_device = iot_action_allocate( iot_lib,
+					DEVICE_MANAGER_DECOMMISSION_DEVICE );
+			iot_action_flags_set( decommission_device,
+					IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
+#if defined( __ANDROID__ )
+			result = iot_action_register_callback(
+					decommission_device, &on_action_agent_decommission,
+					(void*)device_manager, NULL, 0u );
+#else
+			result = device_manager_make_control_command( command_path,
+					PATH_MAX, device_manager, " --decommission" );
+			if ( result == IOT_STATUS_SUCCESS )
+				result = iot_action_register_command( decommission_device,
+						command_path, NULL, 0u );
+#endif
+			if ( result == IOT_STATUS_SUCCESS )
+				device_manager->decommission_device =
+					decommission_device;
+			else
+				IOT_LOG( iot_lib, IOT_LOG_ERROR,
+						"Failed to register %s action. Reason: %s",
+						DEVICE_MANAGER_DECOMMISSION_DEVICE,
+						iot_error(result) );
+		}
 
 		/* agent reset */
 		if ( device_manager->enabled_actions &

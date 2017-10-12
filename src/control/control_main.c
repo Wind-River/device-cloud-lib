@@ -26,11 +26,80 @@
  * @brief Report the application build information
  */
 static IOT_SECTION void control_build_information( void );
+static IOT_SECTION int control_device_decommission( void );
 
 int control_device_shutdown( iot_bool_t shutdown, unsigned int delay )
 {
 	return ( os_system_shutdown( shutdown, delay ) ==
 		OS_STATUS_INVOKED ? EXIT_SUCCESS : EXIT_FAILURE );
+}
+
+int control_device_decommission( void )
+{
+	char file_path[ PATH_MAX ];
+	iot_status_t result = IOT_STATUS_NO_PERMISSION;
+
+	/* #1 config dir: remove the iot-connect.cfg file, reboot. */
+	os_snprintf( file_path,
+		PATH_MAX, "%s%c%s",
+		IOT_DEFAULT_DIR_CONFIG, OS_DIR_SEP,
+		IOT_DEFAULT_FILE_CONNECT);
+
+	if ( os_file_exists( file_path ) )
+	{
+		os_printf("Found %s\n", file_path );
+		if ( os_file_delete( file_path ) != OS_STATUS_SUCCESS )
+			os_printf("Error: unable to remove %s\n", file_path );
+		else
+			result = IOT_STATUS_SUCCESS;
+	}
+
+	/* #2: runtime dir: the API uses config dir and runtime dir.  Check the runtime
+	 * dir as well */
+	os_snprintf( file_path,
+		PATH_MAX, "%s%c%s",
+		IOT_DEFAULT_DIR_RUNTIME, OS_DIR_SEP,
+		IOT_DEFAULT_FILE_CONNECT);
+
+	if ( os_file_exists( file_path ) )
+	{
+		os_printf("Found %s\n", file_path );
+		if ( os_file_delete( file_path ) != OS_STATUS_SUCCESS )
+		{
+			result = IOT_STATUS_NO_PERMISSION;
+			os_printf("Error: unable to remove %s\n", file_path );
+		}
+		else
+			result = IOT_STATUS_SUCCESS;
+	}
+
+	/* #3: remove the device id */
+	os_snprintf( file_path,
+		PATH_MAX, "%s%c%s",
+		IOT_DEFAULT_DIR_RUNTIME, OS_DIR_SEP,
+		IOT_DEFAULT_FILE_DEVICE_ID);
+	if ( os_file_exists( file_path ) )
+	{
+		os_printf("Found %s\n", file_path );
+		if ( os_file_delete( file_path ) != OS_STATUS_SUCCESS )
+		{
+			result = IOT_STATUS_NO_PERMISSION;
+			os_printf("Error: unable to remove %s\n", file_path );
+		}
+		else
+			result = IOT_STATUS_SUCCESS;
+	}
+
+	if ( result == IOT_STATUS_SUCCESS )
+	{
+		os_printf("Rebooting system\n");
+		if ( control_device_shutdown(IOT_TRUE, IOT_REBOOT_DELAY) != EXIT_SUCCESS )
+		{
+			os_printf("Error rebooting system\n");
+			result = IOT_STATUS_BAD_REQUEST;
+		}
+	}
+	return result;
 }
 
 int control_main( int argc, char *argv[] )
@@ -42,6 +111,7 @@ int control_main( int argc, char *argv[] )
 		{ 0u , "reboot"        , 0u, NULL, NULL, "reboot the device"  , 0u },
 		{ 0u , "shutdown"      , 0u, NULL, NULL, "shutdown the device", 0u },
 		{ 'v', "version"       , 0u, NULL, NULL, "display version"    , 0u },
+		{ 'd' , "decommission"  , 0u, NULL, NULL, "decommission device", 0u },
 		{ 0, NULL, 0, NULL, NULL, NULL, 0u }
 	};
 
@@ -55,7 +125,6 @@ int control_main( int argc, char *argv[] )
 		 */
 		if ( result == EXIT_SUCCESS && argc <= 1 )
 			control_config_generate();
-
 		if ( app_arg_count( args, 'v', NULL ) )
 			control_build_information();
 		if ( result == EXIT_SUCCESS &&
@@ -69,6 +138,12 @@ int control_main( int argc, char *argv[] )
 		{
 			result = control_device_shutdown( IOT_FALSE, IOT_REBOOT_DELAY);
 			os_printf("shutdown device delay=%d seconds\n", IOT_REBOOT_DELAY);
+		}
+                if ( result == EXIT_SUCCESS &&
+                        app_arg_count( args, 0u, "decommission" ) )
+		{
+			result = control_device_decommission();
+			os_printf("decommissioning device\n");
 		}
 	}
 	return result;
