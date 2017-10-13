@@ -16,8 +16,7 @@ Features Included are:
 Building
 --------
 ```sh
-mkdir build
+./build-deps.sh
 cd build
-cmake ..
 make
 ```
