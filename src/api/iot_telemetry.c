@@ -303,7 +303,7 @@ iot_status_t iot_telemetry_deregister(
 				result = iot_plugin_perform( telemetry->lib,
 					txn, &max_time_out,
 					IOT_OPERATION_TELEMETRY_DEREGISTER,
-					NULL, NULL );
+					NULL, NULL, NULL );
 				if ( result == IOT_STATUS_SUCCESS )
 					telemetry->state = IOT_ITEM_DEREGISTERED;
 				else
@@ -441,7 +441,7 @@ iot_status_t iot_telemetry_publish_data( iot_telemetry_t *telemetry,
 				result = iot_plugin_perform(
 					telemetry->lib, txn, &max_time_out,
 						IOT_OPERATION_TELEMETRY_PUBLISH,
-						telemetry, data );
+						telemetry, data, NULL );
 				if ( result == IOT_STATUS_SUCCESS )
 					telemetry->time_stamp = 0u;
 #ifndef IOT_NO_THREAD_SUPPORT
@@ -479,8 +479,9 @@ iot_status_t iot_telemetry_register(
 		if ( telemetry->lib )
 		{
 			result = iot_plugin_perform( telemetry->lib,
-				txn, &max_time_out, IOT_OPERATION_TELEMETRY_REGISTER,
-				telemetry, NULL );
+				txn, &max_time_out,
+				IOT_OPERATION_TELEMETRY_REGISTER,
+				telemetry, NULL, NULL );
 			if ( result == IOT_STATUS_SUCCESS )
 				telemetry->state = IOT_ITEM_REGISTERED;
 			else

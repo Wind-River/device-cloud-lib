@@ -13,6 +13,7 @@
 #include <iot.h>
 
 #include <ctype.h>   /* for alnum */
+#include <math.h>    /* for asin, sin, cos, tan, M_PI */
 #include <stdlib.h>  /* for EXIT_SUCCESS & EXIT_FAILURE */
 #include <string.h>  /* for strncpy */
 #include <stdio.h>   /* for printf */
@@ -73,7 +74,6 @@ static iot_telemetry_t *telemetry_light = NULL;
 /* add one of each telemetry type to test */
 static iot_telemetry_t *telemetry_boolean = NULL;
 static iot_telemetry_t *telemetry_location = NULL;
-static iot_telemetry_t *telemetry_string = NULL;
 static iot_telemetry_t *telemetry_int8 = NULL;
 static iot_telemetry_t *telemetry_int16 = NULL;
 static iot_telemetry_t *telemetry_int32 = NULL;
@@ -90,8 +90,8 @@ static iot_action_t *enable_location_cmd = NULL;
 static iot_action_t *enable_telemetry_cmd = NULL;
 static iot_action_t *script_cmd = NULL;
 static iot_action_t *test_params_cmd = NULL;
-static iot_bool_t send_location = IOT_FALSE;
-static iot_bool_t send_telemetry = IOT_FALSE;
+static iot_bool_t send_location = IOT_TRUE;
+static iot_bool_t send_telemetry = IOT_TRUE;
 
 /**
  * @brief Sleep handler
@@ -306,8 +306,6 @@ static iot_t* initialize( void )
 			"udmp:units", IOT_TYPE_STRING, "Celsius" );
 		telemetry_boolean = iot_telemetry_allocate( iot_lib,
 			"bool", IOT_TYPE_BOOL );
-		telemetry_string = iot_telemetry_allocate( iot_lib,
-			"string", IOT_TYPE_STRING );
 		telemetry_int8 = iot_telemetry_allocate( iot_lib,
 			"int8", IOT_TYPE_INT8 );
 		telemetry_int16 = iot_telemetry_allocate( iot_lib,
@@ -343,10 +341,6 @@ static iot_t* initialize( void )
 		IOT_LOG( iot_lib, IOT_LOG_INFO, "Registering telemetry: %s",
 			"bool" );
 		iot_telemetry_register( telemetry_boolean, NULL, 0u );
-
-		IOT_LOG( iot_lib, IOT_LOG_INFO, "Registering telemetry: %s",
-			"string" );
-		iot_telemetry_register( telemetry_string, NULL, 0u );
 
 		IOT_LOG( iot_lib, IOT_LOG_INFO, "registering telemetry: %s",
 			"int8" );
@@ -496,16 +490,17 @@ iot_status_t on_enable_disable_location(
 {
 	iot_t *iot_lib = (iot_t *)user_data;
 	(void)(request);
+
 	if ( send_location == IOT_FALSE )
 	{
 		printf( "Sending location...\n" );
-		iot_event_publish( iot_lib, 0, "Sending location...\n" );
+		iot_event_publish( iot_lib, NULL, "Sending location...\n" );
 		send_location = IOT_TRUE;
 	}
 	else
 	{
 		printf( "Disabling location...\n" );
-		iot_event_publish( iot_lib, 0, "Disabling location...\n" );
+		iot_event_publish( iot_lib, NULL, "Disabling location...\n" );
 		send_location = IOT_FALSE;
 	}
 	return IOT_STATUS_SUCCESS;
@@ -517,16 +512,17 @@ iot_status_t on_enable_disable_telemetry(
 {
 	iot_t *iot_lib = (iot_t *)user_data;
 	(void)(request);
+
 	if ( send_telemetry == IOT_FALSE )
 	{
 		printf( "Sending telemetry...\n" );
-		iot_event_publish( iot_lib, 0, "Sending telemetry...\n" );
+		iot_event_publish( iot_lib, NULL, "Sending telemetry...\n" );
 		send_telemetry = IOT_TRUE;
 	}
 	else
 	{
 		printf( "Disabling telemetry...\n" );
-		iot_event_publish( iot_lib, 0, "Disabling telemetry...\n" );
+		iot_event_publish( iot_lib, NULL, "Disabling telemetry...\n" );
 		send_telemetry = IOT_FALSE;
 	}
 	return IOT_STATUS_SUCCESS;
@@ -619,11 +615,15 @@ double random_dbl( double min, double max )
 
 long random_int( long min, long max )
 {
-	return min + (rand() / (long)RAND_MAX) * ( max - min );
+	return min + (rand() * ( max - min )) / (long)RAND_MAX;
 }
 
 void send_location_sample( iot_t *iot_lib_hdl )
 {
+	static iot_bool_t loc_init = IOT_FALSE;
+	/* radius of earth (in metres) */
+	static const iot_float64_t earth_radius = 6371.0 * 1000.0;
+
 	iot_status_t status = IOT_STATUS_FAILURE;
 
 	/* A location sample */
@@ -636,20 +636,40 @@ void send_location_sample( iot_t *iot_lib_hdl )
 	/* Range of the altitude in metres */
 	iot_float64_t altitude_accuracy = 0.0;
 	/* Direction heading */
-	iot_float64_t heading = 0.0;
+	static iot_float64_t heading;
 	/* Latitude in degrees */
-	iot_float64_t latitude = 0.0;
+	static iot_float64_t latitude;
+	iot_float64_t latitude_rad;
 	/* Longitude in degrees */
-	iot_float64_t longitude = 0.0;
+	static iot_float64_t longitude;
 	/* Location source type */
 	iot_location_source_t source = IOT_LOCATION_SOURCE_UNKNOWN;
+	/* Distance travelled in metres */
+	/* 10 km to 300 km */
+	const iot_float64_t distance = random_dbl( 10000.0, 300000.0 );
 	/* Speed being currently travelled in metres/second */
-	iot_float64_t speed = 0.0;
+	const iot_float64_t speed = distance / 5.0;
 	/* Location tag */
 	char tag[TAG_MAX_LEN];
 
 	long random_value;
 	iot_uint32_t tag_size;
+	iot_float64_t heading_rad;
+	const iot_float64_t e = distance/earth_radius;
+
+	/* initialize location if first pass */
+	if ( loc_init == IOT_FALSE )
+	{
+		/* Initialize with random location values */
+		heading = random_dbl( 0.0, 360.0 );
+		latitude = random_dbl( -90.0, 90.0 );
+		longitude = random_dbl( -180.0, 180.0 );
+		loc_init = IOT_TRUE;
+	}
+	/* convert degrees to radians */
+	latitude_rad = (latitude * M_PI ) / 180.0;
+	longitude = (longitude * M_PI ) / 180.0;
+
 #define LOG_FORMAT "Location:\n" \
 	"\tlatitude         :%f\n" \
 	"\tlongitude        :%f\n" \
@@ -661,14 +681,26 @@ void send_location_sample( iot_t *iot_lib_hdl )
 	"\tsource           :%u\n" \
 	"\ttag              :%s\n"
 
-	/* Random location values */
-	latitude = random_dbl( -90.0, 90.0 );
-	longitude = random_dbl( -180.0, 180.0 );
-	accuracy = random_dbl( 0.0, 1000.0 );
-	altitude = random_dbl( -15.0, 10000.0 );
-	altitude_accuracy = random_dbl( 0.0, 1000.0 );
+	/* degrees to radians */
+	heading_rad = (heading * M_PI) / 180.0;
+
+	/* update next heading */
 	heading = random_dbl( 0.0, 360.0 );
-	speed = random_dbl( 0.0, 10000.0 );
+
+	latitude = asin( sin(latitude_rad) * cos(e) +
+		cos(latitude_rad) * sin(e) * cos(heading_rad) );
+
+	longitude = longitude + atan2(
+		sin(heading_rad) * sin(e) * cos(latitude_rad),
+		cos(e) - sin(latitude_rad) * sin(latitude) );
+
+	latitude = latitude * (180.0/M_PI); /* radians to degrees */
+	longitude = longitude * (180.0/M_PI); /* radians to degrees */
+
+	accuracy = distance / 2.0;
+	altitude = random_dbl( -15.0, 15.0 );
+	altitude_accuracy = random_dbl( 0.0, 30.0 );
+
 	random_value = random_int(
 		IOT_LOCATION_SOURCE_FIXED, IOT_LOCATION_SOURCE_WIFI );
 	source = (iot_location_source_t)random_value;
@@ -767,7 +799,7 @@ void send_telemetry_sample( iot_t *iot_lib )
 	temperature = (iot_float32_t)random_dbl( 1.0, 45.0 );
 	sample_size = (size_t)random_int( 0, MAX_TEXT_SIZE - 1 );
 	generate_random_string( string_test, sample_size );
-	random_value = random_int( 0, 6 );
+	random_value = random_int( 0, 8 );
 	alarm_severity = (iot_severity_t)random_value;
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO,"%s",
@@ -785,7 +817,7 @@ void send_telemetry_sample( iot_t *iot_lib )
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending string: %s", string_test );
-	result = iot_telemetry_publish( telemetry_string, NULL, 0, IOT_TYPE_STRING, string_test );
+	result = iot_attribute_publish( iot_lib, NULL, "string", string_test );
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending int8  : %hhd", (signed char)((iot_int8_t)int_test) );
@@ -826,13 +858,13 @@ void send_telemetry_sample( iot_t *iot_lib )
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending alarm   : %d", alarm_severity );
-	result = iot_alarm_publish_string( alarm_test, alarm_severity, string_test );
+	result = iot_alarm_publish_string( alarm_test, NULL, alarm_severity, string_test );
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	/* toggle the boolean value for next sample */
 	if ( bool_test == IOT_FALSE )
 		bool_test = IOT_TRUE;
-	else if ( bool_test == IOT_TRUE )
+	else
 		bool_test = IOT_FALSE;
 }
 
@@ -865,6 +897,7 @@ int main( int argc, char *argv[] )
 	if ( iot_lib )
 	{
 		int count = 0;
+		iot_options_t *const opts = iot_options_allocate( iot_lib );
 
 		signal( SIGINT, sig_handler );
 
@@ -878,10 +911,12 @@ int main( int argc, char *argv[] )
 		IOT_LOG( iot_lib, IOT_LOG_INFO,
 			"Telemetry interval: %d seconds", POLL_INTERVAL_SEC );
 
+		iot_options_set_int32( opts, "level", IOT_LOG_WARNING );
 		if ( send_telemetry != IOT_FALSE )
-			iot_event_publish( iot_lib, 0, "Sending telemetry enabled" );
+			iot_event_publish( iot_lib, opts, "Sending telemetry enabled" );
 		if ( send_location != IOT_FALSE )
-			iot_event_publish( iot_lib, 0, "Sending location enabled" );
+			iot_event_publish( iot_lib, opts, "Sending location enabled" );
+		iot_options_free( opts );
 
 		while ( running != IOT_FALSE )
 		{
@@ -904,7 +939,7 @@ int main( int argc, char *argv[] )
 						"Stopping telemetry and/or location",
 						POLL_INTERVAL_SEC );
 
-					iot_event_publish( iot_lib, 0,
+					iot_event_publish( iot_lib, NULL,
 						"iteration limit reached. "
 						"Stopped sending telemetry & "
 						"location data." );

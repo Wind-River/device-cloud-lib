@@ -15,5 +15,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src/api/public
 LOCAL_SHARED_LIBRARIES := libiot
 LOCAL_MODULE := iot-app-complete
 LOCAL_SRC_FILES := complete.c
+LOCAL_LDLIBS := -lm
 include $(BUILD_EXECUTABLE)
 

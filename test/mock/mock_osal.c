@@ -59,6 +59,7 @@ int __wrap_os_strcasecmp( const char *s1, const char *s2 );
 char *__wrap_os_strchr( const char *s, char c );
 int __wrap_os_strcmp( const char *s1, const char *s2 );
 size_t __wrap_os_strlen( const char *s );
+int __wrap_os_strncasecmp( const char *s1, const char *s2, size_t len );
 int __wrap_os_strncmp( const char *s1, const char *s2, size_t len );
 char *__wrap_os_strncpy( char *destination, const char *source, size_t num );
 char *__wrap_os_strpbrk( const char *str1, const char *str2 );
@@ -424,6 +425,28 @@ size_t __wrap_os_strlen( const char *s )
 	return result;
 }
 
+int __wrap_os_strncasecmp( const char *s1, const char *s2, size_t len )
+{
+	size_t i = 0u;
+	const char offset = 'a' - 'A';
+	/* ensure this function is called meeting pre-requirements */
+	assert_non_null( s1 );
+	assert_non_null( s2 );
+
+	/* perform strcasecmp */
+	while( ( *s1 ) && ( *s1 == *s2 || *s1 + offset == *s2 || *s1 == *s2 + offset ) && ( i < len ) )
+	{
+		s1++;
+		s2++;
+		i++;
+	}
+
+	if ( i == len )
+		return 0;
+	else
+		return *( const unsigned char* )s1 - *( const unsigned char* )s2;
+}
+
 int __wrap_os_strncmp( const char *s1, const char *s2, size_t len )
 {
 	size_t i = 0;
@@ -439,7 +462,11 @@ int __wrap_os_strncmp( const char *s1, const char *s2, size_t len )
 		s2++;
 		i++;
 	}
-	return *( const unsigned char* )s1 - *( const unsigned char* )s2;
+
+	if ( i == len )
+		return 0;
+	else
+		return *( const unsigned char* )s1 - *( const unsigned char* )s2;
 }
 
 char *__wrap_os_strncpy( char *destination, const char *source, size_t num )

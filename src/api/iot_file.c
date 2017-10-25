@@ -397,7 +397,7 @@ iot_status_t iot_file_transfer(
 		/* send the request */
 		if ( result == IOT_STATUS_SUCCESS )
 			result = iot_plugin_perform( lib,
-				txn, &max_time_out, op, &transfer, NULL );
+				txn, &max_time_out, op, &transfer, NULL, NULL );
 
 		/* clean up memory on the heap */
 		if ( heap_name )

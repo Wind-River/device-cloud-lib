@@ -226,13 +226,21 @@ iot_status_t iot_plugin_perform(
 	iot_millisecond_t *max_time_out,
 	iot_operation_t op,
 	const void *item,
-	const void *value )
+	const void *value,
+	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	iot_millisecond_t time_remaining = 0u;
+	iot_millisecond_t time_remaining;
+
+	/* support newer method of specifying max_time_out */
+	iot_uint64_t u32 = 0u;
+	iot_options_get( options, "max_time_out",
+		IOT_TRUE, IOT_TYPE_UINT32, &u32 );
+	time_remaining = (iot_millisecond_t)u32;
 
 	if ( max_time_out )
-		time_remaining = *max_time_out;
+		time_remaining += *max_time_out;
+
 	if ( lib )
 	{
 		iot_bool_t ignore_time_out = IOT_FALSE;
@@ -253,7 +261,7 @@ iot_status_t iot_plugin_perform(
 					iot_status_t interim_result =
 						p->execute( lib, p->data, op,
 							time_remaining, &i,
-							item, value );
+							item, value, options );
 					if ( interim_result > result )
 						result = interim_result;
 				}

@@ -183,13 +183,15 @@ iot_status_t iot_alarm_deregister(
 
 iot_status_t iot_alarm_publish(
 	const iot_alarm_t *alarm,
+	const iot_options_t *options,
 	iot_severity_t severity )
 {
-	return iot_alarm_publish_string( alarm, severity, NULL );
+	return iot_alarm_publish_string( alarm, options, severity, NULL );
 }
 
 iot_status_t iot_alarm_publish_string(
 	const iot_alarm_t *alarm,
+	const iot_options_t *options,
 	iot_severity_t severity,
 	const char *message )
 {
@@ -221,7 +223,7 @@ iot_status_t iot_alarm_publish_string(
 				result = iot_plugin_perform(
 					alarm->lib, NULL, &max_time_out,
 					IOT_OPERATION_ALARM_PUBLISH,
-					alarm, payload );
+					alarm, payload, options );
 				os_free_null( (void**)&payload->message );
 				os_free_null( (void**)&payload );
 			}

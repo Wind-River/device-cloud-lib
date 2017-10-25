@@ -65,7 +65,7 @@ list( REMOVE_ITEM MOCK_API_PART
 set( TEST_IOT_BASE_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} )
 set( TEST_IOT_BASE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_base_test.c" )
 set( TEST_IOT_BASE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
-set( TEST_IOT_BASE_UNIT "iot_base.c" "iot_common.c" )
+set( TEST_IOT_BASE_UNIT "iot_base.c" "iot_common.c" "iot_option.c" )
 
 set( TEST_IOT_BASE64_MOCK )
 set( TEST_IOT_BASE64_SRCS ${MOCK_API_SRCS} "iot_base64_test.c" )

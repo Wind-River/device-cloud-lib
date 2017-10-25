@@ -799,13 +799,11 @@ iot_status_t iot_common_arg_get( const struct iot_data *obj,
 			}
 			case IOT_TYPE_LOCATION:
 			{
-				struct iot_location *data_obj =
-					va_arg( args, struct iot_location * );
+				const struct iot_location **data_obj =
+					va_arg( args, const struct iot_location ** );
 				if ( data_obj )
 				{
-					os_memcpy( data_obj,
-						from_data.value.location,
-						sizeof( struct iot_location ) );
+					*data_obj = from_data.value.location;
 					result = IOT_STATUS_SUCCESS;
 				}
 				break;

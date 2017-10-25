@@ -51,12 +51,15 @@ LOCAL_MODULE := libiot
 LOCAL_SRC_FILES := \
 	./iot_action.c \
 	./iot_alarm.c \
+	./iot_attribute.c \
 	./iot_base.c \
 	./iot_base64.c \
 	./iot_common.c \
+	./iot_event.c \
 	./iot_file.c \
 	./iot_location.c \
 	./iot_mqtt.c \
+	./iot_option.c \
 	./iot_plugin.c \
 	./iot_telemetry.c \
 	./checksum/iot_checksum.c \

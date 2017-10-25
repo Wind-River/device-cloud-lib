@@ -77,17 +77,17 @@ static const iot_status_msg_t IOT_STATUS_MESSAGES[] = {
 };
 
 /**
- * @brief Sets the value of a piece of option data
+ * @brief Sets the value of a piece of configuration data
  *
  * @param[in,out]  handle             library handle
- * @param[in]      name               option name
- * @param[in]      data               option value to set
+ * @param[in]      name               configuration option name
+ * @param[in]      data               configuration option value to set
  *
  * @retval IOT_STATUS_BAD_PARAMETER   invalid parameter passed to the function
  * @retval IOT_STAUTS_FULL            maximum number of options reached
  * @retval IOT_STATUS_SUCCESS         on success
  */
-static IOT_SECTION iot_status_t iot_option_set_data(
+static IOT_SECTION iot_status_t iot_config_set_data(
 	iot_t *handle,
 	const char *name,
 	const struct iot_data *data );
@@ -175,8 +175,7 @@ static IOT_SECTION iot_status_t iot_base_configuration_parse(
 static IOT_SECTION iot_status_t iot_base_device_id_set(
 	iot_t *lib );
 
-
-iot_status_t iot_option_get(
+iot_status_t iot_config_get(
 	const iot_t *handle,
 	const char *name,
 	iot_bool_t convert,
@@ -185,27 +184,21 @@ iot_status_t iot_option_get(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( handle && name )
 	{
-		va_list args;
-		size_t i;
 		result = IOT_STATUS_NOT_FOUND;
-		va_start( args, type );
-		for( i = 0u; i < handle->option_count &&
-			result == IOT_STATUS_NOT_FOUND; ++i )
+		if ( handle->options_config )
 		{
-			if ( os_strncmp( handle->option[i].name,
-				name, IOT_NAME_MAX_LEN ) == 0 )
-			{
-				result = iot_common_arg_get(
-					&handle->option[i].data,
-					convert, type, args );
-			}
+			va_list args;
+			va_start( args, type );
+			result = iot_options_get_args(
+				handle->options_config, name, convert,
+				type, args );
+			va_end( args );
 		}
-		va_end( args );
 	}
 	return result;
 }
 
-iot_status_t iot_option_get_raw(
+iot_status_t iot_config_get_raw(
 	const iot_t *handle,
 	const char *name,
 	iot_bool_t convert,
@@ -217,7 +210,7 @@ iot_status_t iot_option_get_raw(
 	{
 		struct iot_data_raw raw_data;
 		os_memzero( &raw_data, sizeof( struct iot_data_raw ) );
-		result = iot_option_get( handle, name, convert,
+		result = iot_config_get( handle, name, convert,
 			IOT_TYPE_RAW, &raw_data );
 		if ( length )
 			*length = raw_data.length;
@@ -226,118 +219,70 @@ iot_status_t iot_option_get_raw(
 	return result;
 }
 
-iot_status_t iot_option_set(
+iot_status_t iot_config_set(
 	iot_t *handle,
 	const char* name,
 	iot_type_t type, ... )
 {
-	iot_status_t result;
-	va_list args;
-	struct iot_data data;
-	os_memzero( &data, sizeof( struct iot_data ) );
-	va_start( args, type );
-	iot_common_arg_set( &data, IOT_TRUE, type, args );
-	va_end( args );
-	result = iot_option_set_data( handle, name, &data );
-	os_free_null( (void **)&data.heap_storage );
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( handle && name && *name )
+	{
+		va_list args;
+		struct iot_data data;
+
+		os_memzero( &data, sizeof( struct iot_data ) );
+		va_start( args, type );
+		iot_common_arg_set( &data, IOT_TRUE, type, args );
+		va_end( args );
+		result = iot_config_set_data( handle, name, &data );
+		os_free_null( (void **)&data.heap_storage );
+	}
 	return result;
 }
 
-iot_status_t iot_option_set_data(
+iot_status_t iot_config_set_data(
 	iot_t *handle,
 	const char *name,
 	const struct iot_data *data )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( handle && name && *name != '\0' && data )
+	if ( handle && data )
 	{
-		unsigned int i;
-		struct iot_option *attr = NULL;
-
-		/* see if this is an option update */
-		for ( i = 0u;
-			attr == NULL && i < handle->option_count; ++i )
+		/* if first option, set global options list */
+		result = IOT_STATUS_NO_MEMORY;
+		if ( !handle->options_config )
 		{
-			if ( !handle->option[i].name ||
-				os_strcmp( handle->option[i].name, name ) == 0 )
-				attr = &handle->option[i];
+			handle->options_config =
+				iot_options_allocate( handle );
 		}
 
-		/* adding a new option */
-		result = IOT_STATUS_FULL;
-		if ( !attr && handle->option_count < IOT_OPTION_MAX )
+		if ( handle->options_config )
 		{
-#ifndef IOT_STACK_ONLY
-			void *ptr = os_realloc( handle->option,
-				sizeof( struct iot_option ) *
-					( handle->option_count + 1u ) );
-			if ( ptr )
-				handle->option = ptr;
-			if ( handle->option && ptr )
-#endif /* ifndef IOT_STACK_ONLY */
-			{
-				attr = &handle->option[handle->option_count];
-				os_memzero( attr, sizeof( struct iot_option ) );
-				++handle->option_count;
-			}
+			result = iot_options_set_data(
+				handle->options_config, name, data );
 		}
-
-		/* add or update the option */
-		if ( attr )
-		{
-			iot_bool_t update = IOT_TRUE;
-			/* add name if not already given */
-			if ( !attr->name || *attr->name == '\0' )
-			{
-				size_t name_len = os_strlen( name );
-				if ( name_len > IOT_NAME_MAX_LEN )
-					name_len = IOT_NAME_MAX_LEN;
-#ifndef IOT_STACK_ONLY
-				attr->name = os_malloc( (name_len + 1u) );
-#else
-				attr->name = attr->_name;
-#endif /* ifndef IOT_STACK_ONLY */
-				if ( !attr->name )
-					update = IOT_FALSE;
-				else
-				{
-					os_strncpy( attr->name, name, name_len );
-					attr->name[name_len] = '\0';
-				}
-			}
-
-			if ( update )
-			{
-				os_free_null( (void **)&attr->data.heap_storage );
-				iot_common_data_copy( &attr->data, data,
-					IOT_TRUE );
-				result = IOT_STATUS_SUCCESS;
-			}
-		}
-	}
-	if ( result != IOT_STATUS_SUCCESS )
-	{
-		if ( name )
-			IOT_LOG( handle, IOT_LOG_NOTICE,
-				"Unable to store value for \"%s\"; Reason: %s",
-				name, iot_error( result ) );
 	}
 	return result;
 }
 
-iot_status_t iot_option_set_raw(
+iot_status_t iot_config_set_raw(
 	iot_t *handle,
 	const char* name,
 	size_t length,
 	const void *ptr )
 {
-	struct iot_data data;
-	os_memzero( &data, sizeof( struct iot_data ) );
-	data.type = IOT_TYPE_RAW;
-	data.value.raw.ptr = ptr;
-	data.value.raw.length = length;
-	data.has_value = IOT_TRUE;
-	return iot_option_set_data( handle, name, &data );
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( handle && name && *name )
+	{
+		struct iot_data data;
+		os_memzero( &data, sizeof( struct iot_data ) );
+		data.type = IOT_TYPE_RAW;
+		data.value.raw.ptr = ptr;
+		data.value.raw.length = length;
+		data.has_value = IOT_TRUE;
+		result = iot_config_set_data( handle, name, &data );
+	}
+	return result;
 }
 
 #ifndef IOT_NO_THREAD_SUPPORT
@@ -374,7 +319,7 @@ iot_status_t iot_connect(
 				"Failed getting connect configuration" );
 
 		/* set log level */
-		iot_option_get( lib, "log_level", IOT_FALSE,
+		iot_config_get( lib, "log_level", IOT_FALSE,
 			IOT_TYPE_STRING, &log_level );
 		if ( log_level )
 			iot_log_level_set_string( lib, log_level );
@@ -382,7 +327,7 @@ iot_status_t iot_connect(
 		result = iot_plugin_perform( lib,
 			NULL, &max_time_out,
 			IOT_OPERATION_CLIENT_CONNECT,
-			NULL, NULL );
+			NULL, NULL, NULL );
 
 		if ( result == IOT_STATUS_SUCCESS )
 		{
@@ -603,7 +548,7 @@ static iot_status_t iot_base_configuration_parse_object(
 		{
 			iot_bool_t value = IOT_FALSE;
 			iot_json_decode_bool( json, item, &value );
-			iot_option_set( lib, key, IOT_TYPE_BOOL, value );
+			iot_config_set( lib, key, IOT_TYPE_BOOL, value );
 			os_fprintf( OS_STDERR, "%s: %s\n", key,
 				(value == IOT_FALSE ? "false" : "true" ) );
 			break;
@@ -612,7 +557,7 @@ static iot_status_t iot_base_configuration_parse_object(
 		{
 			iot_int64_t value = 0;
 			iot_json_decode_integer( json, item, &value );
-			iot_option_set( lib, key, IOT_TYPE_INT64, value );
+			iot_config_set( lib, key, IOT_TYPE_INT64, value );
 			os_fprintf( OS_STDERR, "%s: %llu\n", key,
 				(long long int)value );
 			break;
@@ -621,7 +566,7 @@ static iot_status_t iot_base_configuration_parse_object(
 		{
 			iot_float64_t value = 0.0;
 			iot_json_decode_real( json, item, &value );
-			iot_option_set( lib, key, IOT_TYPE_FLOAT64, value );
+			iot_config_set( lib, key, IOT_TYPE_FLOAT64, value );
 			os_fprintf( OS_STDERR, "%s: %f\n", key, value );
 			break;
 		}
@@ -637,7 +582,7 @@ static iot_status_t iot_base_configuration_parse_object(
 				if ( value )
 					os_strncpy( v_ptr, value, value_len );
 				v_ptr[value_len] = '\0';
-				iot_option_set( lib, key,
+				iot_config_set( lib, key,
 					IOT_TYPE_STRING, v_ptr );
 				os_fprintf( OS_STDERR, "%s: %s\n", key, v_ptr );
 				os_free( v_ptr );
@@ -799,7 +744,7 @@ iot_status_t iot_disconnect(
 #endif /* ifndef IOT_NO_THREAD_SUPPORT */
 
 		result = iot_plugin_perform( lib, NULL, &max_time_out,
-			IOT_OPERATION_CLIENT_DISCONNECT, NULL, NULL );
+			IOT_OPERATION_CLIENT_DISCONNECT, NULL, NULL, NULL );
 	}
 	return result;
 }
@@ -830,15 +775,6 @@ const char *iot_error( iot_status_t code )
 	if ( result == NULL )
 		result = "unknown error";
 	return result;
-}
-
-iot_status_t iot_event_publish(
-	iot_t *lib,
-	iot_millisecond_t max_time_out,
-	const char *message )
-{
-	return iot_plugin_perform( lib, NULL, &max_time_out,
-		IOT_OPERATION_EVENT_LOG_PUBLISH, NULL, message );
 }
 
 const char *iot_id( const iot_t *lib )
@@ -1070,7 +1006,7 @@ iot_status_t iot_loop_iteration( iot_t *lib, iot_millisecond_t max_time_out )
 	if ( lib )
 	{
 		result = iot_plugin_perform( lib, NULL, &max_time_out,
-			IOT_OPERATION_ITERATION, NULL, NULL );
+			IOT_OPERATION_ITERATION, NULL, NULL, NULL );
 
 		if ( result == IOT_STATUS_SUCCESS
 #ifndef IOT_NO_THREAD_SUPPORT
@@ -1250,17 +1186,28 @@ iot_status_t iot_terminate(
 		}
 
 		/* free memory allocated for each option */
-		for ( i = 0u; i < lib->option_count; ++i )
+		for ( i = 0u; i < lib->options_count; ++i )
 		{
-			struct iot_option *const
-				attr = &lib->option[i];
-			if ( attr )
+			iot_uint8_t j;
+			struct iot_options *const options = lib->options[i];
+			for ( j = 0u; options && j < options->option_count; ++j )
 			{
-				os_free_null( (void **)&attr->data.heap_storage );
-				os_free_null( (void **)&attr->name );
+				struct iot_option *const option = &options->option[j];
+				if ( option )
+				{
+					os_free_null( (void**)&option->data.heap_storage );
+					os_free_null( (void**)&option->name );
+				}
 			}
+			if ( options )
+			{
+				options->option_count = 0u;
+				os_free_null( (void**)&options->option );
+			}
+			os_free_null( (void **)&lib->options[i] );
 		}
-		os_free_null( (void **)&lib->option );
+		os_free_null( (void **)&lib->options );
+		lib->options_count = 0u;
 #endif /* ifndef IOT_STACK_ONLY */
 
 		if( !lib->to_quit )

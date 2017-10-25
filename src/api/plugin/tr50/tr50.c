@@ -118,6 +118,7 @@ struct tr50_data
  * @param[in]      data                plug-in specific data
  * @param[in]      action              action being executed
  * @param[in]      request             action request
+ * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
@@ -125,7 +126,8 @@ struct tr50_data
 static IOT_SECTION iot_status_t tr50_action_complete(
 	struct tr50_data *data,
 	const iot_action_t *action,
-	const iot_action_request_t *request );
+	const iot_action_request_t *request,
+	const iot_options_t *options );
 
 /**
  * @brief publishes an alarm to the cloud
@@ -133,14 +135,19 @@ static IOT_SECTION iot_status_t tr50_action_complete(
  * @param[in]      data                plug-in specific data
  * @param[in]      alarm               alarm object to publish
  * @param[in]      payload             alarm payload to publish
+ * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see tr50_attribute_publish
+ * @see tr50_event_publish
  */
 static IOT_SECTION iot_status_t tr50_alarm_publish(
 	struct tr50_data *data,
 	const iot_alarm_t *alarm,
-	const iot_alarm_data_t *payload );
+	const iot_alarm_data_t *payload,
+	const iot_options_t *options );
 
 /**
  * @brief appends location information to json structure
@@ -167,6 +174,26 @@ static IOT_SECTION void tr50_append_value_raw(
 	const char *key,
 	const void *value,
 	size_t len );
+
+/**
+ * @brief publishes an attribute to the cloud
+ *
+ * @param[in]      data                plug-in specific data
+ * @param[in]      key                 attribute key
+ * @param[in]      value               attribute value
+ * @param[in]      options             map containing an optional options set
+ *
+ * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see tr50_alarm_publish
+ * @see tr50_event_publish
+ */
+static IOT_SECTION iot_status_t tr50_attribute_publish(
+	struct tr50_data *data,
+	const char *key,
+	const char *value,
+	const iot_options_t *options );
 
 /**
  * @brief Sends the message to check the mailbox for any cloud requests
@@ -264,13 +291,18 @@ iot_status_t tr50_enable(
  *
  * @param[in]      data                plug-in specific data
  * @param[in]      message             message to publish
+ * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see tr50_alarm_publish
+ * @see tr50_attribute_publish
  */
-static IOT_SECTION iot_status_t tr50_event_log_publish(
+static IOT_SECTION iot_status_t tr50_event_publish(
 	struct tr50_data *data,
-	const char *message );
+	const char *message,
+	const iot_options_t *options );
 
 /**
  * @brief plug-in function called to perform work in the plug-in
@@ -283,6 +315,7 @@ static IOT_SECTION iot_status_t tr50_event_log_publish(
  * @param[in]      step                pointer to the operation step
  * @param[in]      item                item being modified in the operation
  * @param[in]      value               new value for the item
+ * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
@@ -298,7 +331,8 @@ iot_status_t tr50_execute(
 	iot_millisecond_t max_time_out,
 	iot_step_t *step,
 	const void *item,
-	const void *value );
+	const void *value,
+	const iot_options_t *options );
 
 /**
  * @brief plug-in function called to initialize the plug-in
@@ -336,6 +370,23 @@ static IOT_SECTION void tr50_on_message(
 	iot_bool_t retain );
 
 /**
+ * @brief appends an option to the encoder if the key is set properly in the
+ *        options map
+ *
+ * @param[out]     json                json encoder to add options to
+ * @param[in]      json_key            key to add the item to in the json
+ * @param[in]      options             map containing optional settings
+ * @param[in]      options_key         key to search in the options map
+ * @param[in]      type                type of data that must be set in map
+ */
+static IOT_SECTION void tr50_optional(
+	iot_json_encoder_t *json,
+	const char *json_key,
+	const iot_options_t *options,
+	const char *options_key,
+	iot_type_t type );
+
+/**
  * @brief convert a timestamp to a formatted time as in RFC3339
  *
  * @param[in]      ts                  time stamp to convert
@@ -355,6 +406,7 @@ static IOT_SECTION char *tr50_strtime(
  * @param[in]      data                plug-in specific data
  * @param[in]      t                   telemetry object to publish
  * @param[in]      d                   data for telemetry object to publish
+ * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
@@ -362,7 +414,8 @@ static IOT_SECTION char *tr50_strtime(
 static IOT_SECTION iot_status_t tr50_telemetry_publish(
 	struct tr50_data *data,
 	const iot_telemetry_t *t,
-	const struct iot_data *d );
+	const struct iot_data *d,
+	const iot_options_t *options );
 
 /**
  * @brief plug-in function called to terminate the plug-in
@@ -452,7 +505,8 @@ static void tr50_file_queue_check(
 iot_status_t tr50_action_complete(
 	struct tr50_data *data,
 	const iot_action_t *UNUSED(action),
-	const iot_action_request_t *request )
+	const iot_action_request_t *request,
+	const iot_options_t *UNUSED(options) )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( data )
@@ -608,7 +662,8 @@ iot_status_t tr50_action_complete(
 iot_status_t tr50_alarm_publish(
 	struct tr50_data *data,
 	const iot_alarm_t *alarm,
-	const iot_alarm_data_t *payload )
+	const iot_alarm_data_t *payload,
+	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_FAILURE;
 	char id[6u];
@@ -630,6 +685,11 @@ iot_status_t tr50_alarm_publish(
 	iot_json_encode_real( json, "state", payload->severity );
 	if( payload->message && *payload->message != '\0')
 		iot_json_encode_string( json, "msg", payload->message );
+
+	/* publish optional arguments */
+	tr50_optional( json, "ts", options, "time_stamp", IOT_TYPE_NULL );
+	tr50_optional( json, NULL, options, "location", IOT_TYPE_LOCATION );
+	tr50_optional( json, "republish", options, "republish", IOT_TYPE_BOOL );
 
 	iot_json_encode_object_end( json );
 	iot_json_encode_object_end( json );
@@ -715,6 +775,53 @@ void tr50_append_value_raw(
 		os_free( heap );
 }
 
+iot_status_t tr50_attribute_publish(
+	struct tr50_data *data,
+	const char *key,
+	const char *value,
+	const iot_options_t *options )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( data && key && value )
+	{
+		iot_json_encoder_t *json;
+		json = iot_json_encode_initialize(
+			NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+		result = IOT_STATUS_NO_MEMORY;
+		if ( json )
+		{
+			const char *msg;
+			iot_json_encode_object_start( json, "cmd" );
+			iot_json_encode_string( json, "command",
+				"attribute.publish" );
+			iot_json_encode_object_start( json, "params" );
+			iot_json_encode_string( json, "thingKey",
+				data->thing_key );
+			iot_json_encode_string( json, "key",
+				key );
+			iot_json_encode_string( json, "value",
+				value );
+
+			tr50_optional( json, "ts", options, "time_stamp",
+				IOT_TYPE_NULL );
+			tr50_optional( json, "republish", options, "republish",
+				IOT_TYPE_BOOL );
+
+			iot_json_encode_object_end( json );
+			iot_json_encode_object_end( json );
+
+			msg = iot_json_encode_dump( json );
+			IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
+			iot_mqtt_publish( data->mqtt, "api",
+				msg, os_strlen( msg ), TR50_MQTT_QOS,
+				IOT_FALSE, NULL );
+			iot_json_encode_terminate( json );
+			result = IOT_STATUS_SUCCESS;
+		}
+	}
+	return result;
+}
+
 iot_status_t tr50_check_mailbox(
 	struct tr50_data *data )
 {
@@ -772,15 +879,15 @@ iot_status_t tr50_connect(
 		iot_mqtt_proxy_t *proxy_conf_p = NULL;
 		iot_bool_t validate_cert = IOT_FALSE;
 
-		iot_option_get( lib, "cloud.host", IOT_FALSE,
+		iot_config_get( lib, "cloud.host", IOT_FALSE,
 			IOT_TYPE_STRING, &host );
-		iot_option_get( lib, "cloud.port", IOT_FALSE,
+		iot_config_get( lib, "cloud.port", IOT_FALSE,
 			IOT_TYPE_INT64, &port );
-		iot_option_get( lib, "cloud.token", IOT_FALSE,
+		iot_config_get( lib, "cloud.token", IOT_FALSE,
 			IOT_TYPE_STRING, &app_token );
-		iot_option_get( lib, "ca_bundle_file", IOT_FALSE,
+		iot_config_get( lib, "ca_bundle_file", IOT_FALSE,
 			IOT_TYPE_STRING, &ca_bundle );
-		iot_option_get( lib, "validate_cloud_cert", IOT_FALSE,
+		iot_config_get( lib, "validate_cloud_cert", IOT_FALSE,
 			IOT_TYPE_BOOL, &validate_cert );
 
 		os_memzero( &ssl_conf, sizeof( iot_mqtt_ssl_t ) );
@@ -788,18 +895,18 @@ iot_status_t tr50_connect(
 		ssl_conf.insecure = !validate_cert;
 
 		os_memzero( &proxy_conf, sizeof( iot_mqtt_proxy_t ) );
-		if ( iot_option_get( lib, "proxy.type", IOT_FALSE,
+		if ( iot_config_get( lib, "proxy.type", IOT_FALSE,
 			IOT_TYPE_STRING, &proxy_type )
 				== IOT_STATUS_SUCCESS )
 		{
 			proxy_conf_p = &proxy_conf;
-			iot_option_get( lib, "proxy.host", IOT_FALSE,
+			iot_config_get( lib, "proxy.host", IOT_FALSE,
 				IOT_TYPE_STRING, &proxy_conf.host );
-			iot_option_get( lib, "proxy.port", IOT_FALSE,
+			iot_config_get( lib, "proxy.port", IOT_FALSE,
 				IOT_TYPE_INT64, &proxy_conf.port );
-			iot_option_get( lib, "proxy.username", IOT_FALSE,
+			iot_config_get( lib, "proxy.username", IOT_FALSE,
 				IOT_TYPE_STRING, &proxy_conf.username );
-			iot_option_get( lib, "proxy.password", IOT_FALSE,
+			iot_config_get( lib, "proxy.password", IOT_FALSE,
 				IOT_TYPE_STRING, &proxy_conf.password );
 			if ( os_strcmp( proxy_type, "SOCKS5" ) == 0 )
 				proxy_conf.type = IOT_PROXY_SOCKS5;
@@ -878,15 +985,15 @@ iot_status_t tr50_connect_check(
 			iot_mqtt_ssl_t ssl_conf;
 			iot_bool_t validate_cert = IOT_FALSE;
 
-			iot_option_get( lib, "cloud.host", IOT_FALSE,
+			iot_config_get( lib, "cloud.host", IOT_FALSE,
 				IOT_TYPE_STRING, &host );
-			iot_option_get( lib, "cloud.port", IOT_FALSE,
+			iot_config_get( lib, "cloud.port", IOT_FALSE,
 				IOT_TYPE_INT64, &port );
-			iot_option_get( lib, "cloud.token", IOT_FALSE,
+			iot_config_get( lib, "cloud.token", IOT_FALSE,
 				IOT_TYPE_STRING, &app_token );
-			iot_option_get( lib, "ca_bundle_file", IOT_FALSE,
+			iot_config_get( lib, "ca_bundle_file", IOT_FALSE,
 				IOT_TYPE_STRING, &ca_bundle );
-			iot_option_get( lib, "validate_cloud_cert", IOT_FALSE,
+			iot_config_get( lib, "validate_cloud_cert", IOT_FALSE,
 				IOT_TYPE_BOOL, &validate_cert );
 
 			os_memzero( &ssl_conf, sizeof( iot_mqtt_ssl_t ) );
@@ -983,12 +1090,12 @@ iot_status_t tr50_enable(
 	return IOT_STATUS_SUCCESS;
 }
 
-iot_status_t tr50_event_log_publish(
+iot_status_t tr50_event_publish(
 	struct tr50_data *data,
-	const char *message )
+	const char *message,
+	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	printf( "HEREE!!!\n" );
 	if ( data && message )
 	{
 		iot_json_encoder_t *json;
@@ -997,6 +1104,7 @@ iot_status_t tr50_event_log_publish(
 		result = IOT_STATUS_NO_MEMORY;
 		if ( json )
 		{
+			iot_uint32_t level;
 			const char *msg;
 			iot_json_encode_object_start( json, "cmd" );
 			iot_json_encode_string( json, "command", "log.publish" );
@@ -1005,6 +1113,24 @@ iot_status_t tr50_event_log_publish(
 				data->thing_key );
 			iot_json_encode_string( json, "msg",
 				message );
+
+			/* publish optional arguments */
+			tr50_optional( json, "ts", options, "time_stamp",
+				IOT_TYPE_NULL );
+			tr50_optional( json, "global", options, "global",
+				IOT_TYPE_BOOL );
+
+			if ( iot_options_get_uint32( options,
+				"level", IOT_TRUE, &level ) == IOT_STATUS_SUCCESS )
+			{
+				if ( level <= IOT_LOG_ERROR )
+					level = 0;
+				else if ( level < IOT_LOG_INFO )
+					level = 1;
+				else
+					level = 2; /* default */
+				iot_json_encode_integer( json, "level", level );
+			}
 
 			iot_json_encode_object_end( json );
 			iot_json_encode_object_end( json );
@@ -1028,7 +1154,8 @@ iot_status_t tr50_execute(
 	iot_millisecond_t max_time_out,
 	iot_step_t *step,
 	const void *item,
-	const void *value )
+	const void *value,
+	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_SUCCESS;
 	struct tr50_data *const data = plugin_data;
@@ -1061,7 +1188,8 @@ iot_status_t tr50_execute(
 			case IOT_OPERATION_TELEMETRY_PUBLISH:
 				result = tr50_telemetry_publish( data,
 					(const iot_telemetry_t*)item,
-					(const struct iot_data*)value );
+					(const struct iot_data*)value,
+					options );
 				break;
 			case IOT_OPERATION_ITERATION:
 				tr50_file_queue_check( data );
@@ -1069,16 +1197,24 @@ iot_status_t tr50_execute(
 			case IOT_OPERATION_ACTION_COMPLETE:
 				result = tr50_action_complete( data,
 					(const iot_action_t*)item,
-					(const iot_action_request_t*)value );
+					(const iot_action_request_t*)value,
+					options );
 				break;
 			case IOT_OPERATION_ALARM_PUBLISH:
 				result = tr50_alarm_publish( data,
 					(const iot_alarm_t*)item,
-					(const iot_alarm_data_t*)value );
+					(const iot_alarm_data_t*)value,
+					options );
 				break;
-			case IOT_OPERATION_EVENT_LOG_PUBLISH:
-				result = tr50_event_log_publish( data,
-					(const char*) value );
+			case IOT_OPERATION_ATTRIBUTE_PUBLISH:
+				result = tr50_attribute_publish( data,
+					(const char *)item,
+					(const char *)value,
+					options );
+				break;
+			case IOT_OPERATION_EVENT_PUBLISH:
+				result = tr50_event_publish( data,
+					(const char *)value, options );
 				break;
 			default:
 				/* unhandled operations */
@@ -1087,483 +1223,6 @@ iot_status_t tr50_execute(
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif /* ifdef __clang__ */
-	}
-	return result;
-}
-
-iot_status_t tr50_initialize(
-	iot_t *lib,
-	void **plugin_data )
-{
-	iot_status_t result = IOT_STATUS_NO_MEMORY;
-	struct tr50_data *const data = os_malloc( sizeof( struct tr50_data ) );
-	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "initialize" );
-	if ( data )
-	{
-		os_memzero( data, sizeof( struct tr50_data ) );
-		data->lib = lib;
-		*plugin_data = data;
-
-		curl_global_init( CURL_GLOBAL_ALL );
-		result = iot_mqtt_initialize();
-	}
-	return result;
-}
-
-iot_status_t tr50_terminate(
-	iot_t *lib,
-	void *plugin_data )
-{
-	iot_status_t result = IOT_STATUS_SUCCESS;
-	struct tr50_data *data = plugin_data;
-	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "terminate" );
-	os_free_null( (void**)&data );
-	iot_mqtt_terminate();
-	curl_global_cleanup();
-	return result;
-}
-
-void tr50_on_message(
-	void *user_data,
-	const char *topic,
-	void *payload,
-	size_t payload_len,
-	int UNUSED(qos),
-	iot_bool_t UNUSED(retain) )
-{
-	char buf[1024u];
-	struct tr50_data *const data = (struct tr50_data *)(user_data);
-	iot_json_decoder_t *json;
-	const iot_json_item_t *root;
-
-	if ( data )
-		IOT_LOG( data->lib, IOT_LOG_DEBUG,
-			"tr50: received (%u bytes on %s): %.*s\n",
-			(unsigned int)payload_len, topic,
-			(int)payload_len, (const char *)payload );
-
-	IOT_LOG( data->lib, IOT_LOG_TRACE,
-		"-->received: %.*s\n", (int)payload_len, (const char *)payload );
-
-	json = iot_json_decode_initialize( buf, 1024u, 0u );
-	if ( data && json &&
-		iot_json_decode_parse( json, payload, payload_len, &root,
-			NULL, 0u ) == IOT_STATUS_SUCCESS )
-	{
-
-		if ( os_strcmp( topic, "notify/mailbox_activity" ) == 0 )
-		{
-			iot_json_type_t type;
-			const iot_json_item_t *const j_thing_key =
-				iot_json_decode_object_find( json, root,
-					"thingKey" );
-			type = iot_json_decode_type( json, j_thing_key );
-
-			if ( type == IOT_JSON_TYPE_STRING )
-			{
-				const char *v = NULL;
-				size_t v_len = 0u;
-				iot_json_decode_string( json, j_thing_key,
-					&v, &v_len );
-
-				/* check if message is for us */
-				if ( os_strncmp( v, data->thing_key, v_len ) == 0 )
-					tr50_check_mailbox( data );
-			}
-		}
-		else if ( os_strcmp( topic, "reply" ) == 0 )
-		{
-			const iot_json_object_iterator_t *root_iter =
-				iot_json_decode_object_iterator( json, root );
-			if ( root_iter )
-			{
-				char name[ IOT_NAME_MAX_LEN + 1u ];
-				const char *v = NULL;
-				size_t v_len = 0u;
-				const iot_json_item_t *j_obj = NULL;
-				unsigned int msg_id = 0u;
-
-				iot_json_decode_object_iterator_key(
-					json, root, root_iter,
-					&v, &v_len );
-				os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
-				msg_id = (unsigned int)os_atoi( name );
-
-				iot_json_decode_object_iterator_value(
-					json, root, root_iter, &j_obj );
-
-				if ( j_obj )
-				{
-					const iot_json_item_t *j_success;
-					iot_bool_t is_success;
-
-					j_success = iot_json_decode_object_find( json,
-						j_obj, "success" );
-					if ( j_success )
-					{
-						iot_json_decode_bool( json, j_success, &is_success );
-
-						if ( is_success )
-						{
-							const iot_json_item_t *j_params;
-							const iot_json_item_t *j_messages;
-							j_params = iot_json_decode_object_find(
-								json, j_obj, "params" );
-
-							j_messages = iot_json_decode_object_find( json,
-								j_params, "messages" );
-
-							/* actions/methods parsing */
-							if ( j_messages && iot_json_decode_type( json, j_messages )
-								== IOT_JSON_TYPE_ARRAY )
-							{
-								size_t i;
-								const size_t msg_count =
-									iot_json_decode_array_size( json, j_messages );
-								for ( i = 0u; i < msg_count; ++i )
-								{
-									const iot_json_item_t *j_cmd_item;
-									if ( iot_json_decode_array_at( json,
-										j_messages, i, &j_cmd_item ) == IOT_STATUS_SUCCESS )
-									{
-										const iot_json_item_t *j_id;
-										j_id = iot_json_decode_object_find(
-											json, j_cmd_item, "id" );
-										if ( !j_id )
-											IOT_LOG( data->lib, IOT_LOG_WARNING,
-												"\"%s\" not found!", "id" );
-
-										j_params = iot_json_decode_object_find(
-											json, j_cmd_item, "params" );
-										if ( !j_params )
-											IOT_LOG( data->lib, IOT_LOG_WARNING,
-												"\"%s\" not found!", "params" );
-
-										if ( j_id && j_params )
-										{
-											const iot_json_item_t *j_method;
-											const iot_json_object_iterator_t *iter;
-											iot_action_request_t *req = NULL;
-
-											j_method = iot_json_decode_object_find(
-												json, j_params, "method" );
-											if ( j_method )
-											{
-												char id[ IOT_ID_MAX_LEN + 1u ];
-												*id = '\0';
-
-												iot_json_decode_string( json, j_id, &v, &v_len );
-												os_snprintf( id, IOT_ID_MAX_LEN, "%.*s", (int)v_len, v );
-												id[ IOT_ID_MAX_LEN ] = '\0';
-
-												iot_json_decode_string( json, j_method, &v, &v_len );
-												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
-												name[ IOT_NAME_MAX_LEN ] = '\0';
-												req = iot_action_request_allocate( data->lib, name, "tr50" );
-												iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
-											}
-
-											/* for each parameter */
-											j_params = iot_json_decode_object_find(
-												json, j_params, "params" );
-											iter = iot_json_decode_object_iterator(
-												json, j_params );
-											while ( iter )
-											{
-												const iot_json_item_t *j_value = NULL;
-												iot_json_decode_object_iterator_key(
-													json, j_params, iter,
-													&v, &v_len );
-												iot_json_decode_object_iterator_value(
-													json, j_params, iter,
-													&j_value );
-												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
-												name[ IOT_NAME_MAX_LEN ] = '\0';
-												iter = iot_json_decode_object_iterator_next(
-													json, j_params, iter );
-												switch ( iot_json_decode_type( json,
-													j_value ) )
-												{
-												case IOT_JSON_TYPE_BOOL:
-													{
-													iot_bool_t value;
-													iot_json_decode_bool( json, j_value, &value );
-													iot_action_request_parameter_set( req, name, IOT_TYPE_BOOL, value );
-													}
-													break;
-												case IOT_JSON_TYPE_INTEGER:
-													{
-													iot_int64_t value;
-													iot_json_decode_integer( json, j_value, &value );
-													iot_action_request_parameter_set( req, name, IOT_TYPE_INT64, value );
-													}
-													break;
-												case IOT_JSON_TYPE_REAL:
-													{
-													iot_float64_t value;
-													iot_json_decode_real( json, j_value, &value );
-													iot_action_request_parameter_set( req, name, IOT_TYPE_FLOAT64, value );
-													}
-													break;
-												case IOT_JSON_TYPE_STRING:
-													{
-													char *value;
-													iot_json_decode_string( json, j_value, &v, &v_len );
-													value = os_malloc( v_len + 1u );
-													if( value )
-													{
-														os_strncpy( value, v, v_len );
-														value[v_len] = '\0';
-														iot_action_request_parameter_set( req, name, IOT_TYPE_STRING, value );
-														os_free( value );
-													}
-													}
-												case IOT_JSON_TYPE_ARRAY:
-												case IOT_JSON_TYPE_OBJECT:
-												case IOT_JSON_TYPE_NULL:
-												default:
-													break;
-												}
-											}
-
-											if ( req )
-												iot_action_request_execute( req, 0u );
-										}
-									}
-								}
-							}
-							else
-							{
-								j_obj = iot_json_decode_object_find( json,
-									j_params, "fileId" );
-								if ( j_obj && iot_json_decode_type( json, j_obj )
-									== IOT_JSON_TYPE_STRING )
-								{
-									/* file transfer request parsing */
-									iot_uint8_t i = 0u;
-									iot_bool_t found_transfer = IOT_FALSE;
-									struct tr50_file_transfer *transfer = NULL;
-									char fileId[ 32u ];
-									iot_int64_t crc32 = 0u;
-									iot_int64_t fileSize = 0u;
-
-									iot_json_decode_string( json, j_obj, &v, &v_len );
-									/* FIXME:  check size <=32 bytes */
-									os_strncpy( fileId, v, v_len );
-									fileId[ v_len ] = '\0';
-
-									j_obj = iot_json_decode_object_find( json,
-										j_params, "crc32" );
-									if ( j_obj && iot_json_decode_type( json, j_obj )
-										== IOT_JSON_TYPE_INTEGER )
-										iot_json_decode_integer( json, j_obj, &crc32 );
-
-									j_obj = iot_json_decode_object_find( json,
-										j_params, "fileSize" );
-									if ( j_obj && iot_json_decode_type( json, j_obj )
-										== IOT_JSON_TYPE_INTEGER )
-										iot_json_decode_integer( json, j_obj, &fileSize );
-
-									for ( i= 0u;
-										i < data->file_transfer_count &&
-										found_transfer == IOT_FALSE;
-										i++ )
-									{
-										transfer = &data->file_transfer_queue[i];
-										if ( transfer->path[0] &&
-											transfer->msg_id == msg_id )
-										{
-											/* determine host name from config file */
-											const char *host = NULL;
-											iot_option_get( data->lib,
-												"cloud.host", IOT_FALSE,
-												IOT_TYPE_STRING, &host );
-											os_snprintf( transfer->url, PATH_MAX,
-												"https://%s/file/%s", host, fileId );
-											transfer->crc32 = (iot_uint64_t)crc32;
-											transfer->size = (iot_uint64_t)fileSize;
-											transfer->retry_time = 0u;
-											transfer->expiry_time =
-												iot_timestamp_now() +
-												TR50_FILE_TRANSFER_EXPIRY_TIME;
-											found_transfer = IOT_TRUE;
-										}
-									}
-
-									if ( found_transfer )
-									{
-										os_thread_t thread;
-
-										/* Create a thread to do the file transfer */
-										if ( os_thread_create( &thread, tr50_file_transfer, transfer ) )
-											IOT_LOG( data->lib, IOT_LOG_ERROR,
-												"Failed to create a thread to transfer "
-												"file for message #%u\n", msg_id );
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		else
-			IOT_LOG( data->lib, IOT_LOG_TRACE, "tr50: %s",
-				"message received on unknown topic" );
-		iot_json_decode_terminate( json );
-	}
-	else if ( data )
-		IOT_LOG( data->lib, IOT_LOG_ERROR, "tr50: %s",
-			"failed to parse incoming message" );
-}
-
-char *tr50_strtime( iot_timestamp_t ts,
-	char *out, size_t len )
-{
-	size_t out_len;
-
-	/* TR50 format: "YYYY-MM-DDTHH:MM:SS.mmZ" */
-	out_len = os_time_format( out, len,
-		"%Y-%m-%dT%H:%M:%S", ts, OS_FALSE );
-	if ( out_len > 0u )
-	{
-		/* add milliseconds, if there are any remaining */
-		ts %= 1000u;
-		if ( ts > 0u )
-		{
-			size_t out_req;
-			out_req = (size_t)os_snprintf( &out[out_len],
-				len - out_len, ".%u", (unsigned int)ts );
-
-			if ( out_req < len - out_len )
-				out_len += out_req;
-			else
-				out_len = 0u;
-		}
-
-		/* add Zulu time indicator */
-		if ( out_len > 0u && out_len < len - 1u )
-			out[out_len++] = 'Z';
-		else /* buffer too small */
-			out_len = 0u;
-	}
-
-	/* ensure null-terminated */
-	if ( out && len )
-		out[out_len] = '\0';
-	return out;
-}
-
-iot_status_t tr50_telemetry_publish(
-	struct tr50_data *data,
-	const iot_telemetry_t *t,
-	const struct iot_data *d )
-{
-	iot_status_t result = IOT_STATUS_FAILURE;
-	if ( d->has_value )
-	{
-		char buf[512u];
-		const char *cmd;
-		char id[6u];
-		const char *msg;
-		const char *const value_key = "value";
-		iot_json_encoder_t *const json =
-			iot_json_encode_initialize( buf, 512u, 0u);
-
-		if ( d->type == IOT_TYPE_LOCATION )
-			cmd = "location.publish";
-		else if ( d->type == IOT_TYPE_STRING ||
-			d->type == IOT_TYPE_RAW )
-			cmd = "attribute.publish";
-		else
-			cmd = "property.publish";
-
-		/* convert id to string */
-		os_snprintf( id, 5u, "%d", data->msg_id );
-		id[5u] = '\0';
-		iot_json_encode_object_start( json, id );
-		iot_json_encode_string( json, "command", cmd );
-		iot_json_encode_object_start( json, "params" );
-		iot_json_encode_string( json, "thingKey",
-			data->thing_key );
-		iot_json_encode_string( json, "key",
-			iot_telemetry_name_get( t ) );
-		switch ( d->type )
-		{
-		case IOT_TYPE_BOOL:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.boolean );
-			break;
-		case IOT_TYPE_FLOAT32:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.float32 );
-			break;
-		case IOT_TYPE_FLOAT64:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.float64 );
-			break;
-		case IOT_TYPE_INT8:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.int8 );
-			break;
-		case IOT_TYPE_INT16:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.int16 );
-			break;
-		case IOT_TYPE_INT32:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.int32 );
-			break;
-		case IOT_TYPE_INT64:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.int64 );
-			break;
-		case IOT_TYPE_UINT8:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.uint8 );
-			break;
-		case IOT_TYPE_UINT16:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.uint16 );
-			break;
-		case IOT_TYPE_UINT32:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.uint32 );
-			break;
-		case IOT_TYPE_UINT64:
-			iot_json_encode_real( json, value_key,
-				(double)d->value.uint64 );
-			break;
-		case IOT_TYPE_RAW:
-			tr50_append_value_raw( json, value_key,
-				d->value.raw.ptr, d->value.raw.length );
-			break;
-		case IOT_TYPE_STRING:
-			tr50_append_value_raw( json, value_key,
-				d->value.string, (size_t)-1 );
-			break;
-		case IOT_TYPE_LOCATION:
-			tr50_append_location( json, NULL, d->value.location );
-			break;
-		case IOT_TYPE_NULL:
-		default:
-			break;
-		}
-		if ( t->time_stamp > 0u )
-		{
-			char ts_str[32u];
-			tr50_strtime( t->time_stamp, ts_str, 25u );
-			iot_json_encode_string( json, "ts", ts_str );
-		}
-		iot_json_encode_object_end( json );
-		iot_json_encode_object_end( json );
-
-		msg = iot_json_encode_dump( json );
-		IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
-		result = iot_mqtt_publish( data->mqtt, "api",
-			msg, os_strlen( msg ), TR50_MQTT_QOS, IOT_FALSE, NULL );
-		iot_json_encode_terminate( json );
-		++data->msg_id;
 	}
 	return result;
 }
@@ -1734,9 +1393,11 @@ OS_THREAD_DECL tr50_file_transfer(
 				curl_easy_setopt( transfer->lib_curl,
 					CURLOPT_XFERINFODATA, transfer );
 #endif /* LIBCURL_VERSION_NUM >= 0x072000 */
-				iot_option_get( data->lib, "ca_bundle_file", IOT_FALSE,
+				iot_config_get( data->lib,
+					"ca_bundle_file", IOT_FALSE,
 					IOT_TYPE_STRING, &ca_bundle_file );
-				iot_option_get( data->lib, "validate_cloud_cert", IOT_FALSE,
+				iot_config_get( data->lib,
+					"validate_cloud_cert", IOT_FALSE,
 					IOT_TYPE_BOOL, &validate_cert );
 
 				/* SSL verification */
@@ -2058,6 +1719,598 @@ void tr50_file_queue_check(
 			data->file_queue_last_checked = now;
 		}
 	}
+}
+
+iot_status_t tr50_initialize(
+	iot_t *lib,
+	void **plugin_data )
+{
+	iot_status_t result = IOT_STATUS_NO_MEMORY;
+	struct tr50_data *const data = os_malloc( sizeof( struct tr50_data ) );
+	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "initialize" );
+	if ( data )
+	{
+		os_memzero( data, sizeof( struct tr50_data ) );
+		data->lib = lib;
+		*plugin_data = data;
+
+		curl_global_init( CURL_GLOBAL_ALL );
+		result = iot_mqtt_initialize();
+	}
+	return result;
+}
+
+void tr50_on_message(
+	void *user_data,
+	const char *topic,
+	void *payload,
+	size_t payload_len,
+	int UNUSED(qos),
+	iot_bool_t UNUSED(retain) )
+{
+	char buf[1024u];
+	struct tr50_data *const data = (struct tr50_data *)(user_data);
+	iot_json_decoder_t *json;
+	const iot_json_item_t *root;
+
+	if ( data )
+		IOT_LOG( data->lib, IOT_LOG_DEBUG,
+			"tr50: received (%u bytes on %s): %.*s\n",
+			(unsigned int)payload_len, topic,
+			(int)payload_len, (const char *)payload );
+
+	IOT_LOG( data->lib, IOT_LOG_TRACE,
+		"-->received: %.*s\n", (int)payload_len, (const char *)payload );
+
+	json = iot_json_decode_initialize( buf, 1024u, 0u );
+	if ( data && json &&
+		iot_json_decode_parse( json, payload, payload_len, &root,
+			NULL, 0u ) == IOT_STATUS_SUCCESS )
+	{
+
+		if ( os_strcmp( topic, "notify/mailbox_activity" ) == 0 )
+		{
+			iot_json_type_t type;
+			const iot_json_item_t *const j_thing_key =
+				iot_json_decode_object_find( json, root,
+					"thingKey" );
+			type = iot_json_decode_type( json, j_thing_key );
+
+			if ( type == IOT_JSON_TYPE_STRING )
+			{
+				const char *v = NULL;
+				size_t v_len = 0u;
+				iot_json_decode_string( json, j_thing_key,
+					&v, &v_len );
+
+				/* check if message is for us */
+				if ( os_strncmp( v, data->thing_key, v_len ) == 0 )
+					tr50_check_mailbox( data );
+			}
+		}
+		else if ( os_strcmp( topic, "reply" ) == 0 )
+		{
+			const iot_json_object_iterator_t *root_iter =
+				iot_json_decode_object_iterator( json, root );
+			if ( root_iter )
+			{
+				char name[ IOT_NAME_MAX_LEN + 1u ];
+				const char *v = NULL;
+				size_t v_len = 0u;
+				const iot_json_item_t *j_obj = NULL;
+				unsigned int msg_id = 0u;
+
+				iot_json_decode_object_iterator_key(
+					json, root, root_iter,
+					&v, &v_len );
+				os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
+				msg_id = (unsigned int)os_atoi( name );
+
+				iot_json_decode_object_iterator_value(
+					json, root, root_iter, &j_obj );
+
+				if ( j_obj )
+				{
+					const iot_json_item_t *j_success;
+					iot_bool_t is_success;
+
+					j_success = iot_json_decode_object_find( json,
+						j_obj, "success" );
+					if ( j_success )
+					{
+						iot_json_decode_bool( json, j_success, &is_success );
+
+						if ( is_success )
+						{
+							const iot_json_item_t *j_params;
+							const iot_json_item_t *j_messages;
+							j_params = iot_json_decode_object_find(
+								json, j_obj, "params" );
+
+							j_messages = iot_json_decode_object_find( json,
+								j_params, "messages" );
+
+							/* actions/methods parsing */
+							if ( j_messages && iot_json_decode_type( json, j_messages )
+								== IOT_JSON_TYPE_ARRAY )
+							{
+								size_t i;
+								const size_t msg_count =
+									iot_json_decode_array_size( json, j_messages );
+								for ( i = 0u; i < msg_count; ++i )
+								{
+									const iot_json_item_t *j_cmd_item;
+									if ( iot_json_decode_array_at( json,
+										j_messages, i, &j_cmd_item ) == IOT_STATUS_SUCCESS )
+									{
+										const iot_json_item_t *j_id;
+										j_id = iot_json_decode_object_find(
+											json, j_cmd_item, "id" );
+										if ( !j_id )
+											IOT_LOG( data->lib, IOT_LOG_WARNING,
+												"\"%s\" not found!", "id" );
+
+										j_params = iot_json_decode_object_find(
+											json, j_cmd_item, "params" );
+										if ( !j_params )
+											IOT_LOG( data->lib, IOT_LOG_WARNING,
+												"\"%s\" not found!", "params" );
+
+										if ( j_id && j_params )
+										{
+											const iot_json_item_t *j_method;
+											const iot_json_object_iterator_t *iter;
+											iot_action_request_t *req = NULL;
+
+											j_method = iot_json_decode_object_find(
+												json, j_params, "method" );
+											if ( j_method )
+											{
+												char id[ IOT_ID_MAX_LEN + 1u ];
+												*id = '\0';
+
+												iot_json_decode_string( json, j_id, &v, &v_len );
+												os_snprintf( id, IOT_ID_MAX_LEN, "%.*s", (int)v_len, v );
+												id[ IOT_ID_MAX_LEN ] = '\0';
+
+												iot_json_decode_string( json, j_method, &v, &v_len );
+												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
+												name[ IOT_NAME_MAX_LEN ] = '\0';
+												req = iot_action_request_allocate( data->lib, name, "tr50" );
+												iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
+											}
+
+											/* for each parameter */
+											j_params = iot_json_decode_object_find(
+												json, j_params, "params" );
+											iter = iot_json_decode_object_iterator(
+												json, j_params );
+											while ( iter )
+											{
+												const iot_json_item_t *j_value = NULL;
+												iot_json_decode_object_iterator_key(
+													json, j_params, iter,
+													&v, &v_len );
+												iot_json_decode_object_iterator_value(
+													json, j_params, iter,
+													&j_value );
+												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
+												name[ IOT_NAME_MAX_LEN ] = '\0';
+												iter = iot_json_decode_object_iterator_next(
+													json, j_params, iter );
+												switch ( iot_json_decode_type( json,
+													j_value ) )
+												{
+												case IOT_JSON_TYPE_BOOL:
+													{
+													iot_bool_t value;
+													iot_json_decode_bool( json, j_value, &value );
+													iot_action_request_parameter_set( req, name, IOT_TYPE_BOOL, value );
+													}
+													break;
+												case IOT_JSON_TYPE_INTEGER:
+													{
+													iot_int64_t value;
+													iot_json_decode_integer( json, j_value, &value );
+													iot_action_request_parameter_set( req, name, IOT_TYPE_INT64, value );
+													}
+													break;
+												case IOT_JSON_TYPE_REAL:
+													{
+													iot_float64_t value;
+													iot_json_decode_real( json, j_value, &value );
+													iot_action_request_parameter_set( req, name, IOT_TYPE_FLOAT64, value );
+													}
+													break;
+												case IOT_JSON_TYPE_STRING:
+													{
+													char *value;
+													iot_json_decode_string( json, j_value, &v, &v_len );
+													value = os_malloc( v_len + 1u );
+													if( value )
+													{
+														size_t j;
+														char *p = value;
+														for ( j = 0u; j < v_len; ++j )
+														{
+															if ( *v != '\\' || *(v+1) != '"' )
+																*p++ = *v;
+															++v;
+														}
+														*p = '\0';
+														iot_action_request_parameter_set( req, name, IOT_TYPE_STRING, value );
+														os_free( value );
+													}
+													}
+												case IOT_JSON_TYPE_ARRAY:
+												case IOT_JSON_TYPE_OBJECT:
+												case IOT_JSON_TYPE_NULL:
+												default:
+													break;
+												}
+											}
+
+											if ( req )
+												iot_action_request_execute( req, 0u );
+										}
+									}
+								}
+							}
+							else
+							{
+								j_obj = iot_json_decode_object_find( json,
+									j_params, "fileId" );
+								if ( j_obj && iot_json_decode_type( json, j_obj )
+									== IOT_JSON_TYPE_STRING )
+								{
+									/* file transfer request parsing */
+									iot_uint8_t i = 0u;
+									iot_bool_t found_transfer = IOT_FALSE;
+									struct tr50_file_transfer *transfer = NULL;
+									char fileId[ 32u ];
+									iot_int64_t crc32 = 0u;
+									iot_int64_t fileSize = 0u;
+
+									iot_json_decode_string( json, j_obj, &v, &v_len );
+									/* FIXME:  check size <=32 bytes */
+									os_strncpy( fileId, v, v_len );
+									fileId[ v_len ] = '\0';
+
+									j_obj = iot_json_decode_object_find( json,
+										j_params, "crc32" );
+									if ( j_obj && iot_json_decode_type( json, j_obj )
+										== IOT_JSON_TYPE_INTEGER )
+										iot_json_decode_integer( json, j_obj, &crc32 );
+
+									j_obj = iot_json_decode_object_find( json,
+										j_params, "fileSize" );
+									if ( j_obj && iot_json_decode_type( json, j_obj )
+										== IOT_JSON_TYPE_INTEGER )
+										iot_json_decode_integer( json, j_obj, &fileSize );
+
+									for ( i= 0u;
+										i < data->file_transfer_count &&
+										found_transfer == IOT_FALSE;
+										i++ )
+									{
+										transfer = &data->file_transfer_queue[i];
+										if ( transfer->path[0] &&
+											transfer->msg_id == msg_id )
+										{
+											/* determine host name from config file */
+											const char *host = NULL;
+											iot_config_get( data->lib,
+												"cloud.host", IOT_FALSE,
+												IOT_TYPE_STRING, &host );
+											os_snprintf( transfer->url, PATH_MAX,
+												"https://%s/file/%s", host, fileId );
+											transfer->crc32 = (iot_uint64_t)crc32;
+											transfer->size = (iot_uint64_t)fileSize;
+											transfer->retry_time = 0u;
+											transfer->expiry_time =
+												iot_timestamp_now() +
+												TR50_FILE_TRANSFER_EXPIRY_TIME;
+											found_transfer = IOT_TRUE;
+										}
+									}
+
+									if ( found_transfer )
+									{
+										os_thread_t thread;
+
+										/* Create a thread to do the file transfer */
+										if ( os_thread_create( &thread, tr50_file_transfer, transfer ) )
+											IOT_LOG( data->lib, IOT_LOG_ERROR,
+												"Failed to create a thread to transfer "
+												"file for message #%u\n", msg_id );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+			IOT_LOG( data->lib, IOT_LOG_TRACE, "tr50: %s",
+				"message received on unknown topic" );
+		iot_json_decode_terminate( json );
+	}
+	else if ( data )
+		IOT_LOG( data->lib, IOT_LOG_ERROR, "tr50: %s",
+			"failed to parse incoming message" );
+}
+
+void tr50_optional(
+	iot_json_encoder_t *json,
+	const char *json_key,
+	const iot_options_t *options,
+	const char *options_key,
+	iot_type_t type )
+{
+	if ( json && options && options_key && *options_key != '\0' )
+	{
+		struct iot_data data;
+		switch( type )
+		{
+		case IOT_TYPE_BOOL:
+		{
+			data.value.boolean = IOT_FALSE;
+			if ( iot_options_get_bool( options, options_key, IOT_FALSE,
+				&data.value.boolean ) == IOT_STATUS_SUCCESS )
+			{
+				iot_json_encode_bool( json, json_key,
+					data.value.boolean );
+			}
+			break;
+		}
+		case IOT_TYPE_FLOAT32:
+		case IOT_TYPE_FLOAT64:
+		{
+			data.value.float64 = 0.0;
+			if ( iot_options_get_float64( options, options_key, IOT_FALSE,
+				&data.value.float64 ) == IOT_STATUS_SUCCESS )
+			{
+				iot_json_encode_real( json, json_key,
+					data.value.float64 );
+			}
+			break;
+		}
+		case IOT_TYPE_INT8:
+		case IOT_TYPE_INT16:
+		case IOT_TYPE_INT32:
+		case IOT_TYPE_INT64:
+		case IOT_TYPE_UINT8:
+		case IOT_TYPE_UINT16:
+		case IOT_TYPE_UINT32:
+		case IOT_TYPE_UINT64:
+		{
+			data.value.int64 = 0;
+			if ( iot_options_get_int64( options, options_key, IOT_FALSE,
+				&data.value.int64 ) == IOT_STATUS_SUCCESS )
+			{
+				iot_json_encode_integer( json, json_key,
+					data.value.int64 );
+			}
+			break;
+		}
+		case IOT_TYPE_LOCATION:
+		{
+			data.value.location = NULL;
+			if ( iot_options_get_location( options, options_key,
+				IOT_FALSE, &data.value.location ) == IOT_STATUS_SUCCESS &&
+				data.value.location )
+			{
+				if ( json_key )
+					iot_json_encode_object_start( json, json_key );
+				iot_json_encode_real( json, "lat",
+					data.value.location->latitude );
+				iot_json_encode_real( json, "lng",
+					data.value.location->longitude );
+				if ( json_key )
+					iot_json_encode_object_end( json );
+			}
+			break;
+		}
+		case IOT_TYPE_RAW:
+			data.value.raw.ptr = NULL;
+			if ( iot_options_get_raw( options, options_key,
+				IOT_FALSE, &data.value.raw.length,
+				&data.value.raw.ptr ) == IOT_STATUS_SUCCESS &&
+				data.value.raw.ptr )
+			{
+				iot_json_encode_string( json, json_key,
+					data.value.raw.ptr );
+			}
+			break;
+		case IOT_TYPE_STRING:
+			data.value.string = NULL;
+			if ( iot_options_get_string( options, options_key,
+				IOT_FALSE, &data.value.string ) == IOT_STATUS_SUCCESS &&
+				data.value.string )
+			{
+				iot_json_encode_string( json, json_key,
+					data.value.string );
+			}
+			break;
+		case IOT_TYPE_NULL: /* special case: time stamp */
+		{
+			if ( iot_options_get_uint64( options, options_key,
+				IOT_FALSE, &data.value.uint64 ) == IOT_STATUS_SUCCESS )
+			{
+				char ts_str[32u];
+				tr50_strtime( data.value.uint64, ts_str, 25u );
+				iot_json_encode_string( json, json_key, ts_str );
+			}
+			break;
+		}
+		}
+	}
+}
+
+char *tr50_strtime( iot_timestamp_t ts,
+	char *out, size_t len )
+{
+	size_t out_len;
+
+	/* TR50 format: "YYYY-MM-DDTHH:MM:SS.mmZ" */
+	out_len = os_time_format( out, len,
+		"%Y-%m-%dT%H:%M:%S", ts, OS_FALSE );
+	if ( out_len > 0u )
+	{
+		/* add milliseconds, if there are any remaining */
+		ts %= 1000u;
+		if ( ts > 0u )
+		{
+			size_t out_req;
+			out_req = (size_t)os_snprintf( &out[out_len],
+				len - out_len, ".%u", (unsigned int)ts );
+
+			if ( out_req < len - out_len )
+				out_len += out_req;
+			else
+				out_len = 0u;
+		}
+
+		/* add Zulu time indicator */
+		if ( out_len > 0u && out_len < len - 1u )
+			out[out_len++] = 'Z';
+		else /* buffer too small */
+			out_len = 0u;
+	}
+
+	/* ensure null-terminated */
+	if ( out && len )
+		out[out_len] = '\0';
+	return out;
+}
+
+iot_status_t tr50_telemetry_publish(
+	struct tr50_data *data,
+	const iot_telemetry_t *t,
+	const struct iot_data *d,
+	const iot_options_t *UNUSED(options) )
+{
+	iot_status_t result = IOT_STATUS_FAILURE;
+	if ( d->has_value )
+	{
+		char buf[512u];
+		const char *cmd;
+		char id[6u];
+		const char *msg;
+		const char *const value_key = "value";
+		iot_json_encoder_t *const json =
+			iot_json_encode_initialize( buf, 512u, 0u);
+
+		if ( d->type == IOT_TYPE_LOCATION )
+			cmd = "location.publish";
+		else if ( d->type == IOT_TYPE_STRING ||
+			d->type == IOT_TYPE_RAW )
+			cmd = "attribute.publish";
+		else
+			cmd = "property.publish";
+
+		/* convert id to string */
+		os_snprintf( id, 5u, "%d", data->msg_id );
+		id[5u] = '\0';
+		iot_json_encode_object_start( json, id );
+		iot_json_encode_string( json, "command", cmd );
+		iot_json_encode_object_start( json, "params" );
+		iot_json_encode_string( json, "thingKey",
+			data->thing_key );
+		iot_json_encode_string( json, "key",
+			iot_telemetry_name_get( t ) );
+		switch ( d->type )
+		{
+		case IOT_TYPE_BOOL:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.boolean );
+			break;
+		case IOT_TYPE_FLOAT32:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.float32 );
+			break;
+		case IOT_TYPE_FLOAT64:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.float64 );
+			break;
+		case IOT_TYPE_INT8:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.int8 );
+			break;
+		case IOT_TYPE_INT16:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.int16 );
+			break;
+		case IOT_TYPE_INT32:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.int32 );
+			break;
+		case IOT_TYPE_INT64:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.int64 );
+			break;
+		case IOT_TYPE_UINT8:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.uint8 );
+			break;
+		case IOT_TYPE_UINT16:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.uint16 );
+			break;
+		case IOT_TYPE_UINT32:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.uint32 );
+			break;
+		case IOT_TYPE_UINT64:
+			iot_json_encode_real( json, value_key,
+				(double)d->value.uint64 );
+			break;
+		case IOT_TYPE_RAW:
+			tr50_append_value_raw( json, value_key,
+				d->value.raw.ptr, d->value.raw.length );
+			break;
+		case IOT_TYPE_STRING:
+			tr50_append_value_raw( json, value_key,
+				d->value.string, (size_t)-1 );
+			break;
+		case IOT_TYPE_LOCATION:
+			tr50_append_location( json, NULL, d->value.location );
+			break;
+		case IOT_TYPE_NULL:
+		default:
+			break;
+		}
+		if ( t->time_stamp > 0u )
+		{
+			char ts_str[32u];
+			tr50_strtime( t->time_stamp, ts_str, 25u );
+			iot_json_encode_string( json, "ts", ts_str );
+		}
+		iot_json_encode_object_end( json );
+		iot_json_encode_object_end( json );
+
+		msg = iot_json_encode_dump( json );
+		IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
+		result = iot_mqtt_publish( data->mqtt, "api",
+			msg, os_strlen( msg ), TR50_MQTT_QOS, IOT_FALSE, NULL );
+		iot_json_encode_terminate( json );
+		++data->msg_id;
+	}
+	return result;
+}
+
+iot_status_t tr50_terminate(
+	iot_t *lib,
+	void *plugin_data )
+{
+	iot_status_t result = IOT_STATUS_SUCCESS;
+	struct tr50_data *data = plugin_data;
+	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "terminate" );
+	os_free_null( (void**)&data );
+	iot_mqtt_terminate();
+	curl_global_cleanup();
+	return result;
 }
 
 IOT_PLUGIN( tr50, 10, iot_version_encode(1,0,0,0),

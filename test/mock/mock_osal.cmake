@@ -44,6 +44,7 @@ set( MOCK_OSAL_FUNC
 	"os_strchr"
 	"os_strcmp"
 	"os_strlen"
+	"os_strncasecmp"
 	"os_strncmp"
 	"os_strncpy"
 	"os_strpbrk"

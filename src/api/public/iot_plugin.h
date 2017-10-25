@@ -43,6 +43,8 @@ enum iot_operation
 	IOT_OPERATION_ACTION_DEREGISTER,
 	/** @brief ( up ) action registration */
 	IOT_OPERATION_ACTION_REGISTER,
+	/** @brief ( up ) publication of an attribute */
+	IOT_OPERATION_ATTRIBUTE_PUBLISH,
 	/** @brief ( up ) publication of an alarm event */
 	IOT_OPERATION_ALARM_PUBLISH,
 	/** @brief ( up ) client connect to cloud */
@@ -53,6 +55,8 @@ enum iot_operation
 	IOT_OPERATION_CLIENT_HEARTBEAT,
 	/** @brief ( up ) client-2-client message */
 	IOT_OPERATION_CLIENT_MESSAGE,
+	/** @brief ( up ) publication of an event log */
+	IOT_OPERATION_EVENT_PUBLISH,
 	/** @brief (up) get url to download a file from */
 	IOT_OPERATION_FILE_DOWNLOAD,
 	/** @brief (up) get url to upload a file to */
@@ -66,9 +70,7 @@ enum iot_operation
 	/** @brief ( up ) publication of a telemetry sample(s) */
 	IOT_OPERATION_TELEMETRY_PUBLISH,
 	/** @brief ( up ) telemetry registration */
-	IOT_OPERATION_TELEMETRY_REGISTER,
-	/** @brief ( up ) publication of an event log */
-	IOT_OPERATION_EVENT_LOG_PUBLISH
+	IOT_OPERATION_TELEMETRY_REGISTER
 };
 /** @brief current operation being performed */
 typedef enum iot_operation iot_operation_t;
@@ -93,7 +95,8 @@ typedef iot_status_t (*iot_plugin_execute_fptr)(
 	iot_millisecond_t max_time_out,
 	iot_step_t *step,
 	const void *item,
-	const void *value );
+	const void *value,
+	const iot_options_t *options );
 /** @brief defines the signature for the terminate function in an IoT plug-in */
 typedef iot_status_t (*iot_plugin_terminate_fptr)(
 	iot_t *lib,

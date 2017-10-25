@@ -128,54 +128,6 @@ enum iot_location_source {
 };
 
 /**
- * @defgroup iot_property_flags Bitmask values for property flags
- * @{
- */
-/** @brief Property is read only by the cloud */
-#define IOT_PROPERTY_FLAG_CLOUD_READ_ONLY   0x1
-/** @brief Property is read only by other client applications */
-#define IOT_PROPERTY_FLAG_DEVICE_READ_ONLY  0x4
-/** @brief Property is read-only by every body else */
-#define IOT_PROPERTY_FLAG_READ_ONLY         \
-	(IOT_PROPERTY_FLAG_CLOUD_READ_ONLY | IOT_PROPERTY_FLAG_DEVICE_READ_ONLY )
-/**
- * @}
- */
-
-/**
- * @defgroup iot_property_method Bitmask values for property publish method
- * @{
- */
-/** @brief only add if property is not already defined */
-#define IOT_PROPERTY_METHOD_ADD        0x1
-/** @brief only modify the property if it exists */
-#define IOT_PROPERTY_METHOD_MODIFY     0x2
-/** @brief add if property not defined, modify if it exists */
-#define IOT_PROPERTY_METHOD_UPDATE     \
-	(IOT_PROPERTY_METHOD_ADD | IOT_PROPERTY_METHOD_MODIFY)
-/** @brief dete a property if is defined */
-#define IOT_PROPERTY_METHOD_DELETE     0x4
-/**
- * @}
- */
-
-/**
- * @defgroup iot_property_reason Bitmask values for calling property callback
- * @{
- */
-/** @brief Property callback called due to change in flags (due to synchronziation) */
-#define IOT_PROPERTY_REASON_FLAGS      0x1
-/** @brief Property callback called due to change in owner (due to synchronization) */
-#define IOT_PROPERTY_REASON_OWNER      0x2
-/** @brief Property callback called due to change in source */
-#define IOT_PROPERTY_REASON_SOURCE     0x3
-/** @brief Property callback called due to change in value */
-#define IOT_PROPERTY_REASON_VALUE      0x4
-/**
- * @}
- */
-
-/**
  * @defgroup iot_types List of basic IoT types
  * @{
  */
@@ -214,28 +166,22 @@ typedef struct iot_action                        iot_action_t;
 typedef struct iot_action_request                iot_action_request_t;
 /** @brief Type representing an unexpected periodic event */
 typedef struct iot_alarm                         iot_alarm_t;
+/** @brief Type containing information to pass to file transfer callback */
+typedef struct iot_file_progress                 iot_file_progress_t;
+/** @brief Storage option for file transfer */
+typedef uint32_t                                 iot_file_flags_t;
 /** @brief Type representing a location sample */
 typedef struct iot_location                      iot_location_t;
 /** @brief Type representing a location source type within the system */
 typedef enum iot_location_source                 iot_location_source_t;
-/** @brief Type representing a custom property */
-typedef struct iot_property                      iot_property_t;
-/** @brief Type representing flags for a property */
-typedef uint32_t                                 iot_property_flags_t;
-/** @brief Type defining method for publishing a property */
-typedef uint32_t                                 iot_property_method_t;
-/** @brief Reason for triggering the property callback */
-typedef uint32_t                                 iot_property_reason_t;
+/** @brief Type representing a map of options */
+typedef struct iot_options                       iot_options_t;
 /** @brief Type representing a telemetry data */
 typedef struct iot_telemetry                     iot_telemetry_t;
 /** @brief Type representing communication between client and agent */
 typedef struct iot_transaction                   iot_transaction_t;
 /** @brief Type containing verison information for the library */
 typedef iot_uint32_t                             iot_version_t;
-/** @brief Type containing information to pass to file transfer callback */
-typedef struct iot_file_progress                 iot_file_progress_t;
-/** @brief Storage option for file transfer */
-typedef uint32_t                                 iot_file_flags_t;
 
 /**
  * @}
@@ -490,20 +436,6 @@ typedef void (iot_log_callback_t)(
 	const char *message,
 	void *user_data );
 
-/**
- * @brief Type for a callback function called when a property is updated
- *
- * @param[in]      property            property that was updated
- * @param[in]      reason              bitmask of the reason to trigger callback
- * @param[in]      user_data           pointer to user specific data
- *
- * @see iot_property_reason
- */
-typedef void (iot_property_callback_t)(
-	const iot_property_t *property,
-	iot_property_reason_t reason,
-	void *user_data );
-
 /* common */
 /**
  * @brief Connects to an agent
@@ -685,8 +617,7 @@ IOT_API IOT_SECTION iot_action_t *iot_action_allocate(
  *                                     type specified
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_FULL             maximum number of options
- *                                     reached
+ * @retval IOT_STATUS_FULL             maximum number of options reached
  * @retval IOT_STATUS_SUCCESS          on success
  *
  * @see iot_action_option_set_raw
@@ -983,8 +914,7 @@ IOT_API IOT_SECTION iot_status_t iot_action_request_option_get(
  *                                     type specified
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_FULL             maximum number of options
- *                                     reached
+ * @retval IOT_STATUS_FULL             maximum number of options reached
  * @retval IOT_STATUS_SUCCESS          on success
  *
  * @see iot_action_request_option_get
@@ -1354,6 +1284,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_deregister(
  * @brief Publish an alarm state
  *
  * @param[in,out]  alarm               alarm to raise
+ * @param[in]      options             options for attributes (optional)
  * @param[in]      severity            severity of the alarm
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
@@ -1363,7 +1294,8 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_deregister(
  */
 IOT_API IOT_SECTION iot_status_t iot_alarm_publish(
 	const iot_alarm_t *alarm,
-	iot_severity_t severity);
+	const iot_options_t *options,
+	iot_severity_t severity );
 
 /**
  * @brief Publish an alarm state with a message
@@ -1371,6 +1303,17 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish(
  * @param[in,out]  alarm               alarm to raise
  * @param[in]      severity            severity of the alarm
  * @param[in]      message             message to show with the alarm state
+ * @param[in]      options             options for attributes (optional)
+ *
+ * Optional supported options:
+ *   - location (location): location of the alarm (default: None)
+ *   - max_time_out (uint64): maximum time to block this publish call
+ *       (default: indefinitely)
+ *   - time_stamp (uint64): time stamp to tag the attribute with
+ *       (default: current time)
+ *   - republish (bool): force publish add if value is the same as previous
+ *       (default: false)
+ *
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_FAILURE          internal system failure
@@ -1379,28 +1322,72 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish(
  */
 IOT_API IOT_SECTION iot_status_t iot_alarm_publish_string(
 	const iot_alarm_t *alarm,
+	const iot_options_t *options,
 	iot_severity_t severity,
-	const char *message);
+	const char *message );
 
-/** @brief File transfer flag to use global store */
-#define IOT_FILE_FLAG_GLOBAL           0x1
-
+/* attributes */
 /**
  * @brief allows the ability to log events
  *
  * @param[in]      lib                 library handle
- * @param[in]      max_time_out        maximum time to wait in milliseconds
- *                                     (0 = wait indefinitely)
- * @param[in]      message             message to log
+ * @param[in]      options             options for attributes (optional)
+ * @param[in]      key                 attribute key
+ * @param[in]      value               attribute value
+ *
+ * Optional supported options:
+ *   - max_time_out (uint64): maximum time to block this publish call
+ *       (default: indefinitely)
+ *   - time_stamp (uint64): time stamp to tag the attribute with
+ *       (default: current time)
+ *   - republish (bool): force publish add if value is the same as previous
+ *       (default: false)
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_FAILURE          internal system failure
  * @retval IOT_STATUS_SUCCESS          on success
+ * @retval IOT_STATUS_TIMED_OUT        timed out while waiting for confirmation
+ *
+ * @see iot_event_publish
+ */
+IOT_API IOT_SECTION iot_status_t iot_attribute_publish(
+	iot_t *lib,
+	const iot_options_t *options,
+	const char *key,
+	const char *value );
+
+/* events */
+/**
+ * @brief allows the ability to log events
+ *
+ * @param[in]      lib                 library handle
+ * @param[in]      options             options for attributes (optional)
+ * @param[in]      message             message to log
+ *
+ * Optional supported options:
+ *   - max_time_out (uint64): maximum time to block this publish call
+ *       (default: indefinitely)
+ *   - time_stamp (uint64): time stamp to tag the attribute with
+ *       (default: current time)
+ *   - level (uint32): log level; see iot_log_level_t
+ *       (default: IOT_LOG_INFO)
+ *
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_FAILURE          internal system failure
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_attribute_publish
+ * @see iot_log_level_t
  */
 IOT_API IOT_SECTION iot_status_t iot_event_publish(
 	iot_t *lib,
-	iot_millisecond_t max_time_out,
+	const iot_options_t *options,
 	const char *message );
+
+/* file support */
+/** @brief File transfer flag to use global store */
+#define IOT_FILE_FLAG_GLOBAL           0x1
 
 /**
  * @brief Download a file from the cloud
@@ -1537,7 +1524,8 @@ IOT_API IOT_SECTION iot_status_t iot_file_upload(
  * @see iot_location_allocate
  */
 IOT_API IOT_SECTION iot_status_t iot_location_accuracy_set(
-	iot_location_t *sample, iot_float64_t accuracy );
+	iot_location_t *sample,
+	iot_float64_t accuracy );
 
 /**
  * @brief Allocates memory for a new location sample
@@ -1551,8 +1539,9 @@ IOT_API IOT_SECTION iot_status_t iot_location_accuracy_set(
  *
  * @see iot_location_free
  */
-IOT_API IOT_SECTION iot_location_t* iot_location_allocate(
-	iot_float64_t latitude, iot_float64_t longitude );
+IOT_API IOT_SECTION iot_location_t *iot_location_allocate(
+	iot_float64_t latitude,
+	iot_float64_t longitude );
 
 /**
  * @brief Sets the accuracy of the altitude for the location sample
@@ -1568,7 +1557,8 @@ IOT_API IOT_SECTION iot_location_t* iot_location_allocate(
  * @see iot_location_altitude_set
  */
 IOT_API IOT_SECTION iot_status_t iot_location_altitude_accuracy_set(
-	iot_location_t* sample, iot_float64_t accuracy );
+	iot_location_t *sample,
+	iot_float64_t accuracy );
 
 /**
  * @brief Sets the altitude for the location sample
@@ -1584,7 +1574,8 @@ IOT_API IOT_SECTION iot_status_t iot_location_altitude_accuracy_set(
  * @see iot_location_altitude_accuracy_set
  */
 IOT_API IOT_SECTION iot_status_t iot_location_altitude_set(
-	iot_location_t* sample, iot_float64_t altitude );
+	iot_location_t *sample,
+	iot_float64_t altitude );
 
 /**
  * @brief Free memory associated with a location sample
@@ -1596,7 +1587,8 @@ IOT_API IOT_SECTION iot_status_t iot_location_altitude_set(
  *
  * @see iot_location_allocate
  */
-IOT_API IOT_SECTION iot_status_t iot_location_free( iot_location_t* sample );
+IOT_API IOT_SECTION iot_status_t iot_location_free(
+	iot_location_t *sample );
 
 /**
  * @brief Sets the heading for the location sample
@@ -1612,7 +1604,8 @@ IOT_API IOT_SECTION iot_status_t iot_location_free( iot_location_t* sample );
  * @see iot_location_allocate
  */
 IOT_API IOT_SECTION iot_status_t iot_location_heading_set(
-	iot_location_t* sample, iot_float64_t heading );
+	iot_location_t *sample,
+	iot_float64_t heading );
 
 /**
  * @brief Sets the latitude and longitude for the location sample
@@ -1626,8 +1619,10 @@ IOT_API IOT_SECTION iot_status_t iot_location_heading_set(
  *
  * @see iot_location_allocate
  */
-IOT_API IOT_SECTION iot_status_t iot_location_set( iot_location_t *sample,
-	iot_float64_t latitude, iot_float64_t longitude );
+IOT_API IOT_SECTION iot_status_t iot_location_set(
+	iot_location_t *sample,
+	iot_float64_t latitude,
+	iot_float64_t longitude );
 
 /**
  * @brief Sets the source for the location sample
@@ -1641,7 +1636,8 @@ IOT_API IOT_SECTION iot_status_t iot_location_set( iot_location_t *sample,
  * @see iot_location_allocate
  */
 IOT_API IOT_SECTION iot_status_t iot_location_source_set(
-	iot_location_t* sample, iot_location_source_t source );
+	iot_location_t *sample,
+	iot_location_source_t source );
 
 /**
  * @brief Sets the speed for the location sample
@@ -1655,7 +1651,8 @@ IOT_API IOT_SECTION iot_status_t iot_location_source_set(
  * @see iot_location_allocate
  */
 IOT_API IOT_SECTION iot_status_t iot_location_speed_set(
-	iot_location_t* sample, iot_float64_t speed );
+	iot_location_t *sample,
+	iot_float64_t speed );
 
 /**
  * @brief Sets the tag for the location sample
@@ -1668,151 +1665,758 @@ IOT_API IOT_SECTION iot_status_t iot_location_speed_set(
  *
  * @see iot_location_allocate
  */
-IOT_API IOT_SECTION iot_status_t iot_location_tag_set( iot_location_t* sample,
-	const char* tag );
+IOT_API IOT_SECTION iot_status_t iot_location_tag_set(
+	iot_location_t *sample,
+	const char *tag );
 
-
-/* property */
+/* options */
 /**
- * @brief Allocates a new property object
+ * @brief allocates a new options-list
  *
  * @param[in,out]  lib                 library handle
- * @param[in]      name                property name
  *
- * @return a new property object on success, NULL on failure
+ * @return a pointer to a newly allocated options list
  *
- * @see iot_property_free
+ * @see iot_options_free
  */
-IOT_API IOT_SECTION iot_property_t *iot_property_allocate(
-	iot_t* lib,
+IOT_API IOT_SECTION iot_options_t *iot_options_allocate(
+	iot_t *lib );
+
+/**
+ * @brief frees the resources for an allocated options-list
+ *
+ * @param[in]      options             options-list to free
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_allocate
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_free(
+	iot_options_t *options );
+
+/**
+ * @brief clears the value of an option within a list
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to clear
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_get
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_clear(
+	iot_options_t *options,
 	const char *name );
 
 /**
- * @brief Registers a callback for when properties change
+ * @brief Returns the value of an option within a list
  *
- * @param[in,out]  lib                 library handle
- * @param[in]      func                function pointer to be called
- * @param[in]      user_data           user data to pass to function (optional)
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[in]      type                type of data to return
+ * @param[in,out]  ...                 pointer to a variable of the type
+ *                                     specified
  *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
- * @retval IOT_STATUS_FAILURE          internal system failure
- * @retval IOT_STATUS_SUCCESS          pointer was successfully set
- *
- * @see iot_property_get_string
- */
-IOT_API IOT_SECTION iot_status_t iot_property_callback_set(
-	iot_t* lib,
-	iot_property_callback_t *func,
-	void *user_data );
-
-/**
- * @brief Retrieves the flags set for the property
- *
- * @param[in]      property            property to retrieve flags for
- * @param[out]     flags               flags for the property
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
- * @retval IOT_STATUS_SUCCESS          pointer was successfully set
- *
- * @see iot_property_flags
- */
-IOT_API IOT_SECTION iot_status_t iot_property_flags_get(
-	const iot_property_t *property,
-	iot_property_flags_t *flags );
-
-/**
- * @brief Changes the flags for the property
- *
- * @param[in]      property            property to retrieve flags for
- * @param[out]     txn                 transaction status (optional)
- * @param[in]      max_time_out        maximum time to wait in milliseconds
- *                                     (0 = wait indefinitely)
- * @param[in]      flags               flags to set for the property
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
- * @retval IOT_STATUS_NO_PERMISSION    permission denied
- * @retval IOT_STATUS_SUCCESS          pointer was successfully set
- */
-IOT_API IOT_SECTION iot_status_t iot_property_flags_set(
-	iot_property_t *property,
-	iot_transaction_t *txn,
-	iot_millisecond_t max_time_out,
-	iot_property_flags_t flags );
-
-/**
- * @brief Frees memory associated with a property object
- *
- * @param[in,out]  property            property object to free
- * @param[in]      max_time_out        maximum time to wait in milliseconds
- *                                     (0 = wait indefinitely)
- *
- * @retval IOT_STATUS_FAILURE          internal system failure
- * @retval IOT_STATUS_SUCCESS          on success
- *
- * @see iot_property_allocate
- */
-IOT_API IOT_SECTION iot_status_t iot_property_free(
-	iot_property_t *property,
-	iot_millisecond_t max_time_out );
-
-/**
- * @brief Returns a string value of a property
- *
- * @param[in]      property            property to get value for
- * @param[out]     value               pointer to receive the value
+ * @see iot_options_clear
+ * @see iot_options_set
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
- * @retval IOT_STATUS_NOT_INITIALIZED  no value exists for parameter
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
  * @retval IOT_STATUS_SUCCESS          on success
- *
- * @see iot_property_callback_set
- * @see iot_property_publish_string
  */
-IOT_API IOT_SECTION iot_status_t iot_property_get_string(
-	const iot_property_t *property,
+IOT_API IOT_SECTION iot_status_t iot_options_get(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_type_t type, ... );
+
+/**
+ * @brief Returns the boolean value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_bool
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_bool(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_bool_t *value );
+
+/**
+ * @brief Returns the 8-bit signed integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint8
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_int8(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_int8_t *value );
+
+/**
+ * @brief Returns the 16-bit signed integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint16
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_int16(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_int16_t *value );
+
+/**
+ * @brief Returns the 32-bit signed integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint32
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_int32(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_int32_t *value );
+
+/**
+ * @brief Returns the 64-bit signed integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint64
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_int64(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_int64_t *value );
+
+/**
+ * @brief Returns the 32-bit floating-point value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_float32
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_float32(
+	iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_float32_t *value );
+
+/**
+ * @brief Returns the 64-bit floating-point value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_float64
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_float64(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_float64_t *value );
+
+/**
+ * @brief Returns the location value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_location
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_location(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	const iot_location_t **value );
+
+/**
+ * @brief Returns the 8-bit unsigned integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint8
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_uint8(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_uint8_t *value );
+
+/**
+ * @brief Returns the 16-bit unsigned integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint16
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_uint16(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_uint16_t value );
+
+/**
+ * @brief Returns the 32-bit unsigned integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint32
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_uint32(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_uint32_t *value );
+
+/**
+ * @brief Returns the 64-bit unsigned integer value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_uint64
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_uint64(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_uint64_t *value );
+
+/**
+ * @brief Returns the string value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[out]     value               pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_string
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_get_string(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
 	const char **value );
 
 /**
- * @brief Returns the name of the property
+ * @brief Returns the raw value of an option within a list
  *
- * @param[in]      property            property to get name for
- * @param[out]     name                pointer to receive the name
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[in]      length              returned length of data
+ * @param[out]     data                pointer to a variable to fill with value
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_raw
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
  * @retval IOT_STATUS_SUCCESS          on success
- *
- * @see iot_property_allocate
- * @see iot_property_callback_set
  */
-IOT_API IOT_SECTION iot_status_t iot_property_name_get(
-	const iot_property_t *property,
-	const char **name );
+IOT_API IOT_SECTION iot_status_t iot_options_get_raw(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	size_t *length,
+	const void **data );
 
 /**
- * @brief Publishes a property update as a string to the cloud
+ * @brief Sets the value of an option within a list
  *
- * @param[in,out]  property            property object to publish
- * @param[out]     txn                 transaction status (optional)
- * @param[in]      max_time_out        maximum time to wait in milliseconds
- *                                     (0 = wait indefinitely)
- * @param[in]      method              update method
- * @param[in]      value               value to publish
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      type                type of value
+ * @param[in]      ...                 value to set
  *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_BAD_REQUEST      type does not match registered type
- * @retval IOT_STATUS_FAILURE          internal system failure
- * @retval IOT_STATUS_NO_MEMORY        no memory to store telemetry sample
- * @retval IOT_STATUS_NOT_INITIALIZED  telemetry object is not initialized
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
  * @retval IOT_STATUS_SUCCESS          on success
  *
- * @see iot_property_get_string
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set
  */
-IOT_API IOT_SECTION iot_status_t iot_property_publish_string(
-	iot_property_t *property,
-	iot_transaction_t *txn,
-	iot_millisecond_t max_time_out,
-	iot_property_method_t method,
+IOT_API IOT_SECTION iot_status_t iot_options_set(
+	iot_options_t *options,
+	const char *name,
+	iot_type_t type, ... );
+
+/**
+ * @brief Sets the value of an option within a list to a boolean value
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               boolean value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_bool
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_bool(
+	iot_options_t *options,
+	const char *name,
+	iot_bool_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 8-bit signed integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               8-bit signed integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_int8
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_int8(
+	iot_options_t *options,
+	const char *name,
+	iot_int8_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 16-bit signed integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               16-bit signed integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_int16
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_int16(
+	iot_options_t *options,
+	const char *name,
+	iot_int16_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 32-bit signed integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               32-bit signed integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_int32
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_int32(
+	iot_options_t *options,
+	const char *name,
+	iot_int32_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 64-bit signed integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               64-bit signed integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_int64
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_int64(
+	iot_options_t *options,
+	const char *name,
+	iot_int64_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 32-bit floating-point
+ * number
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               32-bit floating-point number value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_float32
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_float32(
+	iot_options_t *options,
+	const char *name,
+	iot_float32_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 64-bit floating-point
+ * number
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               64-bit floating-point number value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_float64
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_float64(
+	iot_options_t *options,
+	const char *name,
+	iot_float64_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a location
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               location value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_location
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_location(
+	iot_options_t *options,
+	const char *name,
+	const iot_location_t *value );
+
+/**
+ * @brief Sets the value of an option within a list to a 8-bit unsigned integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               8-bit unsigned integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_uint8
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_uint8(
+	iot_options_t *options,
+	const char *name,
+	iot_uint8_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 16-bit unsigned integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               16-bit unsigned integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_uint16
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_uint16(
+	iot_options_t *options,
+	const char *name,
+	iot_uint16_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 32-bit unsigned integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               32-bit unsigned integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_uint32
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_uint32(
+	iot_options_t *options,
+	const char *name,
+	iot_uint32_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a 64-bit unsigned integer
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               64-bit unsigned integer value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_uint64
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_uint64(
+	iot_options_t *options,
+	const char *name,
+	iot_uint64_t value );
+
+/**
+ * @brief Sets the value of an option within a list to a string value
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      value               string value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_string
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_string(
+	iot_options_t *options,
+	const char *name,
 	const char *value );
+
+/**
+ * @brief Sets the value of an option within a list to a raw value
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      length              length of the raw data to set
+ * @param[in]      value               value of the raw data to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_raw
+ * @see iot_options_set
+ */
+IOT_API IOT_SECTION iot_status_t iot_options_set_raw(
+	iot_options_t *options,
+	const char *name,
+	size_t length,
+	const void *value );
+
+#ifndef iot_EXPORTS
+#ifndef __clang__
+/**
+ * @brief Sets a configuration option value
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                option name to modify
+ * @param[in[      type                option type
+ * @param[in]      data                option value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ */
+#	define iot_options_set( lib, name, type, data ) \
+		iot_options_set( lib, name, type, data )
+
+/**
+ * @brief Returns the value of a confiugration option
+ *
+ * @param[in]      options             options list to read from
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[in]      type                type of data to return
+ * @param[in,out]  data                pointer to a variable of the type
+ *                                     specified
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+#	define iot_options_get( lib, name, convert, type, data ) \
+		iot_options_get( lib, name, convert, type, data )
+#endif /* ifndef __clang__ */
+#endif /* ifndef iot_EXPORTS */
 
 
 /* telemetry */

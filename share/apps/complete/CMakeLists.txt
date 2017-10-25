@@ -13,6 +13,7 @@ add_sample_app( complete
 	SCRIPTS_UNIX test_script.sh
 	SCRIPTS_WIN32 test_script.cmd
 	SRCS complete.c
+	LDFLAGS_GCC -lm
 	TARGET iot-app-complete
 )
 

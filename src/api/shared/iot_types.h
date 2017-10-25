@@ -79,7 +79,7 @@ struct iot_data
 		/** @brief raw data */
 		struct iot_data_raw        raw;
 		/** @brief location object */
-		iot_location_t             *location;
+		const struct iot_location  *location;
 		/** @brief string */
 		const char                 *string;
 		/** @brief 8-bit unsigned integer */
@@ -143,6 +143,26 @@ struct iot_option
 	 * @note This is not to be used directly, use @p name instead
 	 */
 	char _name[ IOT_NAME_MAX_LEN + 1u ];
+#endif /* IOT_STACK_ONLY */
+};
+
+/**
+ * @brief map of options
+ */
+struct iot_options
+{
+	/** @brief pointer to library */
+	struct iot *lib;
+	/** @brief array of option values */
+	struct iot_option *option;
+	/** @brief number of current options */
+	iot_uint8_t option_count;
+#ifdef IOT_STACK_ONLY
+	/** @brief storage of name value on heap
+	 *
+	 * @note This is not to be used directly, use @p name instead
+	 */
+	struct iot_option _option[ IOT_OPTION_STACK_MAX ];
 #endif /* IOT_STACK_ONLY */
 };
 
@@ -517,10 +537,12 @@ struct iot
 	 */
 	struct iot_alarm            *alarm_ptr[ IOT_ALARM_MAX ];
 
-	/** @brief value of option */
-	struct iot_option        *option;
+	/** @brief options lists */
+	struct iot_options          **options;
+	/** @brief global configuration option list */
+	struct iot_options          *options_config;
 	/** @brief number of options */
-	iot_uint8_t                 option_count;
+	iot_uint8_t                 options_count;
 
 	/** @brief path to the configuration file */
 	char                        *cfg_file_path;
@@ -602,10 +624,6 @@ struct iot
 #endif /* ifndef IOT_NO_THREAD_SUPPORT */
 
 #ifdef IOT_STACK_ONLY
-	/** @brief storage on the stack for the device id (use 'device_id' instead) */
-	char                        _device_id[ IOT_ID_MAX_LEN + 1u ];
-	/** @brief storage on the stack for the app id (use 'id' instead) */
-	char                        _id[ IOT_ID_MAX_LEN + 1u ];
 	/** @brief storage of connect configuration filename
 	 *
 	 * @note This is not to be used directly, use @c connect_cfg_file_path instead
@@ -615,14 +633,20 @@ struct iot
 	 * @note This is not to be used directly, use @c connect_setting instead
 	 */
 	struct iot_connect_setting  _connect_setting;
+	/** @brief storage on the stack for the device id (use 'device_id' instead) */
+	char                        _device_id[ IOT_ID_MAX_LEN + 1u ];
+	/** @brief storage on the stack for the app id (use 'id' instead) */
+	char                        _id[ IOT_ID_MAX_LEN + 1u ];
+	/** @brief storage of option maps */
+	struct iot_options          *_options[ IOT_OPTION_STACK_MAX ];
 #endif /* ifdef IOT_STACK_ONLY */
 };
 
 /**
- * @brief Returns the value of an option
+ * @brief Returns the value of a configuration setting
  *
  * @param[in]      handle              library handle
- * @param[in]      name                option name
+ * @param[in]      name                configuration option name
  * @param[in]      convert             convert to type, if possible
  * @param[in]      type                type of data to return
  * @param[in,out]  ...                 pointer to a variable of the type
@@ -637,7 +661,7 @@ struct iot
  * @see iot_action_option_set_raw
  * @see iot_action_option_set
  */
-IOT_API IOT_SECTION iot_status_t iot_option_get(
+IOT_API IOT_SECTION iot_status_t iot_config_get(
 	const iot_t *handle,
 	const char *name,
 	iot_bool_t convert,
@@ -645,10 +669,10 @@ IOT_API IOT_SECTION iot_status_t iot_option_get(
 	... );
 
 /**
- * @brief Returns a raw value
+ * @brief Returns a raw value for a configuration setting
  *
  * @param[in,out]  lib                 library handle
- * @param[in]      name                option name
+ * @param[in]      name                configuration option name
  * @param[in]      convert             convert to raw, if possible
  * @param[out]     length              amount of raw data
  * @param[in,out]  data                pointer to the raw data
@@ -659,10 +683,10 @@ IOT_API IOT_SECTION iot_status_t iot_option_get(
  * @retval IOT_STATUS_NOT_FOUND        option not found
  * @retval IOT_STATUS_SUCCESS          on success
  *
- * @see iot_option_get
- * @see iot_option_set_raw
+ * @see iot_config_get
+ * @see iot_config_set_raw
  */
-IOT_API IOT_SECTION iot_status_t iot_option_get_raw(
+IOT_API IOT_SECTION iot_status_t iot_config_get_raw(
 	const iot_t *lib,
 	const char *name,
 	iot_bool_t convert,
@@ -673,7 +697,7 @@ IOT_API IOT_SECTION iot_status_t iot_option_get_raw(
  * @brief Sets an option value
  *
  * @param[in,out]  lib                 library handle
- * @param[in]      name                option name
+ * @param[in]      name                configuration option name
  * @param[in]      type                type of option data
  * @param[in]      ...                 value of option data in the type
  *                                     specified
@@ -682,9 +706,9 @@ IOT_API IOT_SECTION iot_status_t iot_option_get_raw(
  * @retval IOT_STATUS_FULL             maximum number of options reached
  * @retval IOT_STATUS_SUCCESS          on success
  *
- * @see iot_option_set_raw
+ * @see iot_config_set_raw
  */
-IOT_API IOT_SECTION iot_status_t iot_option_set(
+IOT_API IOT_SECTION iot_status_t iot_config_set(
 	iot_t *lib,
 	const char *name,
 	iot_type_t type,
@@ -694,7 +718,7 @@ IOT_API IOT_SECTION iot_status_t iot_option_set(
  * @brief Sets a raw option value
  *
  * @param[in,out]  lib                 library handle
- * @param[in]      name                option name
+ * @param[in]      name                configuration option name
  * @param[in]      length              length of option data
  * @param[in]      ptr                 pointer to option data
  *
@@ -702,9 +726,9 @@ IOT_API IOT_SECTION iot_status_t iot_option_set(
  * @retval IOT_STATUS_FULL             maximum number of options reached
  * @retval IOT_STATUS_SUCCESS          on success
  *
- * @see iot_option_set
+ * @see iot_config_set
  */
-IOT_API IOT_SECTION iot_status_t iot_option_set_raw(
+IOT_API IOT_SECTION iot_status_t iot_config_set_raw(
 	iot_t *lib,
 	const char *name,
 	size_t length,
@@ -713,26 +737,26 @@ IOT_API IOT_SECTION iot_status_t iot_option_set_raw(
 #ifndef iot_EXPORTS
 #ifndef __clang__
 /**
- * @brief Sets an option value
+ * @brief Sets a configuration option value
  *
  * @param[in,out]  lib                 library handle
- * @param[in]      name                option name
- * @param[in]      type                option type
- * @param[in]      data                option value
+ * @param[in]      name                configuration option name
+ * @param[in]      type                configuration option type
+ * @param[in]      data                configuration option value
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_FULL             maximum number of options reached
  * @retval IOT_STATUS_SUCCESS          on success
  *
  */
-#	define iot_option_set( lib, name, type, data ) \
-		iot_option_set( lib, name, type, data )
+#	define iot_config_set( lib, name, type, data ) \
+		iot_config_set( lib, name, type, data )
 
 /**
- * @brief Returns the value of an option
+ * @brief Returns the value of a confiugration option
  *
  * @param[in,out]  lib                 library handle
- * @param[in]      name                option name
+ * @param[in]      name                configuration option name
  * @param[in]      convert             convert to type, if possible
  * @param[in]      type                type of data to return
  * @param[in,out]  data                pointer to a variable of the type
@@ -744,8 +768,8 @@ IOT_API IOT_SECTION iot_status_t iot_option_set_raw(
  * @retval IOT_STATUS_NOT_FOUND        option not found
  * @retval IOT_STATUS_SUCCESS          on success
  */
-#	define iot_option_get( lib, name, convert, type, data ) \
-		iot_option_get( lib, name, convert, type, data )
+#	define iot_config_get( lib, name, convert, type, data ) \
+		iot_config_get( lib, name, convert, type, data )
 #endif /* ifndef __clang__ */
 #endif /* ifndef iot_EXPORTS */
 
@@ -1193,6 +1217,77 @@ IOT_API IOT_SECTION iot_status_t iot_log_level_set_string(
 	const char *log_level_str );
 
 /**
+ * @brief Returns the value of an option within a list
+ *
+ * @param[in]      options             options list to read
+ * @param[in]      name                option name to retrieve
+ * @param[in]      convert             convert to type, if possible
+ * @param[in]      type                type of data to return
+ * @param[in,out]  args                variable argument list with value
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_BAD_REQUEST      type doesn't match parameter
+ *                                     (and not convertible, if set)
+ * @retval IOT_STATUS_NOT_FOUND        option not found
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get
+ * @see iot_options_set_args
+ *
+ */
+IOT_SECTION iot_status_t iot_options_get_args(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_type_t type,
+	va_list args );
+
+/**
+ * @brief Sets the value of an option within a list
+ *
+ * @param[in,out]  options             options list to modify
+ * @param[in]      name                item name to modify
+ * @param[in]      type                type of value
+ * @param[in]      args                argument with value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see iot_options_clear
+ * @see iot_options_get_args
+ * @see iot_options_set
+ * @see iot_options_set_data
+ */
+IOT_SECTION iot_status_t iot_options_set_args(
+	iot_options_t *options,
+	const char *name,
+	iot_type_t type,
+	va_list args );
+
+/**
+ * @brief Sets the value of a piece of configuration data
+ *
+ * @param[in,out]  options            options list to set value
+ * @param[in]      name               option name
+ * @param[in]      data               option value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER   invalid parameter passed to the function
+ * @retval IOT_STAUTS_FULL            maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS         on success
+ *
+ * @see iot_options_get
+ * @see iot_options_set
+ * @see iot_options_set_args
+ */
+IOT_SECTION iot_status_t iot_options_set_data(
+	iot_options_t *options,
+	const char *name,
+	const struct iot_data *data );
+
+
+/**
  * @brief Loads any built-in plugins
  *
  * @param[in,out]  lib                 library to load plug-ins into
@@ -1300,6 +1395,8 @@ IOT_SECTION iot_status_t iot_plugin_load(
  *                                     (optional)
  * @param[in]      new_value           new value for item, type is based on
  *                                     @p op (optional)
+ * @param[in]      options             optional options for the plug-in
+ *                                     (optional)
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_SUCCESS          on success
@@ -1311,7 +1408,8 @@ IOT_SECTION iot_status_t iot_plugin_perform(
 	iot_millisecond_t *max_time_out,
 	iot_operation_t op,
 	const void *item,
-	const void *new_value );
+	const void *new_value,
+	const iot_options_t *options );
 
 /**
  * @brief terminates a loaded plug-in

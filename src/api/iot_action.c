@@ -400,7 +400,7 @@ iot_status_t iot_action_deregister(
 				result = iot_plugin_perform( action->lib, txn,
 					&max_time_out,
 					IOT_OPERATION_ACTION_DEREGISTER,
-					action, NULL );
+					action, NULL, NULL );
 				if ( result == IOT_STATUS_SUCCESS )
 					action->state = IOT_ITEM_DEREGISTERED;
 				else
@@ -1279,7 +1279,8 @@ iot_status_t iot_action_process(
 			/* send command execution result to the cloud */
 			request->result = action_result;
 			result = iot_plugin_perform( lib, NULL, &max_time_out,
-				IOT_OPERATION_ACTION_COMPLETE, action, request );
+				IOT_OPERATION_ACTION_COMPLETE, action, request,
+				NULL );
 
 			/* free memory associated with the request */
 			iot_action_request_free( request );
@@ -1318,7 +1319,7 @@ iot_status_t iot_action_register(
 		IOT_LOG( action->lib, IOT_LOG_TRACE, "Registering %s",
 			action->name );
 		result = iot_plugin_perform( action->lib, txn, &max_time_out,
-			IOT_OPERATION_ACTION_REGISTER, action, NULL );
+			IOT_OPERATION_ACTION_REGISTER, action, NULL, NULL );
 		if ( result == IOT_STATUS_SUCCESS )
 			action->state = IOT_ITEM_REGISTERED;
 		else
