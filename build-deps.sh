@@ -2,7 +2,7 @@
 # --------------------------------------------------------------------
 # Description:
 # This script downloads, builds and installs into CWD/deps with
-# the dependencies for the hdc-lib API and applications.  Once the
+# the dependencies for the device-cloud-lib API and applications.  Once the
 # script completes, there will be a directory called "build".  Run
 # "make" in the build directory.
 #
@@ -49,13 +49,13 @@ cd ..
 rm -rf libwebsockets
 
 # operating system abstraction layer
-git clone ssh://git@github.com/Wind-River/hdc-osal.git hdc-osal
-cd hdc-osal
+git clone ssh://git@github.com/Wind-River/device-cloud-osal.git device-cloud-osal
+cd device-cloud-osal
 cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DSOAL_THREAD_SUPPORT:BOOL=ON -DOSAL_WRAP:BOOL=ON .
 make
 make install
 cd ..
-rm -rf hdc-osal
+rm -rf device-cloud-osal
 
 # paho
 export PAHO_GIT_TAG=v1.2.0
@@ -93,7 +93,7 @@ cd ..
 rm -fr libarchive
 
 
-# build hdc lib, if you want to use mosquitto instead of paho
+# build device-cloud lib, if you want to use mosquitto instead of paho
 # uncomment the following
 #USE_MOSQUITTO=-DIOT_MQTT_LIBRARY:STRING=mosquitto
 
@@ -103,6 +103,6 @@ cd build
 cmake  $USE_MOSQUITTO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DDEPENDS_ROOT_DIR:PATH=$DEPS_DIR ..
 
 echo
-echo "hdc-lib is ready to build."
+echo "device-cloud-lib is ready to build."
 echo "cd build && make"
 echo
