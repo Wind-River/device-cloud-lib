@@ -27,6 +27,7 @@ static IOT_SECTION struct iot_option *iot_options_find(
 	const char *name,
 	iot_uint8_t *found_idx );
 
+
 iot_options_t *iot_options_allocate( iot_t *lib )
 {
 	iot_options_t *result = NULL;
@@ -134,7 +135,6 @@ iot_status_t iot_options_clear(
 	return iot_options_set( options, name, IOT_TYPE_NULL, NULL );
 }
 
-
 struct iot_option *iot_options_find(
 	const iot_options_t *options,
 	const char *name,
@@ -183,7 +183,6 @@ struct iot_option *iot_options_find(
 				opt = NULL;
 			}
 		}
-
 	}
 
 	/* return index if desired */
@@ -191,7 +190,6 @@ struct iot_option *iot_options_find(
 		*found_idx = cur_idx;
 	return opt;
 }
-
 
 iot_status_t iot_options_get(
 	const iot_options_t *options,
@@ -239,58 +237,13 @@ iot_status_t iot_options_get_bool(
 	return iot_options_get( options, name, convert, IOT_TYPE_BOOL, value );
 }
 
-iot_status_t iot_options_get_int8(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_int8_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_INT8, value );
-}
-
-iot_status_t iot_options_get_int16(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_int16_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_INT16, value );
-}
-
-iot_status_t iot_options_get_int32(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_int32_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_INT32, value );
-}
-
-iot_status_t iot_options_get_int64(
+iot_status_t iot_options_get_integer(
 	const iot_options_t *options,
 	const char *name,
 	iot_bool_t convert,
 	iot_int64_t *value )
 {
 	return iot_options_get( options, name, convert, IOT_TYPE_INT64, value );
-}
-
-iot_status_t iot_options_get_float32(
-	iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_float32_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_FLOAT32, value );
-}
-
-iot_status_t iot_options_get_float64(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_float64_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_FLOAT64, value );
 }
 
 iot_status_t iot_options_get_location(
@@ -300,51 +253,6 @@ iot_status_t iot_options_get_location(
 	const iot_location_t **value )
 {
 	return iot_options_get( options, name, convert, IOT_TYPE_LOCATION, value );
-}
-
-iot_status_t iot_options_get_uint8(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_uint8_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_UINT8, value );
-}
-
-iot_status_t iot_options_get_uint16(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_uint16_t value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_UINT16, value );
-}
-
-iot_status_t iot_options_get_uint32(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_uint32_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_UINT32, value );
-}
-
-iot_status_t iot_options_get_uint64(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	iot_uint64_t *value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_UINT64, value );
-}
-
-iot_status_t iot_options_get_string(
-	const iot_options_t *options,
-	const char *name,
-	iot_bool_t convert,
-	const char **value )
-{
-	return iot_options_get( options, name, convert, IOT_TYPE_STRING, value );
 }
 
 iot_status_t iot_options_get_raw(
@@ -366,6 +274,24 @@ iot_status_t iot_options_get_raw(
 		*data = raw_data.ptr;
 	}
 	return result;
+}
+
+iot_status_t iot_options_get_real(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	iot_float64_t *value )
+{
+	return iot_options_get( options, name, convert, IOT_TYPE_FLOAT64, value );
+}
+
+iot_status_t iot_options_get_string(
+	const iot_options_t *options,
+	const char *name,
+	iot_bool_t convert,
+	const char **value )
+{
+	return iot_options_get( options, name, convert, IOT_TYPE_STRING, value );
 }
 
 iot_status_t iot_options_set(
@@ -509,52 +435,12 @@ iot_status_t iot_options_set_data(
 	return result;
 }
 
-iot_status_t iot_options_set_int8(
-	iot_options_t *options,
-	const char *name,
-	iot_int8_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_INT8, value );
-}
-
-iot_status_t iot_options_set_int16(
-	iot_options_t *options,
-	const char *name,
-	iot_int16_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_INT16, value );
-}
-
-iot_status_t iot_options_set_int32(
-	iot_options_t *options,
-	const char *name,
-	iot_int32_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_INT32, value );
-}
-
-iot_status_t iot_options_set_int64(
+iot_status_t iot_options_set_integer(
 	iot_options_t *options,
 	const char *name,
 	iot_int64_t value )
 {
 	return iot_options_set( options, name, IOT_TYPE_INT64, value );
-}
-
-iot_status_t iot_options_set_float32(
-	iot_options_t *options,
-	const char *name,
-	iot_float32_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_FLOAT32, (double)value );
-}
-
-iot_status_t iot_options_set_float64(
-	iot_options_t *options,
-	const char *name,
-	iot_float64_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_FLOAT64, value );
 }
 
 iot_status_t iot_options_set_location(
@@ -563,46 +449,6 @@ iot_status_t iot_options_set_location(
 	const iot_location_t *value )
 {
 	return iot_options_set( options, name, IOT_TYPE_LOCATION, value );
-}
-
-iot_status_t iot_options_set_uint8(
-	iot_options_t *options,
-	const char *name,
-	iot_uint8_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_UINT8, value );
-}
-
-iot_status_t iot_options_set_uint16(
-	iot_options_t *options,
-	const char *name,
-	iot_uint16_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_UINT16, value );
-}
-
-iot_status_t iot_options_set_uint32(
-	iot_options_t *options,
-	const char *name,
-	iot_uint32_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_UINT32, value );
-}
-
-iot_status_t iot_options_set_uint64(
-	iot_options_t *options,
-	const char *name,
-	iot_uint64_t value )
-{
-	return iot_options_set( options, name, IOT_TYPE_UINT64, value );
-}
-
-iot_status_t iot_options_set_string(
-	iot_options_t *options,
-	const char *name,
-	const char *value )
-{
-	return iot_options_set( options, name, IOT_TYPE_STRING, value );
 }
 
 iot_status_t iot_options_set_raw(
@@ -622,5 +468,21 @@ iot_status_t iot_options_set_raw(
 			IOT_TYPE_RAW, &raw_data );
 	}
 	return result;
+}
+
+iot_status_t iot_options_set_real(
+	iot_options_t *options,
+	const char *name,
+	iot_float64_t value )
+{
+	return iot_options_set( options, name, IOT_TYPE_FLOAT64, value );
+}
+
+iot_status_t iot_options_set_string(
+	iot_options_t *options,
+	const char *name,
+	const char *value )
+{
+	return iot_options_set( options, name, IOT_TYPE_STRING, value );
 }
 

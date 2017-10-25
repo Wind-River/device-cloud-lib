@@ -911,7 +911,7 @@ int main( int argc, char *argv[] )
 		IOT_LOG( iot_lib, IOT_LOG_INFO,
 			"Telemetry interval: %d seconds", POLL_INTERVAL_SEC );
 
-		iot_options_set_int32( opts, "level", IOT_LOG_WARNING );
+		iot_options_set_integer( opts, "level", IOT_LOG_WARNING );
 		if ( send_telemetry != IOT_FALSE )
 			iot_event_publish( iot_lib, opts, "Sending telemetry enabled" );
 		if ( send_location != IOT_FALSE )

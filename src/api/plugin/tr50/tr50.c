@@ -1106,7 +1106,7 @@ iot_status_t tr50_event_publish(
 		result = IOT_STATUS_NO_MEMORY;
 		if ( json )
 		{
-			iot_uint32_t level;
+			iot_int64_t level;
 			const char *msg;
 			iot_json_encode_object_start( json, "cmd" );
 			iot_json_encode_string( json, "command", "log.publish" );
@@ -1122,7 +1122,7 @@ iot_status_t tr50_event_publish(
 			tr50_optional( json, "global", options, "global",
 				IOT_TYPE_BOOL );
 
-			if ( iot_options_get_uint32( options,
+			if ( iot_options_get_integer( options,
 				"level", IOT_TRUE, &level ) == IOT_STATUS_SUCCESS )
 			{
 				if ( level <= IOT_LOG_ERROR )
@@ -2073,7 +2073,7 @@ void tr50_optional(
 		case IOT_TYPE_FLOAT64:
 		{
 			data.value.float64 = 0.0;
-			if ( iot_options_get_float64( options, options_key, IOT_FALSE,
+			if ( iot_options_get_real( options, options_key, IOT_FALSE,
 				&data.value.float64 ) == IOT_STATUS_SUCCESS )
 			{
 				iot_json_encode_real( json, json_key,
@@ -2091,7 +2091,7 @@ void tr50_optional(
 		case IOT_TYPE_UINT64:
 		{
 			data.value.int64 = 0;
-			if ( iot_options_get_int64( options, options_key, IOT_FALSE,
+			if ( iot_options_get_integer( options, options_key, IOT_FALSE,
 				&data.value.int64 ) == IOT_STATUS_SUCCESS )
 			{
 				iot_json_encode_integer( json, json_key,
@@ -2140,11 +2140,13 @@ void tr50_optional(
 			break;
 		case IOT_TYPE_NULL: /* special case: time stamp */
 		{
-			if ( iot_options_get_uint64( options, options_key,
-				IOT_FALSE, &data.value.uint64 ) == IOT_STATUS_SUCCESS )
+			if ( iot_options_get_integer( options, options_key,
+				IOT_FALSE, &data.value.int64 ) == IOT_STATUS_SUCCESS )
 			{
 				char ts_str[32u];
-				tr50_strtime( data.value.uint64, ts_str, 25u );
+				tr50_strtime(
+					(iot_timestamp_t)data.value.int64,
+					ts_str, 25u );
 				iot_json_encode_string( json, json_key, ts_str );
 			}
 			break;
