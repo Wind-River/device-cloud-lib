@@ -20,7 +20,7 @@
 #include <string.h>
 
 static void test_log_callback( iot_log_level_t log_level,
-                               iot_log_source_t *log_source,
+                               const iot_log_source_t *log_source,
                                const char *message,
                                void *user_data )
 {

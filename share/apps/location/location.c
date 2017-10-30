@@ -67,7 +67,7 @@ static const char text_buffer[] = "Arma virumque cano, Troiae qui primus ab oris
  * @param[in]      user_data           unused
  */
 static void debug_log( iot_log_level_t log_level,
-	iot_log_source_t *source, const char* msg, void* user_data );
+	const iot_log_source_t *source, const char* msg, void* user_data );
 
 /**
  * @brief Sleep handler
@@ -128,7 +128,7 @@ static void sig_handler( int signo );
 static iot_status_t sleep_ms( iot_millisecond_t ms );
 
 void debug_log( iot_log_level_t log_level,
-	iot_log_source_t *source,
+	const iot_log_source_t *source,
 	const char* msg,
 	void *user_data )
 {

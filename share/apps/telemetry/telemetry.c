@@ -85,7 +85,8 @@ static iot_t *initialize( void );
  * @param[in]      message             message that was generated
  * @param[in]      user_data           user specific data
  */
-static void log_handler( iot_log_level_t log_level, iot_log_source_t *log_source,
+static void log_handler( iot_log_level_t log_level,
+	const iot_log_source_t *log_source,
 	const char *message, void *user_data );
 
 /**
@@ -217,7 +218,7 @@ static iot_t* initialize( void )
 	return iot_lib;
 }
 
-void log_handler( iot_log_level_t log_level, iot_log_source_t *log_source,
+void log_handler( iot_log_level_t log_level, const iot_log_source_t *log_source,
 	const char *message, void *user_data )
 {
 	(void)log_level;

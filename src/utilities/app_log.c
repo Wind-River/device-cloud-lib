@@ -21,7 +21,7 @@
 /** @brief Maximum number of times to repeat log message */
 #define LOG_MESSAGE_REPEAT_MAX    4294967295u
 
-void app_log( iot_log_level_t log_level, iot_log_source_t *source,
+void app_log( iot_log_level_t log_level, const iot_log_source_t *source,
 	const char *message, void *UNUSED(user_data) )
 {
 	const char *file_name = "";

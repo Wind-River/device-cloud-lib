@@ -432,7 +432,7 @@ typedef void (iot_file_progress_callback_t)(
  */
 typedef void (iot_log_callback_t)(
 	iot_log_level_t log_level,
-	iot_log_source_t *log_source,
+	const iot_log_source_t *log_source,
 	const char *message,
 	void *user_data );
 

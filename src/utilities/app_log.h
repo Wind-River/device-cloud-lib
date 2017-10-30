@@ -24,7 +24,7 @@
  * @param[in]      user_data                     user specific data (unused)
  */
 IOT_SECTION void app_log( iot_log_level_t log_level,
-	iot_log_source_t *source, const char *message, void *user_data );
+	const iot_log_source_t *source, const char *message, void *user_data );
 
 #endif /* ifndef APP_LOG_H */
 
