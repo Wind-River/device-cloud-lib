@@ -426,15 +426,27 @@ iot_status_t device_manager_file_download(
 			file_path = file_name;
 
 		if ( dm )
+		{
+			iot_options_t *options = NULL;
+			if ( use_global_store != IOT_FALSE )
+			{
+				options = iot_options_allocate( dm->iot_lib );
+				iot_options_set_bool( options, "global",
+					use_global_store );
+			}
+
 			result = iot_file_download(
 				dm->iot_lib,
 				NULL,
-				0u,
-				use_global_store,
+				options,
 				file_name,
 				file_path,
 				NULL,
 				NULL );
+
+			if ( options )
+				iot_options_free( options );
+		}
 	}
 	return result;
 }
@@ -482,15 +494,26 @@ iot_status_t device_manager_file_upload(
 			(int)use_global_store, (int)result);
 
 		if ( dm )
+		{
+			iot_options_t *options = NULL;
+			if ( use_global_store != IOT_FALSE )
+			{
+				options = iot_options_allocate( dm->iot_lib );
+				iot_options_set_bool( options, "global",
+					use_global_store );
+			}
+
 			result = iot_file_upload(
 				dm->iot_lib,
 				NULL,
-				0u,
-				use_global_store,
+				options,
 				file_name,
 				file_path,
 				NULL,
 				NULL );
+
+			iot_options_free( options );
+		}
 	}
 	return result;
 }

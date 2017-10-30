@@ -413,8 +413,6 @@ struct iot_file_transfer
 {
 	/** @brief progress function callback */
 	iot_file_progress_callback_t *callback;
-	/** @brief flags for the transfer */
-	iot_file_flags_t flags;
 	/** @brief cloud's file name */
 	const char *name;
 	/** @brief local file path */

@@ -439,6 +439,7 @@ iot_status_t tr50_terminate(
  *
  * @param[in]      data                plug-in specific data
  * @param[in]      file_transfer       info required to transfer file
+ * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_BAD_PARAMETER    bad params
  * @retval IOT_STATUS_FAILURE          on failure
@@ -446,7 +447,8 @@ iot_status_t tr50_terminate(
  */
 static IOT_SECTION iot_status_t tr50_file_request_send(
 	struct tr50_data *data, iot_operation_t op,
-	const iot_file_transfer_t* file_transfer );
+	const iot_file_transfer_t* file_transfer,
+	const iot_options_t *options );
 
 /**
  * @brief a thread to perform file transfer
@@ -1183,7 +1185,8 @@ iot_status_t tr50_execute(
 			case IOT_OPERATION_FILE_DOWNLOAD:
 			case IOT_OPERATION_FILE_UPLOAD:
 				result = tr50_file_request_send( data, op,
-					(const iot_file_transfer_t*)item );
+					(const iot_file_transfer_t*)item,
+					options );
 				break;
 			case IOT_OPERATION_TELEMETRY_PUBLISH:
 				result = tr50_telemetry_publish( data,
@@ -1229,7 +1232,8 @@ iot_status_t tr50_execute(
 
 iot_status_t tr50_file_request_send(
 	struct tr50_data *data, iot_operation_t op,
-	const iot_file_transfer_t* file_transfer )
+	const iot_file_transfer_t* file_transfer,
+	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( data && file_transfer )
@@ -1251,8 +1255,9 @@ iot_status_t tr50_file_request_send(
 			transfer.callback = file_transfer->callback;
 			transfer.user_data = file_transfer->user_data;
 			transfer.op = op;
-			if ( file_transfer->flags & IOT_FILE_FLAG_GLOBAL )
-				transfer.use_global_store = IOT_TRUE;
+			transfer.use_global_store = IOT_FALSE;
+			iot_options_get_bool( options, "global", IOT_FALSE,
+				&transfer.use_global_store );
 
 			result = IOT_STATUS_FAILURE;
 			if ( json )

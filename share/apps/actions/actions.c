@@ -409,7 +409,6 @@ iot_status_t on_action_file_upload(
 	const char *param_file = NULL;
 	const char *param_path = NULL;
 	iot_bool_t global_file = IOT_FALSE;
-	iot_file_flags_t flags = 0u;
 	iot_t *iot_lib = (iot_t *)user_data;
 
 	/* In this example, two parameters are possible: path and
@@ -445,14 +444,17 @@ iot_status_t on_action_file_upload(
 
 	if ( result == IOT_STATUS_SUCCESS )
 	{
+		iot_options_t *opts = iot_options_allocate( iot_lib );
 		/* whether transfer is a global transfer */
 		status = iot_action_parameter_get( request, PARAM_NAME_GLOBAL,
 			IOT_FALSE, IOT_TYPE_BOOL, &global_file );
 
+		if ( status == IOT_STATUS_SUCCESS )
+			iot_options_set_bool( opts, "global", global_file );
+
 		printf ( "========================================================\n" );
 		if ( global_file != IOT_FALSE )
 		{
-			flags |= IOT_FILE_FLAG_GLOBAL;
 			printf( "Uploading to the global file store.\n"
 			        "Note: thing_key will be prefixed to the file name\n" );
 		}
@@ -464,10 +466,9 @@ iot_status_t on_action_file_upload(
 		        "========================================================\n",
 	 	        param_path );
 
-		result = iot_file_upload(iot_lib,     /* lib handle */
+		result = iot_file_upload( iot_lib,    /* lib handle */
 				NULL,                 /* transaction id */
-				0,                    /* max time out */
-				flags,                /* global flag */
+				opts,                 /* options */
 				param_file,           /* file name to rename on cloud */
 				param_path,           /* path to send */
 				NULL,                 /* callback func */

@@ -224,9 +224,14 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 			}
 			if ( result == IOT_STATUS_SUCCESS )
 			{
+				iot_options_t *const options =
+					iot_options_allocate(
+						device_manager_info->iot_lib );
+
 				/* FIXME: this should be an optional
 				 * parameter to the cb */
-				iot_file_flags_t global = 0x0u;
+				iot_options_set_bool( options, "global",
+					IOT_TRUE );
 
 				/* Setup the local path */
 				os_snprintf(local_archive_path, PATH_MAX,
@@ -236,15 +241,15 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 					"Downloading to %s",
 					local_archive_path );
 
-				global |= IOT_FILE_FLAG_GLOBAL;
 				result = iot_file_download(
 						iot_lib,
 						NULL,
-						0u,
-						global,
+						options,
 						file_to_download,
 						local_archive_path,
 						NULL, NULL);
+
+				iot_options_free( options );
 			}
 			if ( result == IOT_STATUS_SUCCESS)
 			{
@@ -278,10 +283,9 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 
 			/* don't check the retcode here, it is not
 			 * important*/
-			iot_file_upload(iot_lib,        /* lib handle */
+			iot_file_upload( iot_lib,     /* lib handle */
 				NULL,                 /* transaction id */
-				0,                    /* max time out */
-				0,                    /* global flag */
+				NULL,                 /* options */
 				NULL,                 /* file name to rename on cloud */
 				sw_update_log,        /* path to send */
 				NULL,                 /* callback func */
