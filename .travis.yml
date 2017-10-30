@@ -58,13 +58,13 @@ install:
   - rm -rf libwebsockets
 
   # operating system abstraction layer
-  - git clone ssh://git@github.com/Wind-River/hdc-osal.git hdc-osal
-  - cd hdc-osal
+  - git clone ssh://git@github.com/Wind-River/device-cloud-osal.git device-cloud-osal
+  - cd device-cloud-osal
   - cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DSOAL_THREAD_SUPPORT:BOOL=ON -DOSAL_WRAP:BOOL=ON .
   - make
   - make install
   - cd ..
-  - rm -rf hdc-osal
+  - rm -rf device-cloud-osal
 
   # paho
   - export PAHO_GIT_TAG=v1.2.0
