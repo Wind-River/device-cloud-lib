@@ -176,6 +176,8 @@ typedef struct iot_location                      iot_location_t;
 typedef enum iot_location_source                 iot_location_source_t;
 /** @brief Type representing a map of options */
 typedef struct iot_options                       iot_options_t;
+/** @brief Alarm severity */
+typedef uint32_t                                 iot_severity_t;
 /** @brief Type representing a telemetry data */
 typedef struct iot_telemetry                     iot_telemetry_t;
 /** @brief Type representing communication between client and agent */
@@ -357,44 +359,6 @@ typedef struct iot_log_source
 	/** @brief Line number that generated log message */
 	unsigned int line_number;
 } iot_log_source_t;
-
-/**
- * @brief Possible alarm severities
- */
-typedef enum iot_severity {
-	/** @brief severity level 0 (not severe) */
-	IOT_SEVERITY_0,
-	/** @brief severity level 1 (very low serverity) */
-	IOT_SEVERITY_1,
-	/** @brief severity level 2 (low severity)*/
-	IOT_SEVERITY_2,
-	/** @brief severity level 3 (medium severity) */
-	IOT_SEVERITY_3,
-	/** @brief severity level 4 (high severity) */
-	IOT_SEVERITY_4,
-	/** @brief severity level 5 (very high severity) */
-	IOT_SEVERITY_5
-} iot_severity_t;
-
-/**
- * @defgroup state Possible states of the system
- * @{
- */
-/** @brief Not connected to cloud */
-#define IOT_STATE_NOT_CONNECTED        0
-/** @brief Connected to cloud */
-#define IOT_STATE_CONNECTED            1
-
-/**
- * @brief Last state (not a true state
- * @note This must be the last state (i.e. highest number)
- */
-#define IOT_STATE_LAST                 (IOT_STATE_CONNECTED)
-/** @brief State of client */
-typedef int iot_state_t;
-/**
- * @}
- */
 
 /**
  * @brief Type for a callback function called when an internal action is
