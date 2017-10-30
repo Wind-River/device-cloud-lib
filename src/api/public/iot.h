@@ -1284,6 +1284,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_deregister(
  * @brief Publish an alarm state
  *
  * @param[in,out]  alarm               alarm to raise
+ * @param[out]     txn                 transaction status (optional)
  * @param[in]      options             options for attributes (optional)
  * @param[in]      severity            severity of the alarm
  *
@@ -1294,6 +1295,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_deregister(
  */
 IOT_API IOT_SECTION iot_status_t iot_alarm_publish(
 	const iot_alarm_t *alarm,
+	iot_transaction_t *txn,
 	const iot_options_t *options,
 	iot_severity_t severity );
 
@@ -1301,9 +1303,10 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish(
  * @brief Publish an alarm state with a message
  *
  * @param[in,out]  alarm               alarm to raise
+ * @param[out]     txn                 transaction status (optional)
+ * @param[in]      options             options for attributes (optional)
  * @param[in]      severity            severity of the alarm
  * @param[in]      message             message to show with the alarm state
- * @param[in]      options             options for attributes (optional)
  *
  * Optional supported options:
  *   - location (location): location of the alarm (default: None)
@@ -1322,6 +1325,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish(
  */
 IOT_API IOT_SECTION iot_status_t iot_alarm_publish_string(
 	const iot_alarm_t *alarm,
+	iot_transaction_t *txn,
 	const iot_options_t *options,
 	iot_severity_t severity,
 	const char *message );
@@ -1331,6 +1335,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish_string(
  * @brief allows the ability to publish attributes
  *
  * @param[in]      lib                 library handle
+ * @param[out]     txn                 transaction status (optional)
  * @param[in]      options             options for attributes (optional)
  * @param[in]      key                 attribute key
  * @param[in]      value               attribute value
@@ -1352,6 +1357,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish_string(
  */
 IOT_API IOT_SECTION iot_status_t iot_attribute_publish(
 	iot_t *lib,
+	iot_transaction_t *txn,
 	const iot_options_t *options,
 	const char *key,
 	const char *value );
@@ -1361,6 +1367,7 @@ IOT_API IOT_SECTION iot_status_t iot_attribute_publish(
  * @brief allows the ability to log events
  *
  * @param[in]      lib                 library handle
+ * @param[out]     txn                 transaction status (optional)
  * @param[in]      options             options for events (optional)
  * @param[in]      message             message to log
  *
@@ -1382,6 +1389,7 @@ IOT_API IOT_SECTION iot_status_t iot_attribute_publish(
  */
 IOT_API IOT_SECTION iot_status_t iot_event_publish(
 	iot_t *lib,
+	iot_transaction_t *txn,
 	const iot_options_t *options,
 	const char *message );
 

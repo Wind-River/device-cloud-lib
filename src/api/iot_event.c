@@ -15,10 +15,11 @@
 
 iot_status_t iot_event_publish(
 	iot_t *lib,
+	iot_transaction_t *txn,
 	const iot_options_t *options,
 	const char *message )
 {
-	return iot_plugin_perform( lib, NULL, NULL,
+	return iot_plugin_perform( lib, txn, NULL,
 		IOT_OPERATION_EVENT_PUBLISH, NULL, message, options );
 }
 

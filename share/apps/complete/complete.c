@@ -494,13 +494,13 @@ iot_status_t on_enable_disable_location(
 	if ( send_location == IOT_FALSE )
 	{
 		printf( "Sending location...\n" );
-		iot_event_publish( iot_lib, NULL, "Sending location...\n" );
+		iot_event_publish( iot_lib, NULL, NULL, "Sending location...\n" );
 		send_location = IOT_TRUE;
 	}
 	else
 	{
 		printf( "Disabling location...\n" );
-		iot_event_publish( iot_lib, NULL, "Disabling location...\n" );
+		iot_event_publish( iot_lib, NULL, NULL, "Disabling location...\n" );
 		send_location = IOT_FALSE;
 	}
 	return IOT_STATUS_SUCCESS;
@@ -516,13 +516,13 @@ iot_status_t on_enable_disable_telemetry(
 	if ( send_telemetry == IOT_FALSE )
 	{
 		printf( "Sending telemetry...\n" );
-		iot_event_publish( iot_lib, NULL, "Sending telemetry...\n" );
+		iot_event_publish( iot_lib, NULL, NULL, "Sending telemetry...\n" );
 		send_telemetry = IOT_TRUE;
 	}
 	else
 	{
 		printf( "Disabling telemetry...\n" );
-		iot_event_publish( iot_lib, NULL, "Disabling telemetry...\n" );
+		iot_event_publish( iot_lib, NULL, NULL, "Disabling telemetry...\n" );
 		send_telemetry = IOT_FALSE;
 	}
 	return IOT_STATUS_SUCCESS;
@@ -817,7 +817,7 @@ void send_telemetry_sample( iot_t *iot_lib )
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending string: %s", string_test );
-	result = iot_attribute_publish( iot_lib, NULL, "string", string_test );
+	result = iot_attribute_publish( iot_lib, NULL, NULL, "string", string_test );
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending int8  : %hhd", (signed char)((iot_int8_t)int_test) );
@@ -858,7 +858,7 @@ void send_telemetry_sample( iot_t *iot_lib )
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending alarm   : %d", alarm_severity );
-	result = iot_alarm_publish_string( alarm_test, NULL, alarm_severity, string_test );
+	result = iot_alarm_publish_string( alarm_test, NULL, NULL, alarm_severity, string_test );
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	/* toggle the boolean value for next sample */
@@ -913,9 +913,9 @@ int main( int argc, char *argv[] )
 
 		iot_options_set_integer( opts, "level", IOT_LOG_WARNING );
 		if ( send_telemetry != IOT_FALSE )
-			iot_event_publish( iot_lib, opts, "Sending telemetry enabled" );
+			iot_event_publish( iot_lib, NULL, opts, "Sending telemetry enabled" );
 		if ( send_location != IOT_FALSE )
-			iot_event_publish( iot_lib, opts, "Sending location enabled" );
+			iot_event_publish( iot_lib, NULL, opts, "Sending location enabled" );
 		iot_options_free( opts );
 
 		while ( running != IOT_FALSE )
@@ -939,7 +939,7 @@ int main( int argc, char *argv[] )
 						"Stopping telemetry and/or location",
 						POLL_INTERVAL_SEC );
 
-					iot_event_publish( iot_lib, NULL,
+					iot_event_publish( iot_lib, NULL, NULL,
 						"iteration limit reached. "
 						"Stopped sending telemetry & "
 						"location data." );
