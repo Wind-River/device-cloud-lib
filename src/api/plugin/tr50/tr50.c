@@ -759,6 +759,7 @@ void tr50_append_value_raw(
 	size_t len )
 {
 	uint8_t *heap = NULL;
+
 	if ( !value )
 		value = "";
 	else if ( len != (size_t)-1 )
@@ -772,7 +773,10 @@ void tr50_append_value_raw(
 			value = heap;
 		}
 	}
+
+	/* write raw or string data */
 	iot_json_encode_string( json, key, (const char *)value );
+
 	if ( heap )
 		os_free( heap );
 }
@@ -2201,13 +2205,12 @@ iot_status_t tr50_telemetry_publish(
 	iot_status_t result = IOT_STATUS_FAILURE;
 	if ( d->has_value )
 	{
-		char buf[512u];
 		const char *cmd;
 		char id[6u];
 		const char *msg;
 		const char *const value_key = "value";
 		iot_json_encoder_t *const json =
-			iot_json_encode_initialize( buf, 512u, 0u);
+			iot_json_encode_initialize( NULL, 0u, 0u);
 
 		if ( d->type == IOT_TYPE_LOCATION )
 			cmd = "location.publish";
@@ -2288,6 +2291,7 @@ iot_status_t tr50_telemetry_publish(
 		default:
 			break;
 		}
+
 		if ( t->time_stamp > 0u )
 		{
 			char ts_str[32u];
