@@ -1404,6 +1404,7 @@ IOT_API IOT_SECTION iot_status_t iot_file_download(
  * @param[out]     percentage          percentage done of the file transfer
  *                                     (optional)
  * @param[out]     is_completed        true if file transfer is completed
+ *                                     (optional)
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
  * @retval IOT_STATUS_SUCCESS          operation successful

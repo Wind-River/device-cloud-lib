@@ -28,13 +28,13 @@
 #define POLL_INTERVAL_MSEC 2000u
 
 /** @brief name of file parameter */
-#define PARAM_NAME_FILE                "param_file"
+#define PARAM_NAME_FILE                "dest_name"
 /** @brief whether the file is a global file */
 #define PARAM_NAME_GLOBAL              "global"
 /** @brief name of string parameter */
 #define PARAM_NAME_STR                 "param_str"
 /** @brief name of path parameter */
-#define PARAM_NAME_PATH                "param_path"
+#define PARAM_NAME_PATH                "file_name"
 /** @brief name of integer parameter */
 #define PARAM_NAME_INT                 "param_int"
 /** @brief name of float parameter */
