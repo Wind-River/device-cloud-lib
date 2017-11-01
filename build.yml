@@ -32,9 +32,10 @@ IOT_DEFAULT_DIR_CONFIG: "/etc/iot"
 IOT_DEFAULT_DIR_RUNTIME: "/var/lib/iot"
 
 # Default file names
-IOT_DEFAULT_FILE_CONFIG: "iot.cfg"
-IOT_DEFAULT_FILE_CONNECT: "iot-connect.cfg"
+IOT_DEFAULT_FILE_CONFIG: "iot-connect"
+IOT_DEFAULT_FILE_CONFIG_EXT: ".cfg"
 IOT_DEFAULT_FILE_DEVICE_ID: "device_id"
+IOT_DEFAULT_FILE_DEVICE_MANAGER: "iot.cfg"
 
 # Default paths
 IOT_BIN_DIR: "bin"

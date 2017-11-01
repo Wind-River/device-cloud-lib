@@ -1182,7 +1182,7 @@ iot_status_t device_manager_config_read(
 
 	IOT_LOG( NULL, IOT_LOG_INFO,
 		"  * Checking for configuration file %s ...",
-		IOT_DEFAULT_FILE_CONFIG );
+		IOT_DEFAULT_FILE_DEVICE_MANAGER );
 	if ( device_manager_info && app_path )
 	{
 		size_t cfg_dir_len;
@@ -1248,7 +1248,7 @@ iot_status_t device_manager_config_read(
 			default_iot_cfg_path, PATH_MAX );
 		os_snprintf( &default_iot_cfg_path[cfg_dir_len],
 			PATH_MAX - cfg_dir_len, "%c%s",
-			OS_DIR_SEP, IOT_DEFAULT_FILE_CONFIG );
+			OS_DIR_SEP, IOT_DEFAULT_FILE_DEVICE_MANAGER );
 		default_iot_cfg_path[PATH_MAX] = '\0';
 
 		if ( !config_file || config_file[0] == '\0' )

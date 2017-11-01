@@ -200,8 +200,8 @@ iot_status_t iot_update_get_device_id(
 			os_file_t fd;
 
 			os_snprintf( &filename[filename_len],
-				PATH_MAX - filename_len, "/%s",
-				IOT_DEFAULT_FILE_CONFIG );
+				PATH_MAX - filename_len, "%c%s",
+				OS_DIR_SEP, IOT_DEFAULT_FILE_DEVICE_ID );
 			filename[ PATH_MAX ] = '\0';
 
 			fd  = os_file_open( filename, OS_READ );

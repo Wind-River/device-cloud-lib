@@ -40,10 +40,11 @@ int control_device_decommission( void )
 	iot_status_t result = IOT_STATUS_NO_PERMISSION;
 
 	/* #1 config dir: remove the iot-connect.cfg file, reboot. */
+	/** @todo fix this to use iot_directory_name_get */
 	os_snprintf( file_path,
-		PATH_MAX, "%s%c%s",
+		PATH_MAX, "%s%c%s%s",
 		IOT_DEFAULT_DIR_CONFIG, OS_DIR_SEP,
-		IOT_DEFAULT_FILE_CONNECT);
+		IOT_DEFAULT_FILE_CONFIG, IOT_DEFAULT_FILE_CONFIG_EXT );
 
 	if ( os_file_exists( file_path ) )
 	{
@@ -54,12 +55,13 @@ int control_device_decommission( void )
 			result = IOT_STATUS_SUCCESS;
 	}
 
-	/* #2: runtime dir: the API uses config dir and runtime dir.  Check the runtime
-	 * dir as well */
+	/* #2: runtime dir: the API uses config dir and runtime dir.
+	 * Check the runtime dir as well */
+	/** @todo fix this to use iot_directory_name_get */
 	os_snprintf( file_path,
-		PATH_MAX, "%s%c%s",
+		PATH_MAX, "%s%c%s%s",
 		IOT_DEFAULT_DIR_RUNTIME, OS_DIR_SEP,
-		IOT_DEFAULT_FILE_CONNECT);
+		IOT_DEFAULT_FILE_CONFIG, IOT_DEFAULT_FILE_CONFIG_EXT );
 
 	if ( os_file_exists( file_path ) )
 	{

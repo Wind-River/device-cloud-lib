@@ -164,6 +164,26 @@ static IOT_SECTION iot_status_t iot_base_configuration_parse(
 	const size_t len );
 
 /**
+ * @brief Parses the base object in a configuration file
+ *
+ * @param[in,out]  lib                 library handle
+ * @param[in]      json                json decoder
+ * @param[in]      obj                 object being parsed
+ * @param[in]      key                 current object key
+ * @param[in]      key_len             length of the key
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static IOT_SECTION iot_status_t iot_base_configuration_parse_object(
+	iot_t *lib,
+	iot_json_decoder_t *json,
+	const iot_json_item_t *obj,
+	char *key,
+	size_t key_len );
+
+/**
  * @brief Sets the device id from a file (or generates one if file doesn't exist)
  *
  * @param[in,out]  lib                 library handle
@@ -397,39 +417,63 @@ iot_status_t iot_base_configuration_load(
 	{
 		char file_path[PATH_MAX + 1u];
 		size_t file_path_len = 0u;
+		size_t config_dir_len = 0u;
+		unsigned int i;
 
-		result = IOT_STATUS_SUCCESS;
-		if ( lib->cfg_file_path )
+		result = IOT_STATUS_FAILURE;
+
+		config_dir_len = iot_directory_name_get(
+			IOT_DIR_CONFIG, file_path, PATH_MAX );
+		for ( i = 0u; i < 2u; ++i )
 		{
-			/* customer specified configuration file */
-			os_strncpy( file_path, lib->cfg_file_path,
-				PATH_MAX );
-			file_path_len = os_strlen( lib->cfg_file_path );
-		}
-		else
-		{
-			/* default configuration file */
-			file_path_len = iot_directory_name_get( IOT_DIR_CONFIG,
-				file_path, PATH_MAX );
-			if ( file_path_len < PATH_MAX )
+			if ( i == 0u && config_dir_len < PATH_MAX )
 			{
-				os_snprintf( &file_path[file_path_len],
-					PATH_MAX - file_path_len, "/%s",
-					IOT_DEFAULT_FILE_CONNECT );
-				file_path_len +=
-					os_strlen( IOT_DEFAULT_FILE_CONNECT ) + 1u;
+				/* global configuration file */
+				os_snprintf( &file_path[config_dir_len],
+					PATH_MAX - config_dir_len,
+					"%c%s%s", OS_DIR_SEP,
+					IOT_DEFAULT_FILE_CONFIG,
+					IOT_DEFAULT_FILE_CONFIG_EXT );
+				file_path_len = config_dir_len + 1u +
+					os_strlen( IOT_DEFAULT_FILE_CONFIG ) +
+					os_strlen( IOT_DEFAULT_FILE_CONFIG_EXT );
 			}
-		}
+			else
+			{
+				/* load app specific configuration file */
+				if ( lib->cfg_file_path )
+				{
+					/* option 1: specified config file */
+					os_strncpy( file_path,
+						lib->cfg_file_path, PATH_MAX );
+					file_path_len = os_strlen( lib->cfg_file_path );
+				}
+				else if ( config_dir_len < PATH_MAX )
+				{
+					/* option 2: app name config file */
+					os_snprintf( &file_path[config_dir_len],
+						PATH_MAX - config_dir_len,
+						"%c%s%s", OS_DIR_SEP, lib->id,
+						IOT_DEFAULT_FILE_CONFIG_EXT );
+					file_path_len = config_dir_len + 1u +
+						os_strlen( lib->id ) +
+						os_strlen( IOT_DEFAULT_FILE_CONFIG_EXT );
+				}
+			}
 
-		file_path[ file_path_len ] = '\0';
-		if ( *file_path )
-		{
-			IOT_LOG( lib, IOT_LOG_TRACE,
-				"Reading configuration from %s", file_path );
+			file_path[ file_path_len ] = '\0';
+			if ( file_path_len > 0u )
+			{
+				iot_status_t interim_result;
+				IOT_LOG( lib, IOT_LOG_TRACE,
+					"Reading configuration from %s", file_path );
 
-			/* process the connect configure file */
-			result = iot_base_configuration_read(
-				lib, file_path, max_time_out );
+				/* process the connect configure file */
+				interim_result = iot_base_configuration_read(
+					lib, file_path, max_time_out );
+				if ( result != IOT_STATUS_SUCCESS )
+					result = interim_result;
+			}
 		}
 	}
 	return result;
@@ -446,6 +490,8 @@ iot_status_t iot_base_configuration_read(
 		os_file_t fd = OS_FILE_INVALID;
 
 		/* the configuration file must be there to continue */
+		IOT_LOG( lib, IOT_LOG_INFO,
+			"Looking for configuration file: %s", file_path );
 		fd = os_file_open( file_path, OS_READ );
 
 		result = IOT_STATUS_FAILURE;
@@ -461,9 +507,15 @@ iot_status_t iot_base_configuration_read(
 				more_to_read == IOT_TRUE )
 			{
 				char *new_buf;
+#ifdef IOT_STACK_ONLY
+				char stack_buf[blk_size];
+				new_buf = stack_buf;
+				if ( buf_len < blk_size )
+#else
 				new_buf = os_realloc( buf,
 					sizeof( char ) * ( buf_len + blk_size ) );
 				if ( new_buf )
+#endif /* ifdef IOT_STACK_ONLY */
 				{
 					size_t bytes;
 
@@ -507,7 +559,44 @@ iot_status_t iot_base_configuration_read(
 	return result;
 }
 
-static iot_status_t iot_base_configuration_parse_object(
+iot_status_t iot_base_configuration_parse(
+	iot_t *lib,
+	const char *file_path,
+	const char *buf,
+	const size_t len )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( lib && buf && len > 0 )
+	{
+		iot_json_decoder_t *json;
+		const iot_json_item_t *root;
+		char err_msg[32u];
+
+		json = iot_json_decode_initialize( NULL, 0u,
+			IOT_JSON_FLAG_DYNAMIC );
+		if ( json &&
+			iot_json_decode_parse( json, buf, len, &root,
+				err_msg, 32u ) == IOT_STATUS_SUCCESS )
+		{
+			char key_buff[256u];
+			*key_buff = '\0';
+			os_fprintf( OS_STDERR, "Current Configuration:\n" );
+			iot_base_configuration_parse_object(
+				lib, json, root, key_buff, 0u );
+		}
+		else
+		{
+			IOT_LOG( lib, IOT_LOG_ERROR,
+				"Failed to parse configuration file: %s (%s)",
+					file_path, err_msg );
+		}
+		iot_json_decode_terminate( json );
+		result = IOT_STATUS_SUCCESS;
+	}
+	return result;
+}
+
+iot_status_t iot_base_configuration_parse_object(
 	iot_t *lib,
 	iot_json_decoder_t *json,
 	const iot_json_item_t *obj,
@@ -539,7 +628,6 @@ static iot_status_t iot_base_configuration_parse_object(
 
 		iot_json_decode_object_iterator_value( json, obj,
 			iter, &item );
-
 		type = iot_json_decode_type( json, item );
 
 		switch ( type )
@@ -603,43 +691,6 @@ static iot_status_t iot_base_configuration_parse_object(
 		iter = iot_json_decode_object_iterator_next( json, obj, iter );
 	}
 	return IOT_STATUS_SUCCESS;
-}
-
-iot_status_t iot_base_configuration_parse(
-	iot_t *lib,
-	const char *file_path,
-	const char *buf,
-	const size_t len )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( lib && buf && len > 0 )
-	{
-		iot_json_decoder_t *json;
-		const iot_json_item_t *root;
-		char err_msg[32u];
-
-		json = iot_json_decode_initialize( NULL, 0u,
-			IOT_JSON_FLAG_DYNAMIC );
-		if ( json &&
-			iot_json_decode_parse( json, buf, len, &root,
-				err_msg, 32u ) == IOT_STATUS_SUCCESS )
-		{
-			char key_buff[256u];
-			*key_buff = '\0';
-			os_fprintf( OS_STDERR, "Current Configuration:\n" );
-			iot_base_configuration_parse_object(
-				lib, json, root, key_buff, 0u );
-		}
-		else
-		{
-			IOT_LOG( lib, IOT_LOG_ERROR,
-				"Failed to parse configuration file: %s (%s)",
-					file_path, err_msg );
-		}
-		iot_json_decode_terminate( json );
-		result = IOT_STATUS_SUCCESS;
-	}
-	return result;
 }
 
 iot_status_t iot_base_device_id_set(

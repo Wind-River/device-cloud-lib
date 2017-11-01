@@ -204,10 +204,12 @@ iot_status_t control_config_generate( void )
 			os_file_t connection_file;
 
 			/* generate connection configuration file */
+			/** @todo fix this to use API for configuration directory */
 			os_snprintf( config_file,
-				PATH_MAX, "%s%c%s",
+				PATH_MAX, "%s%c%s%s",
 				IOT_DEFAULT_DIR_CONFIG, OS_DIR_SEP,
-				IOT_DEFAULT_FILE_CONNECT);
+				IOT_DEFAULT_FILE_CONFIG,
+				IOT_DEFAULT_FILE_CONFIG_EXT );
 
 			if ( os_file_exists( config_file ) )
 				os_file_delete( config_file );
