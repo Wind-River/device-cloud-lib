@@ -13,7 +13,7 @@
 
 #include "shared/iot_types.h"     /* for iot_plugin_perform */
 
-iot_status_t iot_attribute_publish(
+iot_status_t iot_attribute_publish_string(
 	iot_t *lib,
 	iot_transaction_t *txn,
 	const iot_options_t *options,

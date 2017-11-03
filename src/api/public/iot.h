@@ -1319,7 +1319,7 @@ IOT_API IOT_SECTION iot_status_t iot_alarm_publish_string(
  *
  * @see iot_event_publish
  */
-IOT_API IOT_SECTION iot_status_t iot_attribute_publish(
+IOT_API IOT_SECTION iot_status_t iot_attribute_publish_string(
 	iot_t *lib,
 	iot_transaction_t *txn,
 	const iot_options_t *options,

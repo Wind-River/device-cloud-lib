@@ -817,7 +817,7 @@ void send_telemetry_sample( iot_t *iot_lib )
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending string: %s", string_test );
-	result = iot_attribute_publish( iot_lib, NULL, NULL, "string", string_test );
+	result = iot_attribute_publish_string( iot_lib, NULL, NULL, "string", string_test );
 	IOT_LOG( iot_lib, IOT_LOG_INFO, " ...... Result: %s", iot_error( result ) );
 
 	IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending int8  : %hhd", (signed char)((iot_int8_t)int_test) );
