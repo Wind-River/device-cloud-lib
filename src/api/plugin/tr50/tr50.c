@@ -730,7 +730,7 @@ void tr50_append_location(
 			switch ( location->source )
 			{
 				case IOT_LOCATION_SOURCE_FIXED:
-					source = "manual";
+					source = "fixed";
 					break;
 				case IOT_LOCATION_SOURCE_GPS:
 					source = "gps";
@@ -740,7 +740,7 @@ void tr50_append_location(
 					break;
 				case IOT_LOCATION_SOURCE_UNKNOWN:
 				default:
-					source = "m2m-locate";
+					source = "unknown";
 			}
 			iot_json_encode_string( json, "fixType", source );
 		}
