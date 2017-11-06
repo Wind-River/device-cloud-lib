@@ -11,6 +11,14 @@
 # Installs into CWD/deps
 # --------------------------------------------------------------------
 
+# Required system dependencies:
+#    Ubuntu:
+#	$ sudo apt-get install build-essential git cmake libssl-dev libwebsocket-dev  \
+#		clib-ares-dev uuid-dev libcurl4-openssl-dev libarchive-dev
+#
+# Repository access.  If device-cloud-osal is not public, make sure to
+# enable ssh clone access in your github account (e.g. add ssh key)
+#
 export DEPS_DIR=`pwd`/deps
 mkdir -p $DEPS_DIR
 
@@ -80,18 +88,6 @@ make
 make install
 cd ..
 rm -fr mosquitto
-
-# libarchive
-export LIBARCHIVE_GIT_TAG=master
-git clone https://github.com/libarchive/libarchive.git
-cd libarchive
-git checkout tags/$LIBARCHIVE_GIT_TAG
-cmake  -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR
-make
-make install
-cd ..
-rm -fr libarchive
-
 
 # build device-cloud lib, if you want to use mosquitto instead of paho
 # uncomment the following
