@@ -581,7 +581,7 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 			os_snprintf( &relay_cmd[ relay_cmd_len ],
 				PATH_MAX,
 				RELAY_CMD_TEMPLATE,
-				IOT_RELAY_TARGET,
+				IOT_TARGET_RELAY,
 				host_in, os_atoi(protocol_in), url_in );
 
 			IOT_LOG( iot_lib, IOT_LOG_TRACE, "Remote login cmd:\n%s\n",

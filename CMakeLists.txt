@@ -36,14 +36,6 @@ set( IOT_DEVICE_MANAGER_DESCRIPTION    "Registers and handles device level reque
                                        "device reboot/shutdown, agent reset etc." )
 string( REPLACE ";" " " IOT_DEVICE_MANAGER_DESCRIPTION "${IOT_DEVICE_MANAGER_DESCRIPTION}" )
 
-set( IOT_RELAY_TARGET                  "iot-relay" )
-set( IOT_RELAY_NAME                    "${PROJECT_NAME} relay tool" )
-set( IOT_RELAY_DESCRIPTION             "Streamlines connections to the cloud" )
-
-set( IOT_UPDATE_TARGET                  "iot-update" )
-set( IOT_UPDATE_NAME                    "${PROJECT_NAME} Software Updates" )
-set( IOT_UPDATE_DESCRIPTION             "Application to handle software updates" )
-
 # Setup variables
 # Determine if compiling in 64-bit mode
 get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )

@@ -26,6 +26,7 @@ IOT_WORKER_THREADS: 5
 
 # Helper applications
 IOT_TARGET_UPDATE: "iot-update"
+IOT_TARGET_RELAY: "iot-relay"
 
 # Default directories
 IOT_DEFAULT_DIR_CONFIG: "/etc/iot"

@@ -98,7 +98,7 @@
 
 
 /** @brief Update application name (executable name) */
-#define IOT_UPDATE_TARGET              "@IOT_UPDATE_TARGET@"
+#define IOT_TARGET_UPDATE              "@IOT_TARGET_UPDATE@"
 /** @brief Update application name (short description) */
 #define IOT_UPDATE_NAME                "@IOT_UPDATE_NAME@"
 /** @brief Update appication long description */
@@ -106,7 +106,7 @@
 
 
 /** @brief Websocket target name (executable name) */
-#define IOT_RELAY_TARGET               "@IOT_RELAY_TARGET@"
+#define IOT_TARGET_RELAY               "@IOT_TARGET_RELAY@"
 /** @brief Websocket name (short description) */
 #define IOT_RELAY_NAME                 "@IOT_RELAY_NAME@"
 /** @brief Websocket long description */

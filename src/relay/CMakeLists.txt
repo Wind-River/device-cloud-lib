@@ -7,7 +7,7 @@
 # herein.  All rights not licensed by Wind River are reserved by Wind River.
 #
 
-set( TARGET "${IOT_RELAY_TARGET}" )
+set( TARGET "${IOT_TARGET_RELAY}" )
 set( TARGET_DESCRIPTION "${IOT_RELAY_DESCRIPTION}" )
 
 find_package( LibWebSockets REQUIRED )

@@ -344,7 +344,7 @@ iot_status_t device_manager_ota_install_execute(
 
 			result = IOT_STATUS_EXECUTION_ERROR;
 			app_path_executable_directory_get(exec_dir, PATH_MAX);
-			if ( app_path_which( iot_update_path, PATH_MAX, exec_dir, IOT_UPDATE_TARGET) )
+			if ( app_path_which( iot_update_path, PATH_MAX, exec_dir, IOT_TARGET_UPDATE) )
 			{
 				/**
 				  * IDP system Truested Path Execution (TPE) protection
@@ -370,7 +370,7 @@ iot_status_t device_manager_ota_install_execute(
 					iot_update_dup_path,
 					PATH_MAX,
 					iot_update_dup_dir,
-					IOT_UPDATE_TARGET"-copy"IOT_EXE_SUFFIX,
+					IOT_TARGET_UPDATE"-copy"IOT_EXE_SUFFIX,
 					NULL ) )
 				{
 					osal_status = os_file_copy(
