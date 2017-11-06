@@ -1093,7 +1093,7 @@ iot_status_t device_manager_initialize( const char *app_path,
 			if ( device_manager_actions_register( device_manager ) != IOT_STATUS_SUCCESS )
 				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s",	"Failed to register device-manager actions" );
 #ifndef NO_FILEIO_SUPPORT
-#	ifdef	__ANDROID__
+#	ifdef __ANDROID__
 			/* check pending file transfer status
 			 * after run time dir is available */
 
@@ -1102,7 +1102,7 @@ iot_status_t device_manager_initialize( const char *app_path,
 			device_manager_file_initialize(
 				device_manager, IOT_FALSE );
 			*/
-#	endif	/* __ANDROID__ */
+#	endif /* __ANDROID__ */
 #endif /* ifndef NO_FILEIO_SUPPORT */
 		}
 		else
@@ -1529,7 +1529,103 @@ int device_manager_main( int argc, char *argv[] )
 			if ( device_manager_initialize(argv[0], &APP_DATA )
 				== IOT_STATUS_SUCCESS )
 			{
+				/* setup device manager attributes */
+				os_system_info_t os;
+				os_adapters_t *adapters = NULL;
+
+				iot_attribute_publish_string(
+					APP_DATA.iot_lib, NULL, NULL,
+					IOT_PRODUCT_SHORT "_version",
+					iot_version_str() );
+
+				os_memzero( &os, sizeof( os_system_info_t ) );
+				if ( os_system_info( &os ) == OS_STATUS_SUCCESS )
+				{
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"hostname", os.host_name );
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"kernel",
+						os.kernel_version );
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"os_name",
+						os.system_name );
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"os_version",
+						os.system_version );
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"os_variant",
+						os.system_release );
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"platform",
+						os.system_platform );
+				}
+
+				/* obtain MAC addresses */
+				if ( os_adapters_obtain( &adapters ) == OS_STATUS_SUCCESS )
+				{
+#define IOT_MAC_ADDRESS_LEN 17u
+#define IOT_MAC_SEPERATOR   " "
+					const size_t sep_len = os_strlen( IOT_MAC_SEPERATOR );
+					char *mac_addr = NULL;
+					size_t mac_pos = 0u;
+					char *mem_ptr = NULL;
+					do
+					{
+						mem_ptr = os_realloc( mac_addr,
+							mac_pos + IOT_MAC_ADDRESS_LEN + sep_len );
+						if ( mem_ptr )
+						{
+							/* not first item, add a seperator */
+							mac_addr = mem_ptr;
+
+							os_strncpy( &mac_addr[mac_pos],
+								"00:00:00:00:00:00",
+								IOT_MAC_ADDRESS_LEN );
+							if ( os_adapters_mac(
+								adapters,
+								&mac_addr[mac_pos],
+								IOT_MAC_ADDRESS_LEN + 1u ) == OS_STATUS_SUCCESS )
+							{
+								mac_pos += IOT_MAC_ADDRESS_LEN;
+								os_strncpy( &mac_addr[mac_pos],
+									IOT_MAC_SEPERATOR,
+									sep_len );
+								mac_pos += sep_len;
+							}
+						}
+					} while ( mem_ptr && os_adapters_next( adapters ) == OS_STATUS_SUCCESS );
+
+					/* null-terminate string */
+					if ( mac_addr )
+					{
+						if ( mac_pos > 0u )
+							mac_pos -= sep_len;
+						mac_addr[mac_pos] = '\0';
+
+						iot_attribute_publish_string(
+							APP_DATA.iot_lib,
+							NULL, NULL,
+							"mac_address", mac_addr );
+
+						os_free( mac_addr );
+					}
+					os_adapters_release( adapters );
+				}
+
 				os_terminate_handler(device_manager_sig_handler);
+
 				IOT_LOG( APP_DATA.iot_lib, IOT_LOG_INFO, "%s",
 					"Ready for some actions..." );
 

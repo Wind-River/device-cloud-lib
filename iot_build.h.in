@@ -16,8 +16,10 @@
 /** @brief GIT sha of the project */
 #define IOT_GIT_SHA                    "@IOT_GIT_SHA@"
 
-/** @brief Name of the project */
+/** @brief Name of the product */
 #define IOT_PRODUCT                    "@IOT_PRODUCT@"
+/** @brief Short name of the product */
+#define IOT_PRODUCT_SHORT              "@IOT_PRODUCT_SHORT@"
 
 /** @brief project version as string */
 #define IOT_VERSION                    "@IOT_VERSION@"
