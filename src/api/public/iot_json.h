@@ -48,6 +48,9 @@ typedef enum iot_json_type
  */
 #define IOT_JSON_FLAG_DYNAMIC          (IOT_JSON_FLAG_EXPAND << 1)
 #endif /* ifndef IOT_STACK_ONLY */
+/**
+ * @brief Internal macro used for bit-shifting, number of bits to shift by
+ */
 #define IOT_JSON_INDENT_OFFSET         2
 /**
  * @brief If @p x is >0 add a new-line and the number of spaces indicated for

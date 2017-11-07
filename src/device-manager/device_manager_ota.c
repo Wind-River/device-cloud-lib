@@ -90,6 +90,7 @@ static iot_status_t device_manager_ota_extract_package(
 /**
  * @brief Function to extract ota package
  *
+ * @param[in,out]  iot_lib             library handle
  * @param[in]      sw_update_package        ota package file
  *
  * @retval IOT_STATUS_BAD_PARAMETER    bad parameter passed to function

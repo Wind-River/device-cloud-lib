@@ -54,7 +54,7 @@ typedef struct iot_mqtt_ssl
 {
 	/** @brief client certificate file path */
 	const char *cert_file;
-	/** @breif client key file path */
+	/** @brief client key file path */
 	const char *key_file;
 	/** @brief client certificate authority file or directory path */
 	const char *ca_path;

@@ -1146,7 +1146,7 @@ IOT_API IOT_SECTION iot_status_t iot_action_request_status(
  * @param[in]      iter                pointer to the iterator
  * @param[in]      convert             convert to type, if possible
  * @param[in]      type                data type
- * @param[out]     data_ptr            pointer to store value
+ * @param[out]     data                pointer to store value
  */
 #	define iot_action_request_parameter_iterator_get( request, iter, convert, type, data ) \
 		iot_action_request_parameter_iterator_get( request, iter, convert, type, data )
@@ -1984,7 +1984,7 @@ IOT_API IOT_SECTION iot_status_t iot_options_set_string(
  *
  * @param[in,out]  options             options list to modify
  * @param[in]      name                option name to modify
- * @param[in[      type                option type
+ * @param[in]      type                option type
  * @param[in]      data                option value to set
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
@@ -1992,8 +1992,8 @@ IOT_API IOT_SECTION iot_status_t iot_options_set_string(
  * @retval IOT_STATUS_SUCCESS          on success
  *
  */
-#	define iot_options_set( lib, name, type, data ) \
-		iot_options_set( lib, name, type, data )
+#	define iot_options_set( options, name, type, data ) \
+		iot_options_set( options, name, type, data )
 
 /**
  * @brief Returns the value of a confiugration option
@@ -2011,8 +2011,8 @@ IOT_API IOT_SECTION iot_status_t iot_options_set_string(
  * @retval IOT_STATUS_NOT_FOUND        option not found
  * @retval IOT_STATUS_SUCCESS          on success
  */
-#	define iot_options_get( lib, name, convert, type, data ) \
-		iot_options_get( lib, name, convert, type, data )
+#	define iot_options_get( options, name, convert, type, data ) \
+		iot_options_get( options, name, convert, type, data )
 #endif /* ifndef __clang__ */
 #endif /* ifndef iot_EXPORTS */
 

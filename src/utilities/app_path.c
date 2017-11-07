@@ -158,9 +158,6 @@ size_t app_path_make_absolute( char *path, size_t path_max,
 	return result;
 }
 
-size_t app_path_which( char *path, size_t path_max, const char *cur_dir,
-	const char *file_name )
-{
 /**
  * @def EXT_LIST_MAX
  * @brief Maximum length for the environment variable containing extensions
@@ -171,6 +168,10 @@ size_t app_path_which( char *path, size_t path_max, const char *cur_dir,
  * @brief Maximum length for the file name to find
  */
 #define FILE_NAME_MAX 63u
+
+size_t app_path_which( char *path, size_t path_max, const char *cur_dir,
+	const char *file_name )
+{
 	size_t result = 0u;
 
 	if ( file_name )

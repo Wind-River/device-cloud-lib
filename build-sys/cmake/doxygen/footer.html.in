@@ -1,0 +1,11 @@
+<!-- HTML footer for doxygen 1.8.6-->
+<!-- start footer part -->
+
+<hr class="footer"/><address class="footer">
+Copyright © 2015-@DATE_YEAR@ @PROJECT_VENDOR@
+&#160;<a href="http://www.windriver.com/company/terms/trademark.html">(more...)
+</a>
+</address>
+</body>
+</html>
+

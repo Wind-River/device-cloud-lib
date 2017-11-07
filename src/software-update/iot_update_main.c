@@ -42,6 +42,11 @@
  */
 #define IOT_UPDATE_TIMESTAMP_LENGTH 16u
 
+/**
+ * @def COMMAND_PREFIX
+ * @brief optional prefix to use when running external commands to run with
+ *        administrator privledges
+ */
 #if defined( __unix__ ) && !defined( __ANDROID__ )
 #	define COMMAND_PREFIX      "sudo "
 #else

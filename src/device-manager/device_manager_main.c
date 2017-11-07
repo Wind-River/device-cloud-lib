@@ -1266,7 +1266,7 @@ iot_status_t device_manager_config_read(
 			char *json_string = NULL;
 
 			result = IOT_STATUS_NO_MEMORY;
-			json_size = (size_t)os_file_get_size_handle( fd );
+			json_size = (size_t)os_file_size_handle( fd );
 			if ( json_max_size > json_size || json_max_size == 0 )
 			{
 				json_string = (char *)os_malloc( json_size + 1 );

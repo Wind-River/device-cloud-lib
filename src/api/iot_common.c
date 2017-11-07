@@ -1124,6 +1124,17 @@ iot_status_t iot_common_data_copy( struct iot_data *to,
 	return result;
 }
 
+/**
+ * @brief helper macro used in performing direct conversions (i.e. a cast).
+ *
+ * This function is just to make the code easier to read.
+ *
+ * @param[out]     to                  object that is converted to
+ * @param[in]      type                type to cast to
+ * @param[in]      from                object that is converted from
+ *
+ * @retval IOT_TRUE                    always
+ */
 #define IOT_CONVERT( to, type, from ) { (to) = (type)(from); result = IOT_TRUE; }
 
 iot_bool_t iot_common_data_convert(

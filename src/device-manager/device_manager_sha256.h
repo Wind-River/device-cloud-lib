@@ -35,9 +35,13 @@
 
 /** @brief SHA256 context, used to calculate the sum between iterations */
 typedef struct {
+	/** @brief data pointer to 64-bytes of data for calculation */
 	unsigned char data[64];
+	/** @brief length of data */
 	unsigned int datalen;
+	/** @brief bit length array */
 	unsigned int bitlen[2];
+	/** @brief state array */
 	unsigned int state[8];
 } device_manager_sha256_ctx;
 

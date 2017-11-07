@@ -293,7 +293,9 @@ struct iot_alarm
  */
 typedef struct iot_alarm_data
 {
+	/** @brief alarm severity */
 	iot_severity_t severity;
+	/** @brief alarm message */
 	char *message;
 } iot_alarm_data_t;
 

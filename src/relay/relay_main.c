@@ -45,16 +45,10 @@
 /** @brief Log timestamp max length */
 #define RELAY_LOG_TIMESTAMP_LEN    16u
 
-#if 0
-/** @brief How long to wait (in ms) when creating a directory before timing out */
-#define RELAY_DIR_CREATE_TIMEOUT   500u
-#endif
-
 /* FIXME: read this from iot.cfg */
 #ifdef __ANDROID__
 #define IOT_DEFAULT_CERT_PATH "/etc/security/cacerts/ca-certificates.crt"
 #endif
-#define IOT_NAME_FULL                  "Internet of Things"
 
 
 /* libwebsockets backwards support defines */
@@ -1002,7 +996,7 @@ int relay_main( int argc, char *argv[] )
 	result = app_arg_parse( args, argc, argv, &url_pos );
 	if ( result == EXIT_FAILURE || url_pos == 0 ||
 		app_arg_count( args, 'h', NULL ) )
-		app_arg_usage( args, 36u, argv[0], IOT_NAME_FULL, "url",
+		app_arg_usage( args, 36u, argv[0], IOT_PRODUCT, "url",
 			"remote relay address" );
 	else if ( result == EXIT_SUCCESS )
 	{

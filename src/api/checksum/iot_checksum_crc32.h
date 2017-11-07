@@ -17,6 +17,16 @@
 #include <iot.h>
 #include <os.h>
 
+/**
+ * @brief helper function to retrieve a CRC-32 checksum of a file
+ *
+ * @param[in]      file                open file handle
+ * @param[out]     checksum            calculated checksum
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_FAILURE          general operating system failure
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
 iot_status_t iot_checksum_crc32_file_get(
 	os_file_t file,
 	iot_uint64_t *checksum );

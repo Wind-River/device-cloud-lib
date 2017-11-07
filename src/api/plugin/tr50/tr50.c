@@ -244,6 +244,7 @@ static IOT_SECTION iot_status_t tr50_connect_check(
  *
  * @param[in]      lib                 loaded iot library
  * @param[in]      plugin_data         plugin specific data
+ * @param[in]      force               force the plug-in to be disabled
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
@@ -1458,7 +1459,7 @@ OS_THREAD_DECL tr50_file_transfer(
 				if ( transfer->op == IOT_OPERATION_FILE_UPLOAD )
 				{
 					transfer->size =
-						os_file_get_size( transfer->path );
+						os_file_size( transfer->path );
 					curl_easy_setopt( transfer->lib_curl,
 						CURLOPT_POST, 1L );
 					curl_easy_setopt( transfer->lib_curl,

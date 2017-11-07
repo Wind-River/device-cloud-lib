@@ -1046,6 +1046,12 @@ iot_status_t iot_json_encode_object_start(
 	return result;
 }
 
+/**
+ * @def JSON_ENCODE_MAX_DECIMALS
+ * @brief number of decimals to display for real data
+ */
+#define JSON_ENCODE_MAX_DECIMALS 6
+
 iot_status_t iot_json_encode_real(
 	iot_json_encoder_t *encoder,
 	const char *key,
@@ -1057,8 +1063,6 @@ iot_status_t iot_json_encode_real(
 #elif defined( IOT_JSON_JSONC )
 	result = iot_json_encode_key( encoder, key, json_object_new_double( (double)value ) );
 #else /* defined( IOT_JSON_JSMN ) */
-/** @brief number of decimals to display for real data */
-#define JSON_ENCODE_MAX_DECIMALS 6
 	/* can't add boolean as root element */
 	if ( !key && ( encoder && encoder->structs == 0u ) )
 		result = IOT_STATUS_BAD_REQUEST;
