@@ -377,6 +377,24 @@ iot_status_t on_action_agent_shutdown(
 }
 #endif /* __ANDROID__ */
 
+/**
+ * @brief Callback function to return the remote login
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in]      user_data           not used
+ *
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+
+static void device_manager_transfer_progress(
+		const iot_file_progress_t *progress,
+		void *user_data)
+{
+	(void)user_data;
+	printf("%s status %d completed %d\n", __func__,progress->status, (int) progress->completed);
+
+}
+
 iot_status_t device_manager_file_download(
 	iot_action_request_t *request,
 	void *user_data )
@@ -435,14 +453,16 @@ iot_status_t device_manager_file_download(
 					use_global_store );
 			}
 
+			/* download will return immediately.  Use the
+			 * callback to track progress */
 			result = iot_file_download(
 				dm->iot_lib,
 				NULL,
 				options,
 				file_name,
 				file_path,
-				NULL,
-				NULL );
+				&device_manager_transfer_progress,
+				NULL);
 
 			if ( options )
 				iot_options_free( options );
