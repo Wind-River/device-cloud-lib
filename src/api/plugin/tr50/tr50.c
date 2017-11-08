@@ -87,6 +87,8 @@ struct tr50_file_transfer
 	iot_bool_t use_global_store;
 	/** @brief callback's user data */
 	void *user_data;
+	/** @brief callback's maximum number of retries */
+	iot_int64_t max_retries;
 };
 
 /** @brief internal data required for the plug-in */
@@ -1354,7 +1356,6 @@ OS_THREAD_DECL tr50_file_transfer(
 	{
 		const struct tr50_data *const data =
 			(const struct tr50_data * )transfer->plugin_data;
-
 		char file_path[ PATH_MAX +1u ];
 		transfer->lib_curl = curl_easy_init();
 		if ( transfer->lib_curl && data )
@@ -1363,6 +1364,8 @@ OS_THREAD_DECL tr50_file_transfer(
 			CURLcode curl_result = CURLE_FAILED_INIT;
 			os_file_t file_handle;
 			iot_bool_t validate_cert = IOT_FALSE;
+			int retry = 0;
+			iot_bool_t append_mode = IOT_FALSE;
 
 			if ( transfer->op == IOT_OPERATION_FILE_UPLOAD )
 				os_strncpy( file_path, transfer->path, PATH_MAX );
@@ -1370,8 +1373,12 @@ OS_THREAD_DECL tr50_file_transfer(
 				os_snprintf( file_path, PATH_MAX, "%s%s",
 					transfer->path, TR50_DOWNLOAD_EXTENSION );
 
+			if ( os_file_exists( file_path ) &&  transfer->op == IOT_OPERATION_FILE_DOWNLOAD)
+				append_mode = IOT_TRUE;
+
 			file_handle = os_file_open( file_path,
-				(transfer->op == IOT_OPERATION_FILE_UPLOAD)? OS_READ : OS_WRITE | OS_CREATE );
+				(transfer->op == IOT_OPERATION_FILE_UPLOAD)? OS_READ : OS_READ_WRITE |
+				( (append_mode == IOT_TRUE)? OS_APPEND: OS_CREATE) );
 
 			if ( file_handle )
 			{
@@ -1472,6 +1479,7 @@ OS_THREAD_DECL tr50_file_transfer(
 				}
 				else
 				{
+
 					curl_easy_setopt( transfer->lib_curl,
 						CURLOPT_WRITEFUNCTION, os_file_write );
 					curl_easy_setopt( transfer->lib_curl,
@@ -1481,7 +1489,63 @@ OS_THREAD_DECL tr50_file_transfer(
 #pragma clang diagnostic pop
 #endif /* ifdef __clang__ */
 
-				curl_result = curl_easy_perform( transfer->lib_curl );
+				IOT_LOG( data->lib, IOT_LOG_DEBUG, "Maximum number of retries: %ld\n",
+					transfer->max_retries);
+
+				/* max_retries defined in iot_defs.h */
+				for ( retry = 0; (retry <= transfer->max_retries ||
+					transfer->max_retries< 0 ) && curl_result != CURLE_OK; retry++)
+				{
+					IOT_LOG( data->lib, IOT_LOG_TRACE, "retry count=%d\n", retry);
+					if ( os_file_exists( file_path ) )
+					{
+						long resume_from = 0;
+
+						/* Force a timeout when speed is less than the low speed limit
+						 * for certain period of time so libcurl will stop trying for nothing
+						 * and wait until network gets better */
+						curl_easy_setopt( transfer->lib_curl,
+							CURLOPT_LOW_SPEED_LIMIT, IOT_TRANSFER_LOW_SPEED_LIMIT );     /* bytes/second */
+						curl_easy_setopt( transfer->lib_curl,
+							CURLOPT_LOW_SPEED_TIME, IOT_TRANSFER_LOW_SPEED_TIMEOUT );      /* low speed timeout */
+
+						/* set resume from amount for download */
+						if ( transfer->op == IOT_OPERATION_FILE_DOWNLOAD)
+						{
+							resume_from = (long)os_file_get_size_handle( file_handle );
+							IOT_LOG( data->lib, IOT_LOG_DEBUG,
+								"File exists %s, resume xfer from %ld bytes\n",
+								file_path, resume_from);
+							curl_easy_setopt( transfer->lib_curl,
+								CURLOPT_RESUME_FROM, resume_from );
+						}
+						else
+						{
+							curl_easy_setopt( transfer->lib_curl,
+								CURLOPT_APPEND, 1L);
+						}
+						curl_easy_setopt( transfer->lib_curl,
+							CURLOPT_FRESH_CONNECT, 1L);                 /* fresh connect ctx */
+						curl_easy_setopt( transfer->lib_curl,
+								CURLOPT_DNS_CACHE_TIMEOUT, 0L);     /* no dns cache */
+					}
+					curl_result = curl_easy_perform( transfer->lib_curl );
+
+					/* need to handle errors 400 * without retrying */
+					if ( curl_result == CURLE_HTTP_RETURNED_ERROR )
+					{
+						IOT_LOG( data->lib, IOT_LOG_ERROR, "Curl received an error(%d) > 400, exiting...\n",
+							curl_result);
+						break;
+					}
+					else
+						IOT_LOG( data->lib, IOT_LOG_TRACE, "curl result %d\n", curl_result);
+
+					/* add a delay before immediately trying again */
+					if ( curl_result != CURLE_OK )
+						os_time_sleep(10000, IOT_FALSE);
+				}
+
 				if ( curl_result == CURLE_OK )
 					result = IOT_STATUS_SUCCESS;
 				else
@@ -1542,35 +1606,21 @@ OS_THREAD_DECL tr50_file_transfer(
 					os_file_delete( transfer->path );
 			}
 
-			if ( result == IOT_STATUS_SUCCESS )
-			{
-				remove_from_queue = IOT_TRUE;
-
-				if ( transfer->callback )
-				{
-					iot_file_progress_t transfer_progress;
-					os_memzero( &transfer_progress, sizeof(transfer_progress) );
-					transfer_progress.percentage = (result == IOT_STATUS_SUCCESS)?
-						100.0 : (iot_float32_t)(100.0 * transfer->prev_byte / transfer->size);
-					transfer_progress.status = result;
-					transfer_progress.completed = IOT_TRUE;
-
-					transfer->callback( &transfer_progress, transfer->user_data );
-				}
-			}
+			remove_from_queue = IOT_TRUE;
 		}
 		else
+			remove_from_queue = IOT_TRUE;
+
+		if ( transfer->callback )
 		{
-			iot_timestamp_t now = iot_timestamp_now();
-			if ( now < transfer->expiry_time )
-			{
-				transfer->retry_time =
-					now + TR50_FILE_TRANSFER_RETRY_INTERVAL;
-			}
-			else
-			{
-				remove_from_queue = IOT_TRUE;
-			}
+			iot_file_progress_t transfer_progress;
+			os_memzero( &transfer_progress, sizeof(transfer_progress) );
+			transfer_progress.percentage = (result == IOT_STATUS_SUCCESS)?
+				100.0 : (iot_float32_t)(100.0 * transfer->prev_byte / transfer->size);
+			transfer_progress.status = result;
+			transfer_progress.completed = IOT_TRUE;
+
+			transfer->callback( &transfer_progress, transfer->user_data );
 		}
 
 		if ( remove_from_queue )
@@ -2020,6 +2070,8 @@ void tr50_on_message(
 											transfer->expiry_time =
 												iot_timestamp_now() +
 												TR50_FILE_TRANSFER_EXPIRY_TIME;
+											transfer->max_retries =
+												IOT_TRANSFER_MAX_RETRIES;
 											found_transfer = IOT_TRUE;
 										}
 									}

@@ -92,6 +92,13 @@
 /** @brief Flag indicating whether 'tag' field is set */
 #define IOT_FLAG_LOCATION_TAG                    (0x40)
 
+/** @brief Maximum number of retries for file transfer.  For unlimited retries use -1 */
+#define IOT_TRANSFER_MAX_RETRIES      -1
+/** @brief Curl low speed limit in bytes/sec */
+#define IOT_TRANSFER_LOW_SPEED_LIMIT   50L
+/** @brief Curl low speed timeout in seconds */
+#define IOT_TRANSFER_LOW_SPEED_TIMEOUT 30L
+
 /** @brief Current item ( action or telemetry ) state */
 enum iot_item_state
 {
