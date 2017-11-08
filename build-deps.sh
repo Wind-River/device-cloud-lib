@@ -13,8 +13,8 @@
 
 # Required system dependencies:
 #    Ubuntu:
-#	$ sudo apt-get install build-essential git cmake libssl-dev libwebsocket-dev  \
-#		clib-ares-dev uuid-dev libcurl4-openssl-dev libarchive-dev
+#	$ sudo apt-get install build-essential git cmake libssl-dev libwebsockets-dev  \
+#		uuid-dev libcurl4-openssl-dev libarchive-dev
 #
 # Repository access.  If device-cloud-osal is not public, make sure to
 # enable ssh clone access in your github account (e.g. add ssh key)
@@ -50,7 +50,7 @@ export LWS_GIT_TAG=v2.3.0
 git clone https://github.com/warmcat/libwebsockets.git libwebsockets
 cd libwebsockets
 git checkout tags/$LWS_GIT_TAG
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR .
 make
 make install
 cd ..
@@ -70,7 +70,7 @@ export PAHO_GIT_TAG=v1.2.0
 git clone https://github.com/eclipse/paho.mqtt.c.git paho
 cd paho
 git checkout tags/$PAHO_GIT_TAG
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DCMAKE_INSTALL_LIBDIR:PATH=lib -DPAHO_WITH_SSL:BOOL=TRUE -DPAHO_BUILD_STATIC:BOOL=TRUE -DCMAKE_C_FLAGS:STRING=-fPIC
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DCMAKE_INSTALL_LIBDIR:PATH=lib -DPAHO_WITH_SSL:BOOL=TRUE -DPAHO_BUILD_STATIC:BOOL=TRUE -DCMAKE_C_FLAGS:STRING=-fPIC .
 make
 make install
 cd ..
@@ -83,7 +83,7 @@ cd mosquitto
 git checkout tags/$MOSQUITTO_GIT_TAG
 find . -name CMakeLists.txt | xargs sed -i 's/ldconfig/ldconfig ARGS -N/'
 sed -i 's/add_subdirectory(man)//' CMakeLists.txt
-cmake -DWITH_SRV:BOOL=NO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR
+cmake -DWITH_SRV:BOOL=NO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR .
 make
 make install
 cd ..
