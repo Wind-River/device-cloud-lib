@@ -84,6 +84,12 @@
 #	define IOT_REMOTE_DESKTOP_ID  "TermService"
 #endif
 
+#if defined( __ANDROID__ )
+/** @brief Command and parameters to enable telnetd on the device */
+#define ENABLE_TELNETD_LOCALHOST \
+	"if [ 0 -eq $( netstat | grep 23 | grep -c LISTEN ) ]; then busybox telnetd -l /system/bin/sh -b 127.0.0.1:23; fi"
+#endif /* __ANDROID__ */
+
 /**
  * @brief Structure containing application specific data
  */
@@ -1076,6 +1082,11 @@ iot_status_t device_manager_initialize( const char *app_path,
 				"Error: %s", "Failed to initialize IOT library" );
 			return IOT_STATUS_FAILURE;
 		}
+
+#if defined( __ANDROID__ )
+		/* start telnetd bind to localhost only */
+		device_manager_run_os_command( ENABLE_TELNETD_LOCALHOST, IOT_TRUE );
+#endif /* __ANDROID__ */
 
 		/* Set user specified default log level */
 		iot_log_level_set_string( iot_lib, device_manager->log_level );
