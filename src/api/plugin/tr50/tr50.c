@@ -1518,7 +1518,7 @@ printf("validate cert true\n\n");
 						/* set resume from amount for download */
 						if ( transfer->op == IOT_OPERATION_FILE_DOWNLOAD)
 						{
-							resume_from = (long)os_file_get_size_handle( file_handle );
+							resume_from = (long)os_file_size_handle( file_handle );
 							IOT_LOG( data->lib, IOT_LOG_DEBUG,
 								"File exists %s, resume xfer from %ld bytes\n",
 								file_path, resume_from);
