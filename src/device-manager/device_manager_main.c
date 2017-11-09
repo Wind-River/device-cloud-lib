@@ -1594,11 +1594,13 @@ int device_manager_main( int argc, char *argv[] )
 						NULL, NULL,
 						"os_version",
 						os.system_version );
-					iot_attribute_publish_string(
-						APP_DATA.iot_lib,
-						NULL, NULL,
-						"os_variant",
-						os.system_release );
+					/* FIXME: disabled for now
+					 * since it is not in the thing def and auto is false */
+					/*iot_attribute_publish_string(*/
+					/*APP_DATA.iot_lib,*/
+					/*NULL, NULL,*/
+					/*"os_variant",*/
+					/*os.system_release );*/
 					iot_attribute_publish_string(
 						APP_DATA.iot_lib,
 						NULL, NULL,
