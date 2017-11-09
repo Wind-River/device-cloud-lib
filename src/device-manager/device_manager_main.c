@@ -406,7 +406,10 @@ iot_status_t device_manager_file_download(
 	void *user_data )
 {
 	const char *file_name = NULL;
-	const iot_bool_t use_global_store = IOT_FALSE;
+
+	/* FIXME: set default to true due to Android issue where if false, it
+	 * does not get updated to true */
+	const iot_bool_t use_global_store = IOT_TRUE;
 	const char *file_path = NULL;
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 
