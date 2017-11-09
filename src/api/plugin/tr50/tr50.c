@@ -1416,10 +1416,17 @@ OS_THREAD_DECL tr50_file_transfer(
 				iot_config_get( data->lib,
 					"validate_cloud_cert", IOT_FALSE,
 					IOT_TYPE_BOOL, &validate_cert );
+#ifdef __ANDROID__
+					if ( !ca_bundle_file )
+						ca_bundle_file = "/system/etc/security/cacerts/ca-certificates.crt";
+#endif /* ifdef __ANDROID__ */
+				curl_easy_setopt( transfer->lib_curl,
+					CURLOPT_CAINFO, ca_bundle_file );
 
 				/* SSL verification */
 				if ( validate_cert != IOT_FALSE )
 				{
+printf("validate cert true\n\n");
 					curl_easy_setopt( transfer->lib_curl,
 						CURLOPT_SSL_VERIFYHOST,
 						TR50_DEFAULT_SSL_VERIFY_HOST );
@@ -1429,13 +1436,12 @@ OS_THREAD_DECL tr50_file_transfer(
 
 					/* In some OSs libcurl cannot access the default CAs
 					 * and it has to be added in the fs */
-#ifdef __ANDROID__
-					if ( !ca_bundle_file )
-						ca_bundle_file = "/system/etc/security/cacerts/ca-certificates.crt";
-#endif /* ifdef __ANDROID__ */
-					curl_easy_setopt( transfer->lib_curl,
-						CURLOPT_CAINFO,
-						ca_bundle_file );
+
+				}
+				else
+				{
+					curl_easy_setopt(transfer->lib_curl, CURLOPT_SSL_VERIFYHOST, 0L);
+					curl_easy_setopt(transfer->lib_curl, CURLOPT_SSL_VERIFYPEER, 0L);
 				}
 
 				/* Proxy settings */
@@ -1532,10 +1538,12 @@ OS_THREAD_DECL tr50_file_transfer(
 					curl_result = curl_easy_perform( transfer->lib_curl );
 
 					/* need to handle errors 400 * without retrying */
-					if ( curl_result == CURLE_HTTP_RETURNED_ERROR )
+					if ( curl_result == CURLE_HTTP_RETURNED_ERROR ||
+					     curl_result == CURLE_SSL_CACERT )
 					{
-						IOT_LOG( data->lib, IOT_LOG_ERROR, "Curl received an error(%d) > 400, exiting...\n",
-							curl_result);
+						IOT_LOG( data->lib, IOT_LOG_ERROR,
+							"File transfer not recoverable(%d) exiting:\nReason: %s",
+							curl_result, curl_easy_strerror( curl_result ) );
 						break;
 					}
 					else
