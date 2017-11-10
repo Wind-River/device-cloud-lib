@@ -970,7 +970,7 @@ iot_status_t device_manager_actions_register(
 			DEVICE_MANAGER_ENABLE_SOFTWARE_UPDATE )
 			if ( device_manager_ota_register( device_manager ) != IOT_STATUS_SUCCESS )
 				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s",
-					"Failed to register manifest(ota) actions" );
+					"Failed to register software update actions" );
 
 		/* remote_login */
 		if ( ( device_manager->enabled_actions &
@@ -1114,7 +1114,10 @@ iot_status_t device_manager_initialize( const char *app_path,
 		if ( result == IOT_STATUS_SUCCESS )
 			IOT_LOG( iot_lib, IOT_LOG_INFO, "%s", "Connected" );
 		else
+		{
 			IOT_LOG( iot_lib, IOT_LOG_INFO, "%s", "Failed to connect\n" );
+			result = IOT_STATUS_FAILURE;
+		}
 
 		if ( result == IOT_STATUS_SUCCESS )
 		{
@@ -1677,8 +1680,11 @@ int device_manager_main( int argc, char *argv[] )
 				result = EXIT_SUCCESS;
 			}
 			else
+			{
 				IOT_LOG( NULL, IOT_LOG_INFO, "%s",
 					"Failed to initialize device-manager" );
+				result = IOT_STATUS_FAILURE;
+			}
 
 			device_manager_terminate(&APP_DATA);
 		}
