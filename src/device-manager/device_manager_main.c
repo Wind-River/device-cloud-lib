@@ -1565,7 +1565,7 @@ int device_manager_main( int argc, char *argv[] )
 			{
 				/* setup device manager attributes */
 				os_system_info_t os;
-				os_adapters_t *adapters = NULL;
+				/*os_adapters_t *adapters = NULL;*/
 
 				iot_attribute_publish_string(
 					APP_DATA.iot_lib, NULL, NULL,
@@ -1608,59 +1608,60 @@ int device_manager_main( int argc, char *argv[] )
 						os.system_platform );
 				}
 
+				/* FIXME: github issue #27 */
 				/* obtain MAC addresses */
-				if ( os_adapters_obtain( &adapters ) == OS_STATUS_SUCCESS )
-				{
-#define IOT_MAC_ADDRESS_LEN 17u
-#define IOT_MAC_SEPERATOR   " "
-					const size_t sep_len = os_strlen( IOT_MAC_SEPERATOR );
-					char *mac_addr = NULL;
-					size_t mac_pos = 0u;
-					char *mem_ptr = NULL;
-					do
-					{
-						mem_ptr = os_realloc( mac_addr,
-							mac_pos + IOT_MAC_ADDRESS_LEN + sep_len );
-						if ( mem_ptr )
-						{
-							/* not first item, add a seperator */
-							mac_addr = mem_ptr;
+				/*if ( os_adapters_obtain( &adapters ) == OS_STATUS_SUCCESS )*/
+				/*{*/
+				/*#define IOT_MAC_ADDRESS_LEN 17u*/
+				/*#define IOT_MAC_SEPERATOR   " "*/
+				/*const size_t sep_len = os_strlen( IOT_MAC_SEPERATOR );*/
+				/*char *mac_addr = NULL;*/
+				/*size_t mac_pos = 0u;*/
+				/*char *mem_ptr = NULL;*/
+				/*do*/
+				/*{*/
+				/*mem_ptr = os_realloc( mac_addr,*/
+				/*mac_pos + IOT_MAC_ADDRESS_LEN + sep_len );*/
+				/*if ( mem_ptr )*/
+				/*{*/
+				/**//* not first item, add a seperator */
+				/*mac_addr = mem_ptr;*/
 
-							os_strncpy( &mac_addr[mac_pos],
-								"00:00:00:00:00:00",
-								IOT_MAC_ADDRESS_LEN );
-							if ( os_adapters_mac(
-								adapters,
-								&mac_addr[mac_pos],
-								IOT_MAC_ADDRESS_LEN + 1u ) == OS_STATUS_SUCCESS )
-							{
-								mac_pos += IOT_MAC_ADDRESS_LEN;
-								os_strncpy( &mac_addr[mac_pos],
-									IOT_MAC_SEPERATOR,
-									sep_len );
-								mac_pos += sep_len;
-							}
-						}
-					} while ( mem_ptr && os_adapters_next( adapters ) == OS_STATUS_SUCCESS );
+				/*os_strncpy( &mac_addr[mac_pos],*/
+				/*"00:00:00:00:00:00",*/
+				/*IOT_MAC_ADDRESS_LEN );*/
+				/*if ( os_adapters_mac(*/
+				/*adapters,*/
+				/*&mac_addr[mac_pos],*/
+				/*IOT_MAC_ADDRESS_LEN + 1u ) == OS_STATUS_SUCCESS )*/
+				/*{*/
+				/*mac_pos += IOT_MAC_ADDRESS_LEN;*/
+				/*os_strncpy( &mac_addr[mac_pos],*/
+				/*IOT_MAC_SEPERATOR,*/
+				/*sep_len );*/
+				/*mac_pos += sep_len;*/
+				/*}*/
+				/*}*/
+				/*} while ( mem_ptr && os_adapters_next( adapters ) == OS_STATUS_SUCCESS );*/
 
-					/* null-terminate string */
-					if ( mac_addr )
-					{
-						if ( mac_pos > 0u )
-							mac_pos -= sep_len;
-						mac_addr[mac_pos] = '\0';
+				/**//* null-terminate string */
+				/*if ( mac_addr )*/
+				/*{*/
+				/*if ( mac_pos > 0u )*/
+				/*mac_pos -= sep_len;*/
+				/*mac_addr[mac_pos] = '\0';*/
 
-						iot_attribute_publish_string(
-							APP_DATA.iot_lib,
-							NULL, NULL,
-							"mac_address", mac_addr );
+				/*iot_attribute_publish_string(*/
+				/*APP_DATA.iot_lib,*/
+				/*NULL, NULL,*/
+				/*"mac_address", mac_addr );*/
 
-						os_free( mac_addr );
-					}
-					os_adapters_release( adapters );
-				}
+				/*os_free( mac_addr );*/
+				/*}*/
+				/*os_adapters_release( adapters );*/
+				/*}*/
 
-				os_terminate_handler(device_manager_sig_handler);
+				/*os_terminate_handler(device_manager_sig_handler);*/
 
 				IOT_LOG( APP_DATA.iot_lib, IOT_LOG_INFO, "%s",
 					"Ready for some actions..." );
