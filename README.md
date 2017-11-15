@@ -31,7 +31,16 @@ the build-deps.sh script will fail to clone the device-cloud-osal repo.
 # if you have build issues, it is typically caused by missing deps
 cd build
 make
+
+# Optional: install
+sudo make install
+or
+make DESTDIR=/some/path install
 ```
+Note: if you use DESTDIR, make sure the libiot.so can be found, e.g.
+update ld.so.conf.d,  LD_LIBRARY_PATH etc.  Run 'sudo ldconfig' if the
+ld.so.conf.d was changed.
+
 
 Running
 -------
@@ -41,7 +50,12 @@ connect.  The "iot-control" tool will create the correct
 iot-connect.cfg file in /etc/iot.
 
 ```sh
-# make some dirs for the config and device_id
+# Recommended way:
+sudo make install
+iot-control (answer questions)
+iot-app-complete
+
+# Alternatively: make some dirs for the config and device_id
 mkdir -p /etc/iot
 mkdir -p /var/lib/iot
 
