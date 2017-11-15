@@ -12,9 +12,6 @@
 		"dump_log_files": True,
 		"remote_login" : True 
 	},
-	"upload_remove_on_success": True,
-	"upload_additional_dirs": [
-		""
-	]
+	"upload_remove_on_success": True
 }
 
