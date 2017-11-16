@@ -22,10 +22,13 @@
 #include <archive.h>                   /* for archiving functions */
 #include <archive_entry.h>             /* for adding files to an archive */
 
-/** @brief Name of the parameter to manifest action */
+/** @brief Name of the parameter to software update action */
 #define DEVICE_MANAGER_OTA_PKG_PARAM   "package"
+/** @brief Name of the parameter for download timeout */
+#define DEVICE_MANAGER_OTA_TIMEOUT   "ota_timeout"
 /** @brief Name of the manifest action */
 #define DEVICE_MANAGER_UPDATE_CMD      "software_update"
+
 
 /**
  * @brief Callback function to handle ota action
@@ -142,6 +145,12 @@ iot_status_t device_manager_ota_register(
 		iot_action_parameter_add( software_update,
 			DEVICE_MANAGER_OTA_PKG_PARAM,
 			IOT_PARAMETER_IN_REQUIRED, IOT_TYPE_STRING, 0u );
+
+		/* this parameter is not used by the c lib */
+		iot_action_parameter_add( software_update,
+			DEVICE_MANAGER_OTA_TIMEOUT,
+			IOT_PARAMETER_IN, IOT_TYPE_INT64, 0u );
+
 		/*FIXME: this is not working yet*/
 		/*iot_action_flags_set( software_update,*/
 		/*IOT_ACTION_EXCLUSIVE_DEVICE );*/
@@ -163,6 +172,38 @@ iot_status_t device_manager_ota_register(
 	return result;
 }
 
+
+/**
+ * @brief Callback function to return the ota progress 
+ *
+ * @param[in]      progress            progress structure
+ * @param[in]      user_data           User data
+ *
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static void device_manager_ota_progress(
+		const iot_file_progress_t *progress,
+		void *user_data)
+{
+	iot_file_progress_t *ctx = (iot_file_progress_t *)user_data;
+	printf("%s status %d completed %d\n", __func__,progress->status, (int) progress->completed);
+	if ( progress->completed == IOT_TRUE)
+	{
+		/* Optional: check the status for these in the calling function */
+		ctx->completed = progress->completed;
+		ctx->status = progress->status;
+	}
+
+}
+
+/**
+ * @brief Callback function to return the remote login
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in]      user_data           not used
+ *
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
 
 iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data )
 {
@@ -225,9 +266,17 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 			}
 			if ( result == IOT_STATUS_SUCCESS )
 			{
+				iot_file_progress_t ctx;
 				iot_options_t *const options =
 					iot_options_allocate(
 						device_manager_info->iot_lib );
+
+				os_memset(&ctx, 0,sizeof(iot_file_progress_t));
+				ctx.status = IOT_STATUS_FAILURE;
+
+				IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+					"Checking global file store for pkg: %s download to %s\n",
+					file_to_download, sw_update_dir);
 
 				/* FIXME: this should be an optional
 				 * parameter to the cb */
@@ -238,9 +287,10 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 				os_snprintf(local_archive_path, PATH_MAX,
 					"%s%c%s",sw_update_dir,
 					OS_DIR_SEP, file_to_download );
+
 				IOT_LOG( iot_lib, IOT_LOG_INFO,
-					"Downloading to %s",
-					local_archive_path );
+					"Downloading to %s (%s%c%s)",
+					local_archive_path, sw_update_dir,OS_DIR_SEP,file_to_download);
 
 				result = iot_file_download(
 						iot_lib,
@@ -248,8 +298,7 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 						options,
 						file_to_download,
 						local_archive_path,
-						NULL, NULL);
-
+						&device_manager_ota_progress, &ctx);
 				iot_options_free( options );
 			}
 			if ( result == IOT_STATUS_SUCCESS)
@@ -262,10 +311,14 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 						done = IOT_TRUE;
 					else
 						os_time_sleep(1000, IOT_FALSE);
-					printf("Waiting for file %s\n", local_archive_path);
+
+					IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+						"Waiting for file %s\n", local_archive_path);
 
 				} while( done != IOT_TRUE );
-				printf("File %s downloaded successfully\n", local_archive_path);
+
+				IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+					"File %s downloaded successfully\n", local_archive_path);
 
 				result = device_manager_ota_install_execute(
 						device_manager_info,
