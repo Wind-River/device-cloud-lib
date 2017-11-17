@@ -19,10 +19,6 @@
 #include <stdarg.h>                    /* for va_list, va_start, va_end */
 #include <stdlib.h>                    /* for EXIT_FAILURE */
 
-/* make sure a MAX_PATH length is defined.  It is not included on all
- * Linux distros automatically, e.g. Ubuntu. */
-#define IOT_MAX_PATH 1024u
-
 /**
  * @brief Handles obtaining values for a JSON array when required by a schema
  *
@@ -204,13 +200,13 @@ iot_status_t control_config_generate( void )
 
 		if ( result == IOT_STATUS_SUCCESS && value_set == IOT_TRUE )
 		{
-			char config_file[ IOT_MAX_PATH + 1u ];
+			char config_file[ PATH_MAX + 1u ];
 			os_file_t connection_file;
 
 			/* generate connection configuration file */
 			/** @todo fix this to use API for configuration directory */
 			os_snprintf( config_file,
-				IOT_MAX_PATH, "%s%c%s%s",
+				PATH_MAX, "%s%c%s%s",
 				IOT_DEFAULT_DIR_CONFIG, OS_DIR_SEP,
 				IOT_DEFAULT_FILE_CONFIG,
 				IOT_DEFAULT_FILE_CONFIG_EXT );
@@ -661,7 +657,7 @@ void control_config_user_prompt(
 	if ( out )
 	{
 		size_t i = 0;
-		char temp[ IOT_MAX_PATH + 1u ];
+		char temp[ PATH_MAX + 1u ];
 		os_memzero( temp, sizeof( temp ) );
 		os_memzero( out, len );
 		if ( prompt )
@@ -675,7 +671,7 @@ void control_config_user_prompt(
 		if ( show_user_input == IOT_FALSE )
 			os_stream_echo_set( OS_STDIN, IOT_FALSE );
 
-		os_file_gets( temp, IOT_MAX_PATH, OS_STDIN );
+		os_file_gets( temp, PATH_MAX, OS_STDIN );
 
 		if ( show_user_input == IOT_FALSE )
 		{
