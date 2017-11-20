@@ -119,6 +119,9 @@
 /** @brief Default state of agent reset action */
 #define IOT_DEFAULT_ENABLE_AGENT_RESET                    @IOT_DEFAULT_ENABLE_AGENT_RESET@
 
+/** @brief Default state of agent quit action */
+#define IOT_DEFAULT_ENABLE_AGENT_QUIT                     @IOT_DEFAULT_ENABLE_AGENT_QUIT@
+
 /** @brief Default state of decommission device action */
 #define IOT_DEFAULT_ENABLE_DECOMMISSION_DEVICE            @IOT_DEFAULT_ENABLE_DECOMMISSION_DEVICE@
 
