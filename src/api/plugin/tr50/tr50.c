@@ -647,7 +647,7 @@ iot_status_t tr50_action_complete(
 
 					msg = iot_json_encode_dump( json );
 					IOT_LOG( data->lib,
-						IOT_LOG_TRACE, "-->%s\n", msg );
+						IOT_LOG_TRACE, "-->%s", msg );
 					iot_mqtt_publish( data->mqtt, "api",
 						msg, os_strlen( msg ),
 						TR50_MQTT_QOS, IOT_FALSE, NULL );
@@ -696,7 +696,7 @@ iot_status_t tr50_alarm_publish(
 	iot_json_encode_object_end( json );
 
 	out_msg = iot_json_encode_dump( json );
-	IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", out_msg );
+	IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", out_msg );
 	result = iot_mqtt_publish( data->mqtt, "api",
 		out_msg, os_strlen( out_msg ), TR50_MQTT_QOS, IOT_FALSE, NULL );
 	iot_json_encode_terminate( json );
@@ -816,7 +816,7 @@ iot_status_t tr50_attribute_publish(
 			iot_json_encode_object_end( json );
 
 			msg = iot_json_encode_dump( json );
-			IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
+			IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", msg );
 			iot_mqtt_publish( data->mqtt, "api",
 				msg, os_strlen( msg ), TR50_MQTT_QOS,
 				IOT_FALSE, NULL );
@@ -1141,7 +1141,7 @@ iot_status_t tr50_event_publish(
 			iot_json_encode_object_end( json );
 
 			msg = iot_json_encode_dump( json );
-			IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
+			IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", msg );
 			iot_mqtt_publish( data->mqtt, "api",
 				msg, os_strlen( msg ), TR50_MQTT_QOS,
 				IOT_FALSE, NULL );
@@ -1305,7 +1305,7 @@ iot_status_t tr50_file_request_send(
 				iot_json_encode_object_end( json );
 
 				msg = iot_json_encode_dump( json );
-				IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
+				IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", msg );
 
 				/* publish */
 				result = iot_mqtt_publish( data->mqtt, "api",
@@ -1325,7 +1325,7 @@ iot_status_t tr50_file_request_send(
 				}
 				else
 					IOT_LOG( data->lib, IOT_LOG_ERROR, "%s",
-						"Failed send file request\n" );
+						"Failed send file request" );
 
 				iot_json_encode_terminate( json );
 				++data->msg_id;
@@ -1422,7 +1422,6 @@ OS_THREAD_DECL tr50_file_transfer(
 				/* SSL verification */
 				if ( validate_cert != IOT_FALSE )
 				{
-printf("validate cert true\n\n");
 					curl_easy_setopt( transfer->lib_curl,
 						CURLOPT_SSL_VERIFYHOST,
 						TR50_DEFAULT_SSL_VERIFY_HOST );
@@ -1487,14 +1486,14 @@ printf("validate cert true\n\n");
 					curl_easy_setopt( transfer->lib_curl,
 						CURLOPT_WRITEDATA, file_handle );
 				}
-				IOT_LOG( data->lib, IOT_LOG_DEBUG, "Maximum number of retries: %ld\n",
+				IOT_LOG( data->lib, IOT_LOG_DEBUG, "Maximum number of retries: %ld",
 					transfer->max_retries);
 
 				/* max_retries defined in iot_defs.h */
 				for ( retry = 0; (retry <= transfer->max_retries ||
 					transfer->max_retries< 0 ) && curl_result != CURLE_OK; retry++)
 				{
-					IOT_LOG( data->lib, IOT_LOG_TRACE, "retry count=%d\n", retry);
+					IOT_LOG( data->lib, IOT_LOG_TRACE, "retry count=%d", retry);
 					if ( os_file_exists( file_path ) )
 					{
 						long resume_from = 0;
@@ -1512,7 +1511,7 @@ printf("validate cert true\n\n");
 						{
 							resume_from = (long)os_file_size_handle( file_handle );
 							IOT_LOG( data->lib, IOT_LOG_DEBUG,
-								"File exists %s, resume xfer from %ld bytes\n",
+								"File exists %s, resume xfer from %ld bytes",
 								file_path, resume_from);
 							curl_easy_setopt( transfer->lib_curl,
 								CURLOPT_RESUME_FROM, resume_from );
@@ -1534,12 +1533,12 @@ printf("validate cert true\n\n");
 					     curl_result == CURLE_SSL_CACERT )
 					{
 						IOT_LOG( data->lib, IOT_LOG_ERROR,
-							"File transfer not recoverable(%d) exiting:\nReason: %s",
+							"File transfer not recoverable(%d) exiting.\nReason: %s",
 							curl_result, curl_easy_strerror( curl_result ) );
 						break;
 					}
 					else
-						IOT_LOG( data->lib, IOT_LOG_TRACE, "curl result %d\n", curl_result);
+						IOT_LOG( data->lib, IOT_LOG_TRACE, "curl result %d", curl_result);
 
 					/* add a delay before immediately trying again */
 					if ( curl_result != CURLE_OK )
@@ -1567,7 +1566,7 @@ printf("validate cert true\n\n");
 		}
 		else
 			IOT_LOG( data->lib, IOT_LOG_ERROR, "%s",
-				"Failed to initialize libcurl\n" );
+				"Failed to initialize libcurl" );
 
 
 		/* final checks and cleanup */
@@ -1589,7 +1588,7 @@ printf("validate cert true\n\n");
 					{
 						IOT_LOG( data->lib, IOT_LOG_ERROR,
 							"Checksum for %s does not match. "
-							"Expected: 0x%lX, calculated: 0x%lX\n",
+							"Expected: 0x%lX, calculated: 0x%lX",
 							transfer->path, transfer->crc32, crc32);
 						os_file_delete( file_path );
 						result = IOT_STATUS_FAILURE;
@@ -1733,9 +1732,17 @@ int tr50_file_progress( void *user_data,
 					transfer->callback( &transfer_progress, transfer->user_data );
 				}
 				else
-					os_printf( "%sing %s: %.1f%% (%ld/%ld bytes)\n",
+				{
+					struct tr50_data *data =
+						transfer->plugin_data;
+					iot_t *lib = NULL;
+					if ( data )
+						lib = data->lib;
+					IOT_LOG( lib, IOT_LOG_TRACE,
+						"%sing %s: %.1f%% (%ld/%ld bytes)\n",
 						transfer_type, transfer->path,
 						progress, now, total );
+				}
 			}
 		}
 	}
@@ -1819,12 +1826,12 @@ void tr50_on_message(
 
 	if ( data )
 		IOT_LOG( data->lib, IOT_LOG_DEBUG,
-			"tr50: received (%u bytes on %s): %.*s\n",
+			"tr50: received (%u bytes on %s): %.*s",
 			(unsigned int)payload_len, topic,
 			(int)payload_len, (const char *)payload );
 
 	IOT_LOG( data->lib, IOT_LOG_TRACE,
-		"-->received: %.*s\n", (int)payload_len, (const char *)payload );
+		"-->received: %.*s", (int)payload_len, (const char *)payload );
 
 	json = iot_json_decode_initialize( buf, 1024u, 0u );
 	if ( data && json &&
@@ -2088,7 +2095,7 @@ void tr50_on_message(
 										if ( os_thread_create( &thread, tr50_file_transfer, transfer ) )
 											IOT_LOG( data->lib, IOT_LOG_ERROR,
 												"Failed to create a thread to transfer "
-												"file for message #%u\n", msg_id );
+												"file for message #%u", msg_id );
 									}
 								}
 							}
@@ -2359,7 +2366,7 @@ iot_status_t tr50_telemetry_publish(
 		iot_json_encode_object_end( json );
 
 		msg = iot_json_encode_dump( json );
-		IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s\n", msg );
+		IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", msg );
 		result = iot_mqtt_publish( data->mqtt, "api",
 			msg, os_strlen( msg ), TR50_MQTT_QOS, IOT_FALSE, NULL );
 		iot_json_encode_terminate( json );
