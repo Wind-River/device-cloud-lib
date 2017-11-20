@@ -45,6 +45,40 @@
 /** @brief Remote login protocol maximum length */
 #define REMOTE_LOGIN_PROTOCOL_MAX 32
 
+/**
+ * @brief Index of various default device manager functions in the global
+ *        structure
+ */
+enum device_maanger_config_idx
+{
+	DEVICE_MANAGER_IDX_FIRST = 0,
+	DEVICE_MANAGER_IDX_AGENT_RESET = 0,
+	DEVICE_MANAGER_IDX_DEVICE_DECOMMISSION,
+	DEVICE_MANAGER_IDX_DEVICE_REBOOT,
+	DEVICE_MANAGER_IDX_DEVICE_SHUTDOWN,
+	DEVICE_MANAGER_IDX_DUMP_LOG_FILES,
+	DEVICE_MANAGER_IDX_FILE_DOWNLOAD,
+	DEVICE_MANAGER_IDX_FILE_UPLOAD,
+	DEVICE_MANAGER_IDX_REMOTE_LOGIN,
+	DEVICE_MANAGER_IDX_REMOTE_LOGIN_PROTOCOL,
+	DEVICE_MANAGER_IDX_RESTORE_FACTORY_IMAGES,
+	DEVICE_MANAGER_IDX_SOFTWARE_UPDATE,
+
+	/* note: must be the last item */
+	DEVICE_MANAGER_IDX_LAST
+};
+
+/**
+ * @brief Structure relating configuration names to action names
+ */
+struct device_manager_action
+{
+	const char *action_name;    /**< @brief name of the action to register */
+	const char *config_id;      /**< @brief id in the configuration file */
+	iot_bool_t enabled;         /**< @brief default enabled status */
+	iot_action_t *ptr;          /**< @brief registered action in library */
+};
+
 /** @brief Structure containing information for the device manager */
 struct device_manager_info
 {
@@ -54,30 +88,8 @@ struct device_manager_info
 	/** @brief structure used to support file input/output operations */
 	struct device_manager_file_io_info file_io_info;
 #endif
-	/** @brief Mask of enabled actions */
-	iot_uint16_t enabled_actions;
-	/** @brief manifest action */
-	iot_action_t *software_update;
-	/** @brief decommission action */
-	iot_action_t *decommission_device;
-	/** @brief restore_factory_images action */
-	iot_action_t *restore_factory_images;
-	/** @brief dump_log_files action */
-	iot_action_t *dump_log_files;
-	/** @brief device_shutdown action */
-	iot_action_t *device_shutdown;
-	/** @brief device_reboot action */
-	iot_action_t *device_reboot;
-	/** @brief agent_reset action */
-	iot_action_t *agent_reset;
-	/** @brief remote_login action */
-	iot_action_t *remote_login;
-	/** @brief file_download action */
-	iot_action_t *file_download;
-	/** @brief file_upload action */
-	iot_action_t *file_upload;
-	/** @brief remote_login_protocol action */
-	iot_action_t *remote_login_protocol;
+	/** @brief registered device manager actions */
+	struct device_manager_action actions[DEVICE_MANAGER_IDX_LAST];
 	/** @brief agent_state */
 	iot_bool_t agent_state;
 	/** @brief application path */

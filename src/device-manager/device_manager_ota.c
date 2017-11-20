@@ -25,9 +25,7 @@
 /** @brief Name of the parameter to software update action */
 #define DEVICE_MANAGER_OTA_PKG_PARAM   "package"
 /** @brief Name of the parameter for download timeout */
-#define DEVICE_MANAGER_OTA_TIMEOUT   "ota_timeout"
-/** @brief Name of the manifest action */
-#define DEVICE_MANAGER_UPDATE_CMD      "software_update"
+#define DEVICE_MANAGER_OTA_TIMEOUT     "ota_timeout"
 
 
 /**
@@ -109,20 +107,21 @@ iot_status_t device_manager_ota_deregister(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( device_manager )
 	{
-		iot_action_t *software_update = device_manager->software_update;
+		struct device_manager_action *action =
+			&device_manager->actions[DEVICE_MANAGER_IDX_SOFTWARE_UPDATE];
 		iot_t *const iot_lib = device_manager->iot_lib;
 
 		/* manifest(ota) action */
-		result = iot_action_deregister( software_update, NULL, 0u );
+		result = iot_action_deregister( action->ptr, NULL, 0u );
 		if ( result == IOT_STATUS_SUCCESS )
 		{
-			iot_action_free( software_update, 0u );
-			device_manager->software_update = NULL;
+			iot_action_free( action->ptr, 0u );
+			action->ptr = NULL;
 		}
 		else
 			IOT_LOG( iot_lib, IOT_LOG_ERROR,
 				"Failed to deregister action %s",
-				"manifest(ota)" );
+				action->action_name );
 
 		result = IOT_STATUS_SUCCESS;
 	}
@@ -136,42 +135,44 @@ iot_status_t device_manager_ota_register(
 	if ( device_manager )
 	{
 		iot_t *const iot_lib = device_manager->iot_lib;
-		iot_action_t *software_update = NULL;
+		struct device_manager_action *action =
+			&device_manager->actions[DEVICE_MANAGER_IDX_SOFTWARE_UPDATE];
 
 		/* ota will take one parameter required and one
 		 * optional TBD */
-		software_update = iot_action_allocate( iot_lib,
-			DEVICE_MANAGER_UPDATE_CMD );
-		iot_action_parameter_add( software_update,
+		action->ptr = iot_action_allocate( iot_lib,
+			action->action_name );
+		iot_action_parameter_add( action->ptr,
 			DEVICE_MANAGER_OTA_PKG_PARAM,
 			IOT_PARAMETER_IN_REQUIRED, IOT_TYPE_STRING, 0u );
 
 		/* this parameter is not used by the c lib */
-		iot_action_parameter_add( software_update,
+		iot_action_parameter_add( action->ptr,
 			DEVICE_MANAGER_OTA_TIMEOUT,
 			IOT_PARAMETER_IN, IOT_TYPE_INT64, 0u );
 
-		/*FIXME: this is not working yet*/
-		/*iot_action_flags_set( software_update,*/
-		/*IOT_ACTION_EXCLUSIVE_DEVICE );*/
-		result = iot_action_register_callback( software_update,
+		iot_action_flags_set( action->ptr,
+			IOT_ACTION_EXCLUSIVE_DEVICE );
+		result = iot_action_register_callback( action->ptr,
 			&device_manager_ota,device_manager, NULL, 0u );
+
 		if ( result == IOT_STATUS_SUCCESS )
 		{
-			device_manager->software_update = software_update;
 			IOT_LOG( iot_lib, IOT_LOG_DEBUG,
-			"Registered action: %s", DEVICE_MANAGER_UPDATE_CMD );
+				"Registered action: %s", action->action_name );
 		}
 		else
+		{
 			IOT_LOG( iot_lib, IOT_LOG_ERROR,
-			"Failed to register action: %s; reason: %s",
-			DEVICE_MANAGER_UPDATE_CMD, iot_error( result ) );
-
-		result = IOT_STATUS_SUCCESS;
+				"Failed to register %s action. Reason: %s",
+				action->action_name,
+				iot_error( result ) );
+			iot_action_free( action->ptr, 0u );
+			action->ptr = NULL;
+		}
 	}
 	return result;
 }
-
 
 /**
  * @brief Callback function to return the ota progress 

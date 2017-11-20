@@ -26,21 +26,6 @@
 
 #include <stdlib.h>                   /* for EXIT_SUCCESS, EXIT_FAILURE */
 
-/** @brief Name of the Dump Log Files action*/
-#define DEVICE_MANAGER_DUMP_LOG_FILES          "Dump Log Files"
-
-/** @brief Name of the decommission device action */
-#define DEVICE_MANAGER_DECOMMISSION_DEVICE     "decommission_device"
-
-/** @brief Name of the device shutdown action*/
-#define DEVICE_MANAGER_DEVICE_SHUTDOWN         "shutdown_device"
-/** @brief Name of the device reboot action*/
-#define DEVICE_MANAGER_DEVICE_REBOOT           "reboot_device"
-/** @brief Name of the agent reset action*/
-#define DEVICE_MANAGER_AGENT_RESET             "reset_agent"
-
-/** @brief Name of the remote login action */
-#define DEVICE_MANAGER_REMOTE_LOGIN            "remote-access"
 /** @brief Name of "host" parameter for remote login action */
 #define REMOTE_LOGIN_PARAM_HOST                "host"
 /** @brief Name of "protocol" parameter for remote login action */
@@ -50,10 +35,6 @@
 /** @brief Name of "debug" parameter for remote login action */
 #define REMOTE_LOGIN_PARAM_DEBUG               "debug-mode"
 
-/** @brief Name of action to get a file from the cloud */
-#define DEVICE_MANAGER_FILE_CLOUD_DOWNLOAD      "file_download"
-/** @brief Name of action to send a file to the cloud */
-#define DEVICE_MANAGER_FILE_CLOUD_UPLOAD        "file_upload"
 /** @brief Name of the parameter to save file as */
 #define DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME "file_name"
 /** @brief Name of the parameter for using global file store */
@@ -71,7 +52,7 @@
 	/** @brief IoT device manager service ID */
 #	define IOT_DEVICE_MANAGER_ID         IOT_DEVICE_MANAGER_TARGET
 	/** @brief Remote Desktop service ID on Windows */
-#	define IOT_REMOTE_DESKTOP_ID  "TermService"
+#	define IOT_REMOTE_DESKTOP_ID         "TermService"
 #endif
 
 #if defined( __ANDROID__ )
@@ -92,22 +73,6 @@ static struct device_manager_info APP_DATA;
 #endif
 
 /**
- * @brief Structure containing names of actions
- */
-static const char *const ACTION_CFG_NAMES[] ={
-	"software_update",
-	"file_transfers",
-	"decommission_device",
-	"restore_factory_images",
-	"dump_log_files",
-	"shutdown_device",
-	"reboot_device",
-	"reset_agent",
-	"remote_login",
-	NULL
-};
-
-/**
  * @brief Structure defining information about remote login protocols
  */
 struct remote_login_protocol
@@ -116,22 +81,21 @@ struct remote_login_protocol
 	iot_uint16_t port;          /**< @brief protocol port */
 };
 
+/**
+ * @brief Sets the basic details of an action initially in the device manager
+ *        global structure
+ *
+ * @param[in,out]  s                   device manager configuration structure
+ * @param[in]      idx                 index of action to initialize
+ * @param[in]      action_name         name of action to initialize
+ * @param[in]      config_id           configuration file id to enable/disable
+ * @param[in]      default_enabled     whether action is enabled by default
+ */
+static void device_manager_action_initialize( struct device_manager_info *s,
+	enum device_maanger_config_idx idx, const char *action_name,
+	const char *config_id, iot_bool_t default_enabled );
 
 /* function definitions */
-/**
- * @brief Enables or disables certain actions
- *
- * @param[in,out]  device_manager_info           application specific data
- * @param[in]      flag                          flag for the action to set
- * @param[in]      value                         value to set
- *
- * @retval IOT_STATUS_SUCCESS                    on success
- * @retval IOT_STATUS_BAD_PARAMETER              bad parameter
- */
-static iot_status_t device_manager_action_enable(
-	struct device_manager_info *device_manager_info,
-	iot_uint16_t flag, iot_bool_t value );
-
 #if ( IOT_DEFAULT_ENABLE_PERSISTENT_ACTIONS == 0 )
 /**
  * @brief Deregisters device-manager related actions
@@ -347,19 +311,17 @@ static iot_status_t on_action_remote_login(
 
 
 /* function implementations */
-iot_status_t device_manager_action_enable(
-	struct device_manager_info *device_manager_info,
-	iot_uint16_t flag, iot_bool_t value )
+void device_manager_action_initialize( struct device_manager_info *s,
+	enum device_maanger_config_idx idx, const char *action_name,
+	const char *config_id, iot_bool_t default_enabled )
 {
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( device_manager_info )
+	if ( s )
 	{
-		if ( value )
-			device_manager_info->enabled_actions |= flag;
-		else
-			device_manager_info->enabled_actions &= ~flag;
+		s->actions[idx].action_name = action_name;
+		s->actions[idx].config_id = config_id;
+		s->actions[idx].enabled = default_enabled;
+		s->actions[idx].ptr = NULL;
 	}
-	return result;
 }
 
 #if ( IOT_DEFAULT_ENABLE_PERSISTENT_ACTIONS == 0 )
@@ -477,301 +439,288 @@ iot_status_t device_manager_actions_register(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( device_manager )
 	{
-		iot_t *const iot_lib = device_manager->iot_lib;
-		iot_action_t *device_reboot = NULL;
+		struct device_manager_action *action;
 		char command_path[ PATH_MAX + 1u ];
+		iot_t *const iot_lib = device_manager->iot_lib;
 #ifndef _WRS_KERNEL
-		iot_action_t *dump_log_files = NULL;
-		iot_action_t *agent_reset = NULL;
-		iot_action_t *decommission_device = NULL;
-		iot_action_t *device_shutdown = NULL;
-		iot_action_t *remote_login = NULL;
-		iot_action_t *file_upload = NULL;
-		iot_action_t *file_download = NULL;
-#ifndef _WIN32
-		/*iot_action_t *restore_factory_images = NULL;*/
-		/*FIXME*/
-		/* restore factory image */
-		/*if ( device_manager->enabled_actions &*/
-		/*DEVICE_MANAGER_ENABLE_RESTORE_FACTORY_IMAGES )*/
-		/*{*/
-		/*restore_factory_images = iot_action_allocate( iot_lib,*/
-		/*DEVICE_MANAGER_RESTORE_FACTORY_IMAGES );*/
-		/*iot_action_flags_set( restore_factory_images,*/
-		/*IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );*/
-		/*os_make_path( command_path, PATH_MAX,*/
-		/*device_manager->app_path,*/
-		/*DEVICE_MANAGER_RESTORE_FACTORY_IMAGES_SCRIPT, NULL );*/
-		/*result = iot_action_register_command( restore_factory_images,*/
-		/*command_path, NULL, 0u );*/
-		/*if ( result == IOT_STATUS_SUCCESS )*/
-		/*device_manager->restore_factory_images =*/
-		/*restore_factory_images;*/
-		/*else*/
-		/*IOT_LOG( iot_lib, IOT_LOG_ERROR,*/
-		/*"Failed to register %s action. Reason: %s",*/
-		/*DEVICE_MANAGER_RESTORE_FACTORY_IMAGES,*/
-		/*iot_error(result) );*/
-		/*}*/
-#endif /* ifndef _WIN32 */
 
-
+#ifndef NO_FILEIO_SUPPORT
 		/* file transfer */
-		if ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_FILE_TRANSFERS )
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_FILE_DOWNLOAD];
+		if ( action->enabled != IOT_FALSE )
 		{
 			/* File Download */
-			file_download = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_FILE_CLOUD_DOWNLOAD );
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
 
 			/* global store is optional */
-			iot_action_parameter_add( file_download,
+			iot_action_parameter_add( action->ptr,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE,
 				IOT_PARAMETER_IN, IOT_TYPE_BOOL, 0u );
 
 			/* file name */
-			iot_action_parameter_add( file_download,
+			iot_action_parameter_add( action->ptr,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME,
 				IOT_PARAMETER_IN_REQUIRED, IOT_TYPE_STRING, 0u );
 
 			/* file path */
-			iot_action_parameter_add( file_download,
+			iot_action_parameter_add( action->ptr,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH,
 				IOT_PARAMETER_IN, IOT_TYPE_STRING, 0u );
 
-			result = iot_action_register_callback( file_download,
+			result = iot_action_register_callback( action->ptr,
 				&device_manager_file_download, device_manager, NULL, 0u );
+
 			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
-					"Failed to register %s action",
-					DEVICE_MANAGER_FILE_CLOUD_DOWNLOAD );
+					"Failed to register %s action. Reason: %s",
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
+		}
+
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_FILE_UPLOAD];
+		if ( action->enabled != IOT_FALSE )
+		{
 			/* File Upload */
-			file_upload = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_FILE_CLOUD_UPLOAD);
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
 
 			/* global store is optional */
-			iot_action_parameter_add( file_upload,
+			iot_action_parameter_add( action->ptr,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE,
 				IOT_PARAMETER_IN, IOT_TYPE_BOOL, 0u );
 
 			/* file name  */
-			iot_action_parameter_add( file_upload,
+			iot_action_parameter_add( action->ptr,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME,
 				IOT_PARAMETER_IN, IOT_TYPE_STRING, 0u );
 
 			/* file path */
-			iot_action_parameter_add( file_upload,
+			iot_action_parameter_add( action->ptr,
 				DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH,
 				IOT_PARAMETER_IN, IOT_TYPE_STRING, 0u );
 
-			result = iot_action_register_callback( file_upload,
+			result = iot_action_register_callback( action->ptr,
 				&device_manager_file_upload, device_manager, NULL, 0u );
 			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
-					"Failed to register %s action",
-					DEVICE_MANAGER_FILE_CLOUD_UPLOAD);
+					"Failed to register %s action. Reason: %s",
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
 		}
+#endif /* ifndef NO_FILEIO_SUPPORT */
 
 		/* device shutdown */
-		if ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_DEVICE_SHUTDOWN )
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_DEVICE_SHUTDOWN];
+		if ( action->enabled != IOT_FALSE )
 		{
-			device_shutdown = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_DEVICE_SHUTDOWN );
-			iot_action_flags_set( device_shutdown,
+
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
 #if defined( __ANDROID__ )
 			result = iot_action_register_callback(
-				device_shutdown, &on_action_agent_shutdown,
+				action->ptr, &on_action_agent_shutdown,
 				(void*)device_manager, NULL, 0u );
 #else
 			result = device_manager_make_control_command( command_path,
 				PATH_MAX, device_manager, " --shutdown" );
 			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command( device_shutdown,
-					command_path, NULL, 0u );
+				result = iot_action_register_command(
+					action->ptr, command_path, NULL, 0u );
 #endif
-			if ( result == IOT_STATUS_SUCCESS )
-				device_manager->device_shutdown = device_shutdown;
-			else
+			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
 					"Failed to register %s action. Reason: %s",
-					DEVICE_MANAGER_DEVICE_SHUTDOWN,
-					iot_error(result) );
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
 		}
 
 		/* decommission device */
-		/*FIXME*/
-		if ( device_manager->enabled_actions &
-				DEVICE_MANAGER_ENABLE_DECOMMISSION_DEVICE )
+		/** @todo FIXME */
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_DEVICE_DECOMMISSION];
+		if ( action->enabled != IOT_FALSE )
 		{
-			decommission_device = iot_action_allocate( iot_lib,
-					DEVICE_MANAGER_DECOMMISSION_DEVICE );
-			iot_action_flags_set( decommission_device,
-					IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+			iot_action_flags_set( action->ptr,
+				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
 #if defined( __ANDROID__ )
-			result = iot_action_register_callback(
-					decommission_device, &on_action_agent_decommission,
+			result = iot_action_register_callback( action->ptr,
+					&on_action_agent_decommission,
 					(void*)device_manager, NULL, 0u );
 #else
 			result = device_manager_make_control_command( command_path,
 					PATH_MAX, device_manager, " --decommission" );
 			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command( decommission_device,
-						command_path, NULL, 0u );
+				result = iot_action_register_command(
+					action->ptr, command_path, NULL, 0u );
 #endif
-			if ( result == IOT_STATUS_SUCCESS )
-				device_manager->decommission_device =
-					decommission_device;
-			else
+			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
-						"Failed to register %s action. Reason: %s",
-						DEVICE_MANAGER_DECOMMISSION_DEVICE,
-						iot_error(result) );
+					"Failed to register %s action. Reason: %s",
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
 		}
 
 		/* agent reset */
-		if ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_AGENT_RESET )
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_AGENT_RESET];
+		if ( action->enabled != IOT_FALSE )
 		{
-			agent_reset = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_AGENT_RESET );
-			iot_action_flags_set( agent_reset,
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
 #if defined( __ANDROID__ )
 			result = iot_action_register_callback(
-				agent_reset, &on_action_agent_reset,
+				action->ptr, &on_action_agent_reset,
 				(void*)device_manager, NULL, 0u );
 #else
 			result = device_manager_make_control_command( command_path,
 				PATH_MAX, device_manager, " --restart" );
 			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command( agent_reset,
+				result = iot_action_register_command( action->ptr,
 					command_path, NULL, 0u );
 #endif
-			if ( result == IOT_STATUS_SUCCESS )
-				device_manager->agent_reset = agent_reset;
-			else
+			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
 					"Failed to register %s action. Reason: %s",
-					DEVICE_MANAGER_AGENT_RESET,
-					iot_error(result) );
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
 		}
 
+#ifndef NO_FILEIO_SUPPORT
 		/* dump log files */
-		if ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_DUMP_LOG_FILES )
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_DUMP_LOG_FILES];
+		if ( action->enabled != IOT_FALSE )
 		{
-			dump_log_files = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_DUMP_LOG_FILES );
-			iot_action_flags_set( dump_log_files,
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+			iot_action_flags_set( action->ptr,
 				IOT_ACTION_EXCLUSIVE_APP );
 			result = device_manager_make_control_command( command_path,
 				PATH_MAX, device_manager, " --dump" );
 			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command( dump_log_files,
-					command_path, NULL, 0u );
-			if ( result == IOT_STATUS_SUCCESS )
-				device_manager->dump_log_files = dump_log_files;
-			else
+				result = iot_action_register_command(
+					action->ptr, command_path, NULL, 0u );
+			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
 					"Failed to register %s action. Reason: %s",
-					DEVICE_MANAGER_DUMP_LOG_FILES,
-					iot_error(result) );
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
 		}
-
-#ifndef NO_FILEIO_SUPPORT
-		/* file-io */
-		/*FIXME*/
-		/*if ( device_manager->enabled_actions &*/
-		/*DEVICE_MANAGER_ENABLE_FILE_TRANSFERS )*/
-		/*if ( device_manager_file_register( device_manager ) != IOT_STATUS_SUCCESS )*/
-		/*IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s",*/
-		/*"Failed to register file-io actions" );*/
 #endif /* ifndef NO_FILEIO_SUPPORT */
 
 		/* manifest (ota) */
-		if ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_SOFTWARE_UPDATE )
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_SOFTWARE_UPDATE];
+		if ( action->enabled != IOT_FALSE )
 			if ( device_manager_ota_register( device_manager ) != IOT_STATUS_SUCCESS )
 				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s",
 					"Failed to register software update actions" );
 
 		/* remote_login */
-		if ( ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_REMOTE_LOGIN ))
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_REMOTE_LOGIN];
+		if ( action->enabled != IOT_FALSE )
 		{
-
-			remote_login = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_REMOTE_LOGIN );
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
 
 			/* param to call set on  */
-			iot_action_parameter_add( remote_login,
+			iot_action_parameter_add( action->ptr,
 				REMOTE_LOGIN_PARAM_HOST,
 				IOT_PARAMETER_IN,
 				IOT_TYPE_STRING, 0u );
-			iot_action_parameter_add( remote_login,
+			iot_action_parameter_add( action->ptr,
 				REMOTE_LOGIN_PARAM_PROTOCOL,
 				IOT_PARAMETER_IN_REQUIRED,
 				IOT_TYPE_STRING, 0u );
-			iot_action_parameter_add( remote_login,
+			iot_action_parameter_add( action->ptr,
 				REMOTE_LOGIN_PARAM_URL,
 				IOT_PARAMETER_IN_REQUIRED,
 				IOT_TYPE_STRING, 0u );
-			iot_action_parameter_add( remote_login,
+			iot_action_parameter_add( action->ptr,
 				REMOTE_LOGIN_PARAM_DEBUG,
 				IOT_PARAMETER_IN,
 				IOT_TYPE_BOOL, 0u );
 
 			result = iot_action_register_callback(
-				remote_login,
-				&on_action_remote_login,
-					(void*)device_manager, NULL, 0u );
+				action->ptr, &on_action_remote_login,
+				(void*)device_manager, NULL, 0u );
 			if ( result != IOT_STATUS_SUCCESS )
 			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
 					"Failed to register %s action. Reason: %s",
-					DEVICE_MANAGER_REMOTE_LOGIN,
-					iot_error(result) );
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
 			}
 		}
+#endif
 
 		/* device reboot */
-		if ( device_manager->enabled_actions &
-			DEVICE_MANAGER_ENABLE_DEVICE_REBOOT )
-#endif
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_DEVICE_REBOOT];
+		if ( action->enabled != IOT_FALSE )
 		{
-			device_reboot = iot_action_allocate( iot_lib,
-				DEVICE_MANAGER_DEVICE_REBOOT );
-			iot_action_flags_set( device_reboot,
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
 #if defined( __ANDROID__ )
 			result = iot_action_register_callback(
-				device_reboot, &on_action_agent_reboot,
+				action->ptr, &on_action_agent_reboot,
 				(void*)device_manager, NULL, 0u );
 #else
 #	ifndef _WRS_KERNEL
 			result = device_manager_make_control_command( command_path,
 				PATH_MAX, device_manager, " --reboot" );
 			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command( device_reboot,
-					command_path, NULL, 0u );
+				result = iot_action_register_command(
+					action->ptr, command_path, NULL, 0u );
 #	else
 			/**
 			 * @todo This part should be rewritten in the future when iot-control becomes
 			 * available on VxWorks.  Currently, we just call a "reboot" command to
 			 * stimulate a reboot
 			 */
-			result = iot_action_register_command( device_reboot,
+			result = iot_action_register_command( action->ptr,
 				"reboot", NULL, 0u );
 #	endif
 #endif
-			if ( result == IOT_STATUS_SUCCESS )
-				device_manager->device_reboot = device_reboot;
-			else
+			if ( result != IOT_STATUS_SUCCESS )
+			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
-					"Failed to register %s action",
-					DEVICE_MANAGER_DEVICE_REBOOT );
+					"Failed to register %s action. Reason: %s",
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
 		}
 	}
 	return result;
@@ -804,41 +753,6 @@ iot_status_t device_manager_config_read(
 		IOT_LOG( NULL, IOT_LOG_INFO,
 			"  * Setting default runtime dir to %s",
 			device_manager_info->runtime_dir );
-
-		/* standard actions */
-		device_manager_info->enabled_actions = 0u;
-
-		/* compile time definition */
-		if ( IOT_DEFAULT_ENABLE_SOFTWARE_UPDATE )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_SOFTWARE_UPDATE, IOT_TRUE );
-		if ( IOT_DEFAULT_ENABLE_FILE_TRANSFERS )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_FILE_TRANSFERS, IOT_TRUE );
-		if ( IOT_DEFAULT_ENABLE_DECOMMISSION_DEVICE )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_DECOMMISSION_DEVICE, IOT_TRUE );
-		if ( IOT_DEFAULT_ENABLE_DUMP_LOG_FILES )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_DUMP_LOG_FILES, IOT_TRUE );
-		if ( IOT_DEFAULT_ENABLE_DEVICE_SHUTDOWN )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_DEVICE_SHUTDOWN, IOT_TRUE );
-		if ( IOT_DEFAULT_ENABLE_AGENT_RESET )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_AGENT_RESET, IOT_TRUE );
-#ifndef _WIN32
-		if ( IOT_DEFAULT_ENABLE_RESTORE_FACTORY_IMAGES )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_RESTORE_FACTORY_IMAGES, IOT_TRUE );
-#endif /* ifndef _WIN32 */
-
-		if ( IOT_DEFAULT_ENABLE_DEVICE_REBOOT )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_DEVICE_REBOOT, IOT_TRUE );
-		if ( IOT_DEFAULT_ENABLE_REMOTE_LOGIN )
-			device_manager_action_enable( device_manager_info,
-				DEVICE_MANAGER_ENABLE_REMOTE_LOGIN, IOT_TRUE );
 
 		/* set default of uploaded file removal */
 		file_io->upload_file_remove = IOT_DEFAULT_UPLOAD_REMOVE_ON_SUCCESS;
@@ -894,8 +808,7 @@ iot_status_t device_manager_config_read(
 							json_size, &json_root,
 						err_msg, 1024u ) == IOT_STATUS_SUCCESS )
 				{
-					int i = 0;
-					unsigned int action_mask = 0u;
+					enum device_maanger_config_idx idx;
 					const iot_json_item_t *j_action_top;
 					const iot_json_item_t *const j_actions_enabled =
 						iot_json_decode_object_find(
@@ -905,31 +818,31 @@ iot_status_t device_manager_config_read(
 					/* handle all the boolean default actions */
 					IOT_LOG( NULL, IOT_LOG_INFO, "%s",
 						"Default Configuration:" );
-					for ( i = 0; j_actions_enabled &&
-						ACTION_CFG_NAMES[i]; ++i )
+					for ( idx = DEVICE_MANAGER_IDX_FIRST;
+						j_actions_enabled &&
+						idx < DEVICE_MANAGER_IDX_LAST; ++idx )
 					{
-						iot_bool_t enabled = IOT_FALSE;
+						struct device_manager_action *cfg =
+							&device_manager_info->actions[idx];
 						const iot_json_item_t *const j_action =
 							iot_json_decode_object_find(
 							json, j_actions_enabled,
-							ACTION_CFG_NAMES[i] );
+							cfg->config_id );
 						iot_json_decode_bool( json,
-							j_action, &enabled );
-						if ( enabled == IOT_TRUE )
+							j_action, &cfg->enabled );
+						if ( cfg->enabled == IOT_FALSE )
+						{
+							IOT_LOG( NULL, IOT_LOG_INFO,
+								"  * %s is disabled",
+								cfg->action_name );
+						}
+						else
 						{
 							IOT_LOG( NULL, IOT_LOG_INFO,
 								"  * %s is enabled",
-								ACTION_CFG_NAMES[i] );
-							action_mask |= (1<<i);
+								cfg->action_name );
 						}
-						else
-							IOT_LOG( NULL, IOT_LOG_INFO,
-								"  * %s is disabled",
-								ACTION_CFG_NAMES[i] );
 					}
-					IOT_LOG( NULL, IOT_LOG_TRACE,
-						"  * actions enabled mask = 0x%x", action_mask );
-					device_manager_info->enabled_actions = (iot_uint16_t)action_mask;
 
 					/* get the runtime dir */
 					j_action_top = iot_json_decode_object_find(
@@ -1252,7 +1165,48 @@ int device_manager_main( int argc, char *argv[] )
 		IOT_DEVICE_MANAGER_TARGET, NULL, NULL);
 	else if (result == EXIT_SUCCESS)
 	{
+		enum device_maanger_config_idx idx = DEVICE_MANAGER_IDX_FIRST;
 		os_memzero( &APP_DATA, sizeof(struct device_manager_info) );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"reset_agent", "reset_agent",
+			IOT_DEFAULT_ENABLE_AGENT_RESET );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"decommission_device", "decommission_device",
+			IOT_DEFAULT_ENABLE_DECOMMISSION_DEVICE );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"reboot_device", "reboot_device",
+			IOT_DEFAULT_ENABLE_DEVICE_REBOOT );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"shutdown_device", "shutdown_device",
+			IOT_DEFAULT_ENABLE_DEVICE_SHUTDOWN );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"Dump Log Files", "dump_log_files",
+			IOT_DEFAULT_ENABLE_DUMP_LOG_FILES );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"file_download", "file_transfers",
+			IOT_DEFAULT_ENABLE_FILE_TRANSFERS );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"file_upload", "file_transfers",
+			IOT_DEFAULT_ENABLE_FILE_TRANSFERS );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"remote_login", "remote-access",
+			IOT_DEFAULT_ENABLE_REMOTE_LOGIN );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"remote_login_protocol", "remote-access",
+			IOT_DEFAULT_ENABLE_REMOTE_LOGIN );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"restore_factory_images", "restore_factory_images",
+			IOT_DEFAULT_ENABLE_RESTORE_FACTORY_IMAGES );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"software_update", "software_update",
+			IOT_DEFAULT_ENABLE_SOFTWARE_UPDATE );
+
+		if ( idx != DEVICE_MANAGER_IDX_LAST )
+		{
+			IOT_LOG( NULL, IOT_LOG_FATAL, "%s",
+			"Fatal error setting up internal actions structure" );
+			return EXIT_FAILURE;
+		}
 
 /** @todo vxWorks checking iot.cfg will be implemented later */
 #ifndef _WRS_KERNEL
