@@ -69,6 +69,17 @@ if( CPACK_GENERATOR STREQUAL "DEB" )
 	string( REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_REQUIRES "${CPACK_DEBIAN_PACKAGE_REQUIRES}" )
 	string( REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_SUGGESTS "${CPACK_DEBIAN_PACKAGE_SUGGESTS}" )
 	string( REPLACE "_" "-" CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_DEBIAN_PACKAGE_VERSION}" )
+
+	# Set extra scripts to put into packages
+	set( CONTROL_SCRIPTS "preinst;postinst;prerm;postrm" )
+	foreach( CONTROL_SCRIPT "${CONTROL_SCRIPTS}" )
+		if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/${CONTROL_SCRIPT}" )
+			set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+				${CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA}
+				"${CMAKE_CURRENT_LIST_DIR}/${CONTROL_SCRIPT}"
+			)
+		endif ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/${CONTROL_SCRIPT}" )
+	endforeach( CONTROL_SCRIPT )
 endif( CPACK_GENERATOR STREQUAL "DEB" )
 
 # Nullsoft installer options
@@ -114,6 +125,21 @@ if( CPACK_GENERATOR STREQUAL "RPM" )
 		"/usr/share" "/var" "/var/lib" )
 	set( CPACK_RPM_RELOCATION_PATHS ${CPACK_RPM_RELOCATION_PATHS}
 		"/etc" "/lib/systemd/system" )
+
+	# Set extra scripts to put into packages
+	set( CONTROL_SCRIPTS
+		"PRE_INSTALL\;preinst"
+		"POST_INSTALL\;postinst"
+		"PRE_UNINSTALL\;prerm"
+		"POST_UNINSTALL\;postrm" )
+	foreach( CONTROL_SCRIPT ${CONTROL_SCRIPTS} )
+		string( REGEX REPLACE ";.*" "" SCRIPT_KEY "${CONTROL_SCRIPT}" )
+		string( REPLACE "${SCRIPT_KEY};" "" SCRIPT_NAME "${CONTROL_SCRIPT}" )
+		if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/${SCRIPT_NAME}" )
+			set( CPACK_RPM_${SCRIPT_KEY}_SCRIPT_FILE
+				"${CMAKE_CURRENT_LIST_DIR}/${SCRIPT_NAME}" )
+		endif ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/${SCRIPT_NAME}" )
+	endforeach( CONTROL_SCRIPT )
 endif( CPACK_GENERATOR STREQUAL "RPM" )
 
 # STGZ package options (Self extracting tar gzip packages)

@@ -15,6 +15,23 @@ foreach( CMAKE_VARIABLE ${CMAKE_VARIABLES} )
 	endif ( CMAKE_VARIABLE MATCHES "CPACK_${CPACK_GENERATOR}_.*" )
 endforeach( CMAKE_VARIABLE )
 
+# Generate installer scripts
+set( INSTALL_SCRIPTS
+	"linux_pre_install.sh\;preinst"
+	"linux_post_install.sh\;postinst"
+	"linux_pre_uninstall.sh\;prerm"
+	"linux_post_uninstall.sh\;postrm"
+)
+
+foreach( SCRIPT_PAIR ${INSTALL_SCRIPTS} )
+	string( REGEX REPLACE ";.*" "" SCRIPT_IN "${SCRIPT_PAIR}" )
+	string( REPLACE "${SCRIPT_IN};" "" SCRIPT_OUT "${SCRIPT_PAIR}" )
+	if ( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT_IN}" )
+		configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT_IN}"
+			"${CMAKE_BINARY_DIR}/${SCRIPT_OUT}" @ONLY )
+	endif ( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SCRIPT_IN}" )
+endforeach( SCRIPT_PAIR )
+
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/CPackOptions.cmake.in"
 	"${CMAKE_BINARY_DIR}/CPackOptions.cmake" @ONLY )
 set( CPACK_PROJECT_CONFIG_FILE "${CMAKE_BINARY_DIR}/CPackOptions.cmake"

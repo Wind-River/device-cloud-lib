@@ -12,6 +12,11 @@ CTestTestfile.cmake
 Doxyfile-api
 Doxyfile-dev
 footer.html
+hdc-*.deb
+hdc-*.rpm
+hdc-*.sh
+hdc-*.tar.gz
+hdc-*.tar.Z
 install_manifest.txt
 iot_build.h
 iot_plugin_builtin.c
@@ -19,10 +24,9 @@ iot.make
 lib/
 Makefile
 out/
+preinst
+postinst
+prerm
+postrm
 test-case-count.py
 *.swp
-hdc-*.deb
-hdc-*.rpm
-hdc-*.sh
-hdc-*.tar.gz
-hdc-*.tar.Z

@@ -108,3 +108,9 @@ install( TARGETS ${IOT_LIBRARY_NAME}
 	PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}" COMPONENT headers
 )
 
+# Create directories for configuration and run-time files
+install( DIRECTORY
+	DESTINATION "${INSTALL_VAR_DIR}"
+	COMPONENT api
+)
+

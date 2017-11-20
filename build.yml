@@ -42,6 +42,7 @@ IOT_PLUGIN_BUILTIN:
 
 # User for running service
 IOT_USER: "iot"
+IOT_GROUP: "iot"
 
 # default actions for device manager
 IOT_DEFAULT_ENABLE_AGENT_RESET: true
