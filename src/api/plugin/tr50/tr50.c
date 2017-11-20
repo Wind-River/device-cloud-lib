@@ -40,10 +40,6 @@
 /** @brief Time interval in seconds to check file
  *         transfer queue */
 #define TR50_FILE_QUEUE_CHECK_INTERVAL       30 * IOT_MILLISECONDS_IN_SECOND /* 30 seconds */
-/** @brief Time interval in seconds for retrying
- *         file transfer upon failure */
-#define TR50_FILE_TRANSFER_RETRY_INTERVAL    1 * IOT_SECONDS_IN_MINUTE * \
-                                             IOT_MILLISECONDS_IN_SECOND /* 1 minute */
 /** @brief Time interval in seconds for a file
  *         transfer to expire if it keeps failing */
 #define TR50_FILE_TRANSFER_EXPIRY_TIME       1 * IOT_MINUTES_IN_HOUR * \
@@ -1491,10 +1487,6 @@ printf("validate cert true\n\n");
 					curl_easy_setopt( transfer->lib_curl,
 						CURLOPT_WRITEDATA, file_handle );
 				}
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif /* ifdef __clang__ */
-
 				IOT_LOG( data->lib, IOT_LOG_DEBUG, "Maximum number of retries: %ld\n",
 					transfer->max_retries);
 
@@ -1553,6 +1545,10 @@ printf("validate cert true\n\n");
 					if ( curl_result != CURLE_OK )
 						os_time_sleep(10000, IOT_FALSE);
 				}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /* ifdef __clang__ */
 
 				if ( curl_result == CURLE_OK )
 					result = IOT_STATUS_SUCCESS;
