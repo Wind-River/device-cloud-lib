@@ -1,0 +1,171 @@
+#
+# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+#
+# The right to copy, distribute or otherwise make use of this software may
+# be licensed only pursuant to the terms of an applicable Wind River license
+# agreement.  No license to Wind River intellectual property rights is granted
+# herein.  All rights not licensed by Wind River are reserved by Wind River.
+#
+
+# Default package name & version (maybe be change by some packagers)
+set( CPACK_PACKAGE_NAME                "@IOT_PRODUCT_SHORT@" )
+set( CPACK_PACKAGE_VERSION             "@IOT_VERSION@" )
+set( CPACK_PACKAGE_VERSION_MAJOR       "@IOT_VERSION_MAJOR@" )
+set( CPACK_PACKAGE_VERSION_MINOR       "@IOT_VERSION_MINOR@" )
+set( CPACK_PACKAGE_VERSION_PATCH       "@IOT_VERSION_PATCH@" )
+set( CPACK_PACKAGE_VERSION_TWEAK       "@IOT_VERSION_TWEAK@" )
+set( CPACK_PACKAGE_VERSION_COUNT       @IOT_VERSION_COUNT@ )
+
+# Package architecture
+set( PACKAGE_ARCHITECTURE "@CMAKE_SYSTEM_PROCESSOR@" )
+if ( MSVC )
+	set( PACKAGE_ARCHITECTURE "x86" )
+	if ( CMAKE_CL_64 )
+		set( PACKAGE_ARCHITECTURE "${PACKAGE_ARCHITECTURE}_64" )
+	else()
+		set( PACKAGE_ARCHITECTURE "${PACKAGE_ARCHITECTURE}_32" )
+	endif ( CMAKE_CL_64 )
+endif ( MSVC )
+
+# Package default general information
+set( CPACK_PACKAGE_CONTACT             "support@windriver.com" )
+set( CPACK_PACKAGE_VENDOR              "@IOT_VENDOR@" )
+set( CPACK_PACKAGE_RELEASE             "@IOT_VERSION_TWEAK@" )
+set( CPACK_PACKAGE_INSTALL_PREFIX      "@CMAKE_INSTALL_PREFIX@" )
+set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "@IOT_DESCRIPTION_SUMMARY@" )
+set( CPACK_PACKAGE_DESCRIPTION_FILE    "@CMAKE_SOURCE_DIR@/README.md" )
+set( CPACK_PACKAGE_ICON                "@PROJECT_BUILD_WIN_PATH@\\\\win_install_header.bmp" )
+set( CPACK_PACKAGE_INSTALL_DIRECTORY   "@IOT_PRODUCT@" )
+set( CPACK_PACKAGE_RELOCATABLE         FALSE )
+set( CPACK_RESOURCE_FILE_LICENSE       "@CMAKE_SOURCE_DIR@/LICENSE.txt" )
+set( CPACK_SOURCE_DIR                  "@CMAKE_SOURCE_DIR@" )
+
+# Packager specific settings
+# DEB package options
+if( CPACK_GENERATOR STREQUAL "DEB" )
+	set( CPACK_DEBIAN_PACKAGE_VERSION     "${CPACK_PACKAGE_VERSION}" )
+	list( APPEND CPACK_DEBIAN_PACKAGE_REQUIRES
+		"libcurl3"
+		"libc6"
+		"libarchive13"
+		"libc-ares2"
+	)
+	list( APPEND CPACK_DEBIAN_PACKAGE_SUGGESTS
+		"sudo"
+		"systemd"
+	)
+
+	# MQTT Dependency
+	if( "@IOT_MQTT_LIBRARY@" STREQUAL "mosquitto" )
+		list( APPEND CPACK_DEBIAN_PACKAGE_REQUIRES "libmosquitto1" )
+	endif( "@IOT_MQTT_LIBRARY@" STREQUAL "mosquitto" )
+
+	# JSON Dependency
+	if( "@IOT_JSON_LIBRARY@" STREQUAL "jansson" )
+		list( APPEND CPACK_DEBIAN_PACKAGE_REQUIRES "libjansson4" )
+	elseif( "@IOT_JSON_LIBRARY@" STREQUAL "json-c" )
+		list( APPEND CPACK_DEBIAN_PACKAGE_REQUIRES "libjson0" )
+	endif( "@IOT_JSON_LIBRARY@" STREQUAL "jansson" )
+	string( REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_REQUIRES "${CPACK_DEBIAN_PACKAGE_REQUIRES}" )
+	string( REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_SUGGESTS "${CPACK_DEBIAN_PACKAGE_SUGGESTS}" )
+	string( REPLACE "_" "-" CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_DEBIAN_PACKAGE_VERSION}" )
+endif( CPACK_GENERATOR STREQUAL "DEB" )
+
+# Nullsoft installer options
+if( CPACK_GENERATOR STREQUAL "NSIS" )
+	set( CPACK_PACKAGE_NAME               "@IOT_PRODUCT@" )
+	set( CPACK_PACKAGE_VERSION            "@IOT_VERSION@-${PACKAGE_ARCHITECTURE}" )
+endif( CPACK_GENERATOR STREQUAL "NSIS" )
+
+# RPM package options
+if( CPACK_GENERATOR STREQUAL "RPM" )
+	set( CPACK_RPM_PACKAGE_ARCHITECTURE   "${PACKAGE_ARCHITECTURE}" )
+	set( CPACK_RPM_PACKAGE_LICENSE        "${CPACK_PACKAGE_VENDOR}' Terms of Service" )
+	set( CPACK_RPM_PACKAGE_RELOCATABLE    ON )
+	list( APPEND CPACK_RPM_PACKAGE_REQUIRES
+		"curl >= 7.47.1"
+		"glibc >= 2.23.1"
+		"libarchive >= 3.1.2"
+		"libwebsockets >= 2.2.1"
+	)
+	list( APPEND CPACK_RPM_PACKAGE_SUGGESTS
+		"sudo >= 1.8"
+		"systemd >= 229-16"
+	)
+
+	# MQTT Dependency
+	if( "@IOT_MQTT_LIBRARY@" STREQUAL "mosquitto" )
+		list( APPEND CPACK_RPM_PACKAGE_REQUIRES "mosquitto >= 1.4.9" )
+	endif( "@IOT_MQTT_LIBRARY@" STREQUAL "mosquitto" )
+
+	# JSON Dependency
+	if( "@IOT_JSON_LIBRARY@" STREQUAL "jansson" )
+		list( APPEND CPACK_RPM_PACKAGE_REQUIRES "jansson >= 2.9" )
+	elseif( "@IOT_JSON_LIBRARY@" STREQUAL "json-c" )
+		list( APPEND CPACK_RPM_PACKAGE_REQUIRES "json-c >= 0.12.1" )
+	endif( "@IOT_JSON_LIBRARY@" STREQUAL "jansson" )
+	string( REPLACE ";" ", " CPACK_RPM_PACKAGE_REQUIRES "${CPACK_RPM_PACKAGE_REQUIRES}" )
+	string( REPLACE ";" ", " CPACK_RPM_PACKAGE_SUGGESTS "${CPACK_RPM_PACKAGE_SUGGESTS}" )
+
+	# List of directories our project doesn't own
+	set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST ${CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST}
+		"/etc" "/etc/init.d" "/lib" "/lib/systemd" "/lib/systemd/system"
+		"/usr" "/usr/bin" "/usr/include" "/usr/lib" "/usr/lib64"
+		"/usr/share" "/var" "/var/lib" )
+	set( CPACK_RPM_RELOCATION_PATHS ${CPACK_RPM_RELOCATION_PATHS}
+		"/etc" "/lib/systemd/system" )
+endif( CPACK_GENERATOR STREQUAL "RPM" )
+
+# STGZ package options (Self extracting tar gzip packages)
+if( CPACK_GENERATOR STREQUAL "STGZ" )
+endif( CPACK_GENERATOR STREQUAL "STGZ" )
+
+# TGZ package options (GZip compressed packages)
+if( CPACK_GENERATOR STREQUAL "TGZ" )
+endif( CPACK_GENERATOR STREQUAL "TGZ" )
+
+# TZ package options (UNIX compressed packages)
+if( CPACK_GENERATOR STREQUAL "TZ" )
+endif( CPACK_GENERATOR STREQUAL "TZ" )
+
+# Windows installer toolkit options
+if( CPACK_GENERATOR STREQUAL "WIX" )
+	set( CPACK_PACKAGE_NAME               "@IOT_PRODUCT@" )
+	if( CPACK_BUILD_CONFIG )
+		set( WIX_CONFIG "-${CPACK_BUILD_CONFIG}" )
+	else()
+		set( WIX_CONFIG "-Release" )
+	endif( CPACK_BUILD_CONFIG )
+	set( WIX_FILE_OUT "@CMAKE_CURRENT_BINARY_DIR@/wix/out/iot-wix${WIX_CONFIG}.wxs" )
+	set( CPACK_WIX_EXTRA_SOURCES ${CPACK_WIX_EXTRA_SOURCES} "${WIX_FILE_OUT}" )
+
+	# Extra source files for the installer
+	# Order is import in the list below
+	set( WIX_EXTRA_SOURCES
+		"wix/iot_error_dlg.wxs"
+		"wix/iot_exit_dlg.wxs"
+		"wix/iot_connect_dlg.wxs"
+		"wix/iot.wxs"
+	)
+
+	foreach( WIX_EXTRA_SOURCE ${WIX_EXTRA_SOURCES} )
+		# Get full path to input file
+		if ( NOT IS_ABSOLUTE "${WIX_EXTRA_SOURCE}" )
+			set( WIX_EXTRA_SOURCE
+				"@CMAKE_CURRENT_SOURCE_DIR@/${WIX_EXTRA_SOURCE}" )
+		endif ( NOT IS_ABSOLUTE "${WIX_EXTRA_SOURCE}" )
+
+		set( CPACK_WIX_EXTRA_SOURCES ${CPACK_WIX_EXTRA_SOURCES}
+			"${WIX_EXTRA_SOURCE}" )
+	endforeach( WIX_EXTRA_SOURCE )
+
+	set( CPACK_WIX_LIGHT_EXTRA_FLAGS ${CPACK_WIX_LIGHT_EXTRA_FLAGS}
+		"-loc" "@CMAKE_CURRENT_SOURCE_DIR@/wix/lang/${CPACK_WIX_CULTURES}.wxl" )
+endif( CPACK_GENERATOR STREQUAL "WIX" )
+
+if( CPACK_${CPACK_GENERATOR}_PACKAGE_NAME )
+	set( CPACK_PACKAGE_FILE_NAME           "${CPACK_${CPACK_GENERATOR}_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}" )
+else()
+	set( CPACK_PACKAGE_FILE_NAME           "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}" )
+endif()
+

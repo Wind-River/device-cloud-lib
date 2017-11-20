@@ -20,69 +20,15 @@ addons:
       - libcurl4-openssl-dev
 
 install:
-  - export DEPS_DIR=`pwd`/deps
-  - mkdir -p $DEPS_DIR
-
-  # cmocka
-  - wget https://cmocka.org/files/1.1/cmocka-1.1.1.tar.xz
-  - tar -xvf cmocka-1.1.1.tar.xz
-  - cd cmocka-1.1.1
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR ..
-  - make
-  - make install
-  - cd ../..
-  - rm -rf cmocka-1.1.1
-
-  # jsmn
-  - git clone https://github.com/zserge/jsmn.git jsmn
-  - cd jsmn
-  - make clean
-  - make "CFLAGS=-DJSMN_PARENT_LINKS=1 -DJSMN_STRICT=1 -fPIC"
-  - make test
-  - cmake -E copy "libjsmn.a" "$DEPS_DIR/lib"
-  - cmake -E copy "jsmn.h" "$DEPS_DIR/include"
-  - cd ..
-  - rm -rf jsmn
-
-  # libwebsockets
-  - export LWS_GIT_TAG=v2.3.0
-  - git clone https://github.com/warmcat/libwebsockets.git libwebsockets
-  - cd libwebsockets
-  - git checkout tags/$LWS_GIT_TAG
-  - cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR
-  - make
-  - make install
-  - cd ..
-  - rm -rf libwebsockets
-
-  # operating system abstraction layer
-  - git clone ssh://git@github.com/Wind-River/device-cloud-osal.git device-cloud-osal
-  - cd device-cloud-osal
-  - cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DSOAL_THREAD_SUPPORT:BOOL=ON -DOSAL_WRAP:BOOL=ON .
-  - make
-  - make install
-  - cd ..
-  - rm -rf device-cloud-osal
-
-  # paho
-  - export PAHO_GIT_TAG=v1.2.0
-  - git clone https://github.com/eclipse/paho.mqtt.c.git paho
-  - cd paho
-  - git checkout tags/$PAHO_GIT_TAG
-  - cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DCMAKE_INSTALL_LIBDIR:PATH=lib -DPAHO_WITH_SSL:BOOL=TRUE -DPAHO_BUILD_STATIC:BOOL=TRUE -DCMAKE_C_FLAGS:STRING=-fPIC
-  - make
-  - make install
-  - cd ..
-  - rm -rf paho
+  - ../build.sh
 
 before_script:
-  - mkdir build
-  - cd build
   - cmake --version
-  - cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DDEPENDS_ROOT_DIR:PATH=$DEPS_DIR ..
 
 script:
   - make
   - make check
+  - make package
+

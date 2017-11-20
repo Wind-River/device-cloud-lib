@@ -14,26 +14,21 @@
 #
 # --------------------------------------------------------------------
 # Description:
-# This script downloads, builds and installs into CWD/deps with
-# the dependencies for the device-cloud-lib API and applications.  Once the
-# script completes, there will be a directory called "build".  Run
-# "make" in the build directory.
+# This script downloads, builds and installs project dependencies for the
+# device-cloud-lib into sub-directory called "deps".  Once the script completes,
+# there will be a directory called "build".  Setup cmake in that directory and
+# run "make" in the build directory.  For more information See README.md.
 #
 # Usage:
 #  $ ./build-deps.sh
-# Installs into CWD/deps
 # --------------------------------------------------------------------
 
 # Required system dependencies:
-#    Ubuntu:
-#	$ sudo apt-get install build-essential git cmake libssl-dev libwebsockets-dev  \
-#		uuid-dev libcurl4-openssl-dev libarchive-dev
+#    See README.md for list of dependencies from the build host
 #
-# Repository access.  If device-cloud-osal is not public, make sure to
-# enable ssh clone access in your github account (e.g. add ssh key)
-#
+SCRIPT_PATH="$( cd "$(dirname "$0")" ; pwd -P )"
 export DEPS_DIR=`pwd`/deps
-mkdir -p $DEPS_DIR
+mkdir -p "$DEPS_DIR"
 
 # cmocka
 wget https://cmocka.org/files/1.1/cmocka-1.1.1.tar.xz
@@ -41,7 +36,7 @@ tar -xvf cmocka-1.1.1.tar.xz
 cd cmocka-1.1.1
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR ..
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" ..
 make
 make install
 cd ../..
@@ -63,7 +58,7 @@ export LWS_GIT_TAG=v2.3.0
 git clone https://github.com/warmcat/libwebsockets.git libwebsockets
 cd libwebsockets
 git checkout tags/$LWS_GIT_TAG
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR .
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" .
 make
 make install
 cd ..
@@ -72,7 +67,7 @@ rm -rf libwebsockets
 # operating system abstraction layer
 git clone ssh://git@github.com/Wind-River/device-cloud-osal.git device-cloud-osal
 cd device-cloud-osal
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DSOAL_THREAD_SUPPORT:BOOL=ON -DOSAL_WRAP:BOOL=ON .
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DOSAL_THREAD_SUPPORT:BOOL=ON -DOSAL_WRAP:BOOL=ON .
 make
 make install
 cd ..
@@ -83,7 +78,7 @@ export PAHO_GIT_TAG=v1.2.0
 git clone https://github.com/eclipse/paho.mqtt.c.git paho
 cd paho
 git checkout tags/$PAHO_GIT_TAG
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR -DCMAKE_INSTALL_LIBDIR:PATH=lib -DPAHO_WITH_SSL:BOOL=TRUE -DPAHO_BUILD_STATIC:BOOL=TRUE -DCMAKE_C_FLAGS:STRING=-fPIC .
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DPAHO_WITH_SSL:BOOL=TRUE -DPAHO_BUILD_STATIC:BOOL=TRUE -DCMAKE_C_FLAGS:STRING=-fPIC .
 make
 make install
 cd ..
@@ -96,7 +91,7 @@ cd mosquitto
 git checkout tags/$MOSQUITTO_GIT_TAG
 find . -name CMakeLists.txt | xargs sed -i 's/ldconfig/ldconfig ARGS -N/'
 sed -i 's/add_subdirectory(man)//' CMakeLists.txt
-cmake -DWITH_SRV:BOOL=NO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=$DEPS_DIR .
+cmake -DWITH_SRV:BOOL=NO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" .
 make
 make install
 cd ..
@@ -106,12 +101,9 @@ rm -fr mosquitto
 # uncomment the following
 #USE_MOSQUITTO=-DIOT_MQTT_LIBRARY:STRING=mosquitto
 
-rm -fr build
-mkdir build
-cd build
-cmake  $USE_MOSQUITTO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DDEPENDS_ROOT_DIR:PATH=$DEPS_DIR ..
+cmake  $USE_MOSQUITTO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DDEPENDS_ROOT_DIR:PATH="$DEPS_DIR" "$SCRIPT_PATH"
 
 echo
 echo "device-cloud-lib is ready to build."
-echo "cd build && make"
+echo "make"
 echo

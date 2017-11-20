@@ -1,8 +1,18 @@
+_CPack_Packages/
 bin/
 cmake_install.cmake
 CMakeCache.txt
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
 CMakeFiles
+CPackConfig.cmake
+CPackOptions.cmake
+CPackSourceConfig.cmake
 CTestTestfile.cmake
+Doxyfile-api
+Doxyfile-dev
+footer.html
+install_manifest.txt
 iot_build.h
 iot_plugin_builtin.c
 iot.make
@@ -11,3 +21,8 @@ Makefile
 out/
 test-case-count.py
 *.swp
+hdc-*.deb
+hdc-*.rpm
+hdc-*.sh
+hdc-*.tar.gz
+hdc-*.tar.Z

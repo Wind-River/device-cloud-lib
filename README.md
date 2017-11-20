@@ -2,8 +2,8 @@ Wind River's Internet of Things Solution
 ========================================
 
 This is the base source code tree for Wind River's Internet of Things (IoT)
-solution.  It contains several improvements over previous versions for of the
-solution.
+solution, code named: Device Cloud. It contains several improvements over
+previous versions for of the solution.
 
 Features Included are:
 - Portability (ported to multiple operating systems)
@@ -16,26 +16,39 @@ Features Included are:
 Building
 --------
 Required system dependencies:
+  * Fedora (22+):
+```sh
+sudo dnf install git gcc cmake openssl-devel libcurl-devel libarchive-devel
+```
   * Ubuntu:
 ```sh
-sudo apt-get install build-essential git cmake libssl-dev libwebsockets-dev  \
-               uuid-dev libcurl4-openssl-dev libarchive-dev
+sudo apt-get install build-essential git cmake libssl-dev \
+               libcurl4-openssl-dev libarchive-dev
 ```
 
 Note: regaring repository access, device-cloud-osal is not public.  Make sure to
 enable ssh clone access in your github account (e.g. add ssh key), or
-the build-deps.sh script will fail to clone the device-cloud-osal repo.
+the `build.sh` script will fail to clone the device-cloud-osal repository.
 
 ```sh
-./build-deps.sh
-# if you have build issues, it is typically caused by missing deps
+rm -rf build
+mkdir build
 cd build
+set BUILD_TYPE=Release
+../build.sh
+# if you have build issues, it is typically caused by missing build dependencies
 make
+
+# Optional: make check
+This will build and run unit tests on the code base
+
+# Optional: make package
+This will build a package for installing the code base
 
 # Optional: install
 sudo make install
 or
-make DESTDIR=/some/path install
+make install
 ```
 Note: if you use DESTDIR, make sure the libiot.so can be found, e.g.
 update ld.so.conf.d,  LD_LIBRARY_PATH etc.  Run 'sudo ldconfig' if the

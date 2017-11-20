@@ -82,6 +82,11 @@ target_link_libraries( "${IOT_LIBRARY_NAME}" "dl" "m"
 	${LibArchive_LIBRARIES}
 )
 
+set_target_properties( "${IOT_LIBRARY_NAME}" PROPERTIES
+	SOVERSION ${IOT_VERSION_MAJOR}
+	VERSION   ${IOT_VERSION}
+)
+
 if ( MQTT_SSL_SUPPORT )
 	target_link_libraries( "${IOT_LIBRARY_NAME}" ${OPENSSL_LIBRARIES} )
 endif()

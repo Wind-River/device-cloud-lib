@@ -1,8 +1,9 @@
 # System vendor
 IOT_VENDOR: Wind River Systems
-IOT_PRODUCT: Helix Device Cloud
-IOT_PRODUCT_SHORT: hdc
+IOT_PRODUCT: Device Cloud
+IOT_PRODUCT_SHORT: device-cloud
 IOT_LIBRARY_NAME: iot
+IOT_DESCRIPTION_SUMMARY: Wind River Systems' Internet of Things Solution
 
 # Limits
 IOT_ACTION_MAX: 255

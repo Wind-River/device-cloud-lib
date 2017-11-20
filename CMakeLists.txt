@@ -32,33 +32,19 @@ version_split( IOT_VERSION "${IOT_VERSION}" )
 
 # Project information
 set( PROJECT_NAME                      "${CMAKE_PROJECT_NAME}" )
-set( PROJECT_VERSION                   "${IOT_VERSION}" )
-set( PROJECT_VENDOR                    "${IOT_VENDOR}" )
 
-set( IOT_SERVICE_TARGET                "iot-service" )
-set( IOT_SERVICE_NAME                  "${PROJECT_NAME} Core Service" )
-set( IOT_SERVICE_DESCRIPTION           "Core aggregation service for ${PROJECT_NAME} devices." )
-string( REPLACE ";" " " IOT_SERVICE_DESCRIPTION "${IOT_SERVICE_DESCRIPTION}" )
-
+# Device manager
 set( IOT_DEVICE_MANAGER_TARGET         "iot-device-manager" )
-set( IOT_DEVICE_MANAGER_NAME           "${PROJECT_NAME} Device Manager" )
-set( IOT_DEVICE_MANAGER_DESCRIPTION    "Registers and handles device level requests for ${PROJECT_NAME} devices."
-                                       "Client that registers with ${IOT_SERVICE_TARGET} to handle over-the-air updates,"
+set( IOT_DEVICE_MANAGER_NAME           "${IOT_PRODUCT} Device Manager" )
+set( IOT_DEVICE_MANAGER_DESCRIPTION    "Registers and handles device level requests for ${IOT_PRODUCT} devices."
+                                       "Client that registers with the cloud to handle over-the-air updates,"
                                        "device reboot/shutdown, agent reset etc." )
 string( REPLACE ";" " " IOT_DEVICE_MANAGER_DESCRIPTION "${IOT_DEVICE_MANAGER_DESCRIPTION}" )
-
-# Setup variables
-# Determine if compiling in 64-bit mode
-get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
-if( LIB64 )
-	set( LIB_SUFFIX 64 )
-else()
-	set( LIB_SUFFIX "" )
-endif()
 
 # Options
 include( DefineCompilerFlags )
 include( GetFullPath )
+include( GNUInstallDirs )
 include( OptionSelect )
 option_select( IOT_JSON_LIBRARY
 	DESCRIPTION "JSON Library to use"
@@ -97,11 +83,20 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY    "${CMAKE_BINARY_DIR}/bin" )
 set( CMAKE_INCLUDE_OUTPUT_DIRECTORY    "${CMAKE_SOURCE_DIR}/src/api/public" )
 
 # Installation directories
-set( INSTALL_BIN_DIR      "bin" )
-set( INSTALL_EXAMPLES_DIR "share/iot" )
-set( INSTALL_INCLUDE_DIR  "include" )
-set( INSTALL_LIB_DIR      "lib" )
-set( INSTALL_PLUGIN_DIR   "lib" )
+set( INSTALL_BIN_DIR         "${CMAKE_INSTALL_BINDIR}" )
+set( INSTALL_CONFIG_DIR      "${CMAKE_INSTALL_SYSCONFDIR}" )
+set( INSTALL_EXAMPLES_DIR    "${CMAKE_INSTALL_DATAROOTDIR}/${IOT_LIBRARY_NAME}" )
+set( INSTALL_INCLUDE_DIR     "${CMAKE_INSTALL_INCLUDEDIR}" )
+set( INSTALL_LIB_DIR         "${CMAKE_INSTALL_LIBDIR}" )
+set( INSTALL_PLUGIN_DIR      "${CMAKE_INSTALL_LIBDIR}" )
+set( INSTALL_VAR_DIR         "${CMAKE_INSTALL_LOCALSTATEDIR}" )
+
+if ( CPACK_GENERATOR STREQUAL "DEB" OR
+	CPACK_GENERATOR STREQUAL "RPM" )
+	set( INSTALL_CONFIG_DIR      "/${CMAKE_INSTALL_SYSCONFDIR}/${IOT_LIBRARY_NAME}" )
+	set( INSTALL_VAR_DIR         "/${CMAKE_INSTALL_LOCALSTATEDIR}/lib/${IOT_LIBRARY_NAME}" )
+endif ( CPACK_GENERATOR STREQUAL "DEB" OR
+	CPACK_GENERATOR STREQUAL "RPM" )
 
 # 3rd party libraries
 set( PAHO_PREFER_STATIC   ON )
@@ -184,6 +179,9 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 include_directories( "src/api/public" "src" "${CMAKE_BINARY_DIR}" )
 add_subdirectory( "src" )
 add_subdirectory( "share" )
+# Packaging support
+add_subdirectory( "build-sys/cpack" )
 
 include( TestSupport )
+include( CPack )
 

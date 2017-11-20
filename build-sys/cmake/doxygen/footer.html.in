@@ -2,7 +2,7 @@
 <!-- start footer part -->
 
 <hr class="footer"/><address class="footer">
-Copyright © 2015-@DATE_YEAR@ @PROJECT_VENDOR@
+Copyright © 2015-@DATE_YEAR@ @IOT_VENDOR@
 &#160;<a href="http://www.windriver.com/company/terms/trademark.html">(more...)
 </a>
 </address>
