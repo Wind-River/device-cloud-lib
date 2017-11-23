@@ -237,7 +237,6 @@ iot_status_t iot_update(
 		os_file_t log_fd = NULL;
 		iot_t *iot_lib = NULL;
 		char device_id[IOT_ID_MAX_LEN + 1u];
-
 		result = iot_update_get_device_id( device_id, IOT_ID_MAX_LEN );
 		if ( result != IOT_STATUS_SUCCESS )
 		{
@@ -257,7 +256,7 @@ iot_status_t iot_update(
 			os_directory_change(sw_update_path);
 
 			log_fd = os_file_open(
-				IOT_UPDATE_LOGFILE, OS_WRITE|OS_APPEND );
+				IOT_UPDATE_LOGFILE, OS_WRITE|OS_CREATE);
 			if ( log_fd == NULL)
 				result = IOT_STATUS_FAILURE;
 			else
@@ -665,7 +664,6 @@ iot_status_t iot_update_parse_json(
 
 		status = IOT_STATUS_FAILURE;
 		os_directory_current( cwd, PATH_MAX );
-		printf("%s:%d cwd=%s\n", __func__,__LINE__, cwd);
 		fd = os_file_open( json_file, OS_READ );
 		if( fd )
 		{
