@@ -891,6 +891,8 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( obj )
 	{
+		result = IOT_STATUS_SUCCESS;
+
 		os_memzero( obj, sizeof( struct iot_data ) );
 		obj->type = type;
 		obj->has_value = IOT_TRUE;
@@ -950,7 +952,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 				va_arg( args, const struct iot_data_raw * );
 			obj->value.raw.length = 0u;
 			obj->value.raw.ptr = NULL;
-			if ( data_obj )
+			if ( data_obj && data_obj->ptr )
 			{
 				if ( heap_alloc != IOT_FALSE )
 				{
@@ -973,6 +975,8 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 					obj->value.raw.ptr = data_obj->ptr;
 				}
 			}
+			else
+				result = IOT_STATUS_BAD_PARAMETER;
 			break;
 		}
 		case IOT_TYPE_NULL:
@@ -1020,7 +1024,6 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 			obj->value.uint64 = va_arg( args, iot_uint64_t );
 			break;
 		}
-		result = IOT_STATUS_SUCCESS;
 	}
 	return result;
 }

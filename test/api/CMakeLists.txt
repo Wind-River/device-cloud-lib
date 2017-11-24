@@ -9,7 +9,7 @@
 
 set( TARGET "api" )
 set( TESTS
-#	"iot_action"
+	"iot_action"
 	"iot_alarm"
 	"iot_base"
 	"iot_base64"
@@ -30,16 +30,9 @@ endif( JSON_DEFINES )
 include( "mock_api" )
 include( "mock_osal" )
 
-#include( "mock_mosquitto" )
-#include( "mock_pthread" )
-#include( "mock_system" )
-#if ( CMAKE_C_COMPILER_ID MATCHES "(Clang|GNU)" )
-#	add_definitions( "-Wno-deprecated-declarations" )
-#endif ( CMAKE_C_COMPILER_ID MATCHES "(Clang|GNU)" )
-#
-
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
+	"iot_action_free"
 	"iot_action_process"
 )
 set( TEST_IOT_ACTION_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} )

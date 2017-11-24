@@ -78,6 +78,12 @@ os_status_t __wrap_os_system_run(
 	char *out_buf[2u],
 	size_t out_len[2u],
 	os_millisecond_t max_time_out );
+os_status_t __wrap_os_system_run_wait(
+	const char *command,
+	int *exit_status,
+	char *out_buf[2u],
+	size_t out_len[2u],
+	os_millisecond_t max_time_out );
 os_bool_t __wrap_os_terminal_vt100_support( os_file_t stream );
 os_status_t __wrap_os_thread_condition_broadcast( os_thread_condition_t *cond );
 os_status_t __wrap_os_thread_condition_create( os_thread_condition_t *cond );
@@ -244,7 +250,10 @@ void *__wrap_os_malloc( size_t size )
 {
 	void* result = mock_ptr_type( void* );
 	if ( result )
+	{
 		result = test_malloc( size );
+		assert_non_null( result );
+	}
 	return result;
 }
 
@@ -669,6 +678,29 @@ os_status_t __wrap_os_system_run(
 	return mock_type( os_status_t );
 }
 
+os_status_t __wrap_os_system_run_wait(
+	const char *command,
+	int *exit_status,
+	char *out_buf[2u],
+	size_t out_len[2u],
+	os_millisecond_t max_time_out )
+{
+	/* ensure this function is called meeting pre-requirements */
+	assert_non_null( command );
+	check_expected( command );
+	assert_non_null( exit_status );
+	assert_non_null( out_buf );
+	assert_non_null( out_len );
+
+	if ( exit_status )
+		*exit_status = mock_type( int );
+	if ( out_buf[0u] )
+		strncpy( out_buf[0u], mock_type( char * ), out_len[0u] );
+	if ( out_buf[1u] )
+		strncpy( out_buf[1u], mock_type( char * ), out_len[1u] );
+	return mock_type( os_status_t );
+}
+
 os_bool_t __wrap_os_terminal_vt100_support( os_file_t stream )
 {
 	return mock_type( os_bool_t );
@@ -875,7 +907,8 @@ int __wrap_os_vfprintf( os_file_t stream, const char *format, va_list args )
 int __wrap_os_vsnprintf( char *str, size_t size, const char *format, va_list args )
 {
 	/* ensure this function is called meeting pre-requirements */
-	assert_non_null( str );
+	if ( size > 0u )
+		assert_non_null( str );
 	assert_non_null( format );
 	return vsnprintf( str, size, format, args );
 }
