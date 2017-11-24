@@ -18,8 +18,6 @@
 #include "iot_defs.h"
 #include "iot_plugin.h"
 
-#include <curl/curl.h>
-
 /* Flags */
 /** @brief Run in a single thread */
 #define IOT_FLAG_SINGLE_THREAD                   0x01
