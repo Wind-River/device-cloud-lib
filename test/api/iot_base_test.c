@@ -1686,10 +1686,10 @@ static void test_iot_loop_stop_threads_force( void **state )
 	for ( i = 0u; i < IOT_WORKER_THREADS; ++i )
 		lib.worker_thread[i] = (iot_os_thread_t)(i + 1u);
 	result = iot_loop_stop( &lib, IOT_TRUE );
-#ifdef IOT_NO_THREAD_SUPPORT
-	assert_int_equal( result, IOT_STATUS_NOT_SUPPORTED );
-#else
+#ifdef IOT_THREAD_SUPPORT
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
+#else
+	assert_int_equal( result, IOT_STATUS_NOT_SUPPORTED );
 #endif
 	assert_int_equal( lib.to_quit, IOT_TRUE );
 }
@@ -1705,10 +1705,10 @@ static void test_iot_loop_stop_threads_no_force( void **state )
 	for ( i = 0u; i < IOT_WORKER_THREADS; ++i )
 		lib.worker_thread[i] = (iot_os_thread_t)(i + 1u);
 	result = iot_loop_stop( &lib, IOT_FALSE );
-#ifdef IOT_NO_THREAD_SUPPORT
-	assert_int_equal( result, IOT_STATUS_NOT_SUPPORTED );
-#else
+#ifdef IOT_THREAD_SUPPORT
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
+#else
+	assert_int_equal( result, IOT_STATUS_NOT_SUPPORTED );
 #endif
 	assert_int_equal( lib.to_quit, IOT_TRUE );
 }

@@ -67,7 +67,7 @@ rm -rf libwebsockets
 # operating system abstraction layer
 git clone ssh://git@github.com/Wind-River/device-cloud-osal.git device-cloud-osal
 cd device-cloud-osal
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DOSAL_THREAD_SUPPORT:BOOL=ON -DOSAL_WRAP:BOOL=ON .
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DSOAL_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DOSAL_WRAP:BOOL=ON .
 make
 make install
 cd ..
@@ -101,7 +101,7 @@ rm -fr mosquitto
 # uncomment the following
 #USE_MOSQUITTO=-DIOT_MQTT_LIBRARY:STRING=mosquitto
 
-cmake  $USE_MOSQUITTO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DDEPENDS_ROOT_DIR:PATH="$DEPS_DIR" "$SCRIPT_PATH"
+cmake  $USE_MOSQUITTO -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DIOT_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DDEPENDS_ROOT_DIR:PATH="$DEPS_DIR" "$SCRIPT_PATH"
 
 echo
 echo "device-cloud-lib is ready to build."

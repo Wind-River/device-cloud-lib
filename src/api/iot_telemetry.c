@@ -68,9 +68,9 @@ iot_telemetry_t *iot_telemetry_allocate(
 	struct iot_telemetry *result = NULL;
 	if ( lib && name && *name != '\0' )
 	{
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		os_thread_mutex_lock( &lib->telemetry_mutex );
-#endif
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		if ( lib->telemetry_count < IOT_TELEMETRY_MAX )
 		{
 			const unsigned int count = lib->telemetry_count;
@@ -153,9 +153,9 @@ iot_telemetry_t *iot_telemetry_allocate(
 			IOT_LOG( lib, IOT_LOG_ERROR,
 				"no remaining space (max: %u) for telemetry: %s",
 				IOT_TELEMETRY_MAX, name );
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		os_thread_mutex_unlock( &lib->telemetry_mutex );
-#endif
+#endif /* ifdef IOT_THREAD_SUPPORT */
 	}
 	return result;
 }
@@ -332,9 +332,9 @@ iot_status_t iot_telemetry_free(
 			unsigned int i, max;
 			result = iot_telemetry_deregister( telemetry, NULL,
 				max_time_out );
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			os_thread_mutex_lock( &lib->telemetry_mutex );
-#endif
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			/* find telemetry within the library */
 			max = lib->telemetry_count;
 			for ( i = 0u; ( i < max ) &&
@@ -392,9 +392,9 @@ iot_status_t iot_telemetry_free(
 				result = IOT_STATUS_SUCCESS;
 			}
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			os_thread_mutex_unlock( &lib->telemetry_mutex );
-#endif
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		}
 	}
 	return result;
@@ -438,20 +438,20 @@ iot_status_t iot_telemetry_publish_data( iot_telemetry_t *telemetry,
 			if( telemetry->type == IOT_TYPE_NULL ||
 				telemetry->type == data->type )
 			{
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 				os_thread_mutex_lock(
 					&telemetry->lib->telemetry_mutex );
-#endif
+#endif /* ifdef IOT_THREAD_SUPPORT */
 				result = iot_plugin_perform(
 					telemetry->lib, txn, &max_time_out,
 						IOT_OPERATION_TELEMETRY_PUBLISH,
 						telemetry, data, NULL );
 				if ( result == IOT_STATUS_SUCCESS )
 					telemetry->time_stamp = 0u;
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 				os_thread_mutex_unlock(
 					&telemetry->lib->telemetry_mutex );
-#endif
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			}
 		}
 	}

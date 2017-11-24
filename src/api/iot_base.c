@@ -96,7 +96,7 @@ static IOT_SECTION iot_status_t iot_config_set_data(
 	const char *name,
 	const struct iot_data *data );
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 /**
  * @brief default main thread
  *
@@ -113,7 +113,7 @@ static OS_THREAD_DECL iot_base_main_thread( void *user_data );
  * @retval NULL    always on thread termination
  */
 static OS_THREAD_DECL iot_base_worker_thread_main( void *user_data );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 /**
  * @brief Gets the connect configuration
@@ -309,7 +309,7 @@ iot_status_t iot_config_set_raw(
 	return result;
 }
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 OS_THREAD_DECL iot_base_main_thread( void *user_data )
 {
 	struct iot *lib = (struct iot *)user_data;
@@ -326,7 +326,7 @@ OS_THREAD_DECL iot_base_worker_thread_main( void *user_data )
 		result = iot_action_process( lib, 0u );
 	return (OS_THREAD_RETURN)0;
 }
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 iot_status_t iot_connect(
 	iot_t *lib,
@@ -357,7 +357,7 @@ iot_status_t iot_connect(
 		{
 			IOT_LOG( lib, IOT_LOG_NOTICE, "%s",
 				"Connected successfully" );
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) &&
 				(result == IOT_STATUS_SUCCESS) )
 			{
@@ -367,7 +367,7 @@ iot_status_t iot_connect(
 					IOT_LOG_ERROR, "%s",
 					"Failed to start main loop" );
 			}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		}
 		else
 		{
@@ -796,11 +796,11 @@ iot_status_t iot_disconnect(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( lib )
 	{
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		/* kill process loop */
 		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 			iot_loop_stop( lib, IOT_FALSE );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 		result = iot_plugin_perform( lib, NULL, &max_time_out,
 			IOT_OPERATION_CLIENT_DISCONNECT, NULL, NULL, NULL );
@@ -885,16 +885,16 @@ iot_t *iot_initialize(
 				!= IOT_STATUS_NO_MEMORY )
 			{
 				result->flags = (iot_uint8_t)flags;
-#ifdef IOT_NO_THREAD_SUPPORT
+#ifndef IOT_THREAD_SUPPORT
 				result->flags |= IOT_FLAG_SINGLE_THREAD;
-#else /* ifndef IOT_NO_THREAD_SUPPORT */
+#else /* ifndef IOT_THREAD_SUPPORT */
 				os_thread_mutex_create( &result->log_mutex );
 				os_thread_mutex_create( &result->telemetry_mutex );
 				os_thread_mutex_create( &result->alarm_mutex );
 				os_thread_mutex_create( &result->worker_mutex );
 				os_thread_condition_create( &result->worker_signal );
 				os_thread_rwlock_create( &result->worker_thread_exclusive_lock );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifndef IOT_THREAD_SUPPORT */
 
 				/*os_socket_initialize();*/
 #ifdef IOT_STACK_ONLY
@@ -958,9 +958,9 @@ iot_status_t iot_log( iot_t *lib, iot_log_level_t log_level,
 			}
 
 			/* lock mutex to ensure safe logging between threads */
-#			ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			os_thread_mutex_lock( &lib->log_mutex );
-#			endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 			/* build log message */
 			va_start( v_args, log_msg_fmt );
@@ -973,9 +973,9 @@ iot_status_t iot_log( iot_t *lib, iot_log_level_t log_level,
 					lib->logger_user_data );
 
 			/* unlock mutex if we locked it */
-#			ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			os_thread_mutex_unlock( &lib->log_mutex );
-#			endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		}
 		/* return success even if logger is not set */
 		result = IOT_STATUS_SUCCESS;
@@ -1069,12 +1069,11 @@ iot_status_t iot_loop_iteration( iot_t *lib, iot_millisecond_t max_time_out )
 			IOT_OPERATION_ITERATION, NULL, NULL, NULL );
 
 		if ( result == IOT_STATUS_SUCCESS
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			&& ( lib->flags & IOT_FLAG_SINGLE_THREAD )
-#endif /* ifndef IOT_NO_THEAD_SUPPORT */
+#endif /* ifdef IOT_THEAD_SUPPORT */
 			)
 		{
-			printf( "iteration!!!\n" );
 			/* if this is single-threaded (ie. no worker threads)
 			 * then any action requests must be processed in the
 			 * main thread */
@@ -1089,9 +1088,7 @@ iot_status_t iot_loop_start( iot_t *lib )
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( lib )
 	{
-#ifdef IOT_NO_THREAD_SUPPORT
-		result = IOT_STATUS_NOT_SUPPORTED;
-#else
+#ifdef IOT_THREAD_SUPPORT
 		if ( lib->flags & IOT_FLAG_SINGLE_THREAD )
 			result = IOT_STATUS_NOT_SUPPORTED;
 		else if ( lib->main_thread == 0 )
@@ -1111,7 +1108,9 @@ iot_status_t iot_loop_start( iot_t *lib )
 		}
 		else
 			result = IOT_STATUS_SUCCESS;
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#else
+		result = IOT_STATUS_NOT_SUPPORTED;
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		if ( result == IOT_STATUS_SUCCESS ||
 			result == IOT_STATUS_NOT_SUPPORTED )
 			lib->to_quit = IOT_FALSE;
@@ -1125,10 +1124,7 @@ iot_status_t iot_loop_stop( iot_t *lib, iot_bool_t force )
 	if ( lib )
 	{
 		lib->to_quit = IOT_TRUE;
-#ifdef IOT_NO_THREAD_SUPPORT
-		(void)force;
-		result = IOT_STATUS_NOT_SUPPORTED;
-#else
+#ifdef IOT_THREAD_SUPPORT
 		if ( lib->flags & IOT_FLAG_SINGLE_THREAD )
 			result = IOT_STATUS_NOT_SUPPORTED;
 		else
@@ -1165,7 +1161,10 @@ iot_status_t iot_loop_stop( iot_t *lib, iot_bool_t force )
 			}
 			result = IOT_STATUS_SUCCESS;
 		}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#else
+		(void)force;
+		result = IOT_STATUS_NOT_SUPPORTED;
+#endif /* ifdef IOT_THREAD_SUPPORT */
 	}
 	return result;
 }
@@ -1290,7 +1289,7 @@ iot_status_t iot_terminate(
 			iot_plugin_terminate( lib, &lib->plugin[i - 1u] );
 		result = IOT_STATUS_SUCCESS;
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		os_thread_mutex_destroy( &lib->log_mutex );
 		os_thread_mutex_destroy( &lib->telemetry_mutex );
 		os_thread_mutex_destroy( &lib->alarm_mutex );
@@ -1298,7 +1297,7 @@ iot_status_t iot_terminate(
 		os_thread_condition_destroy( &lib->worker_signal );
 		os_thread_rwlock_destroy(
 			&lib->worker_thread_exclusive_lock );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 #ifndef IOT_STACK_ONLY
 		os_free_null( (void**)&lib->cfg_file_path );

@@ -1165,7 +1165,7 @@ iot_status_t iot_action_process(
 		struct iot_action_request *request = NULL;
 
 		result = IOT_STATUS_NOT_FOUND;
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 		{
 			os_thread_mutex_lock( &lib->worker_mutex );
@@ -1175,7 +1175,7 @@ iot_status_t iot_action_process(
 					&lib->worker_signal,
 					&lib->worker_mutex );
 		}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		/* if this thread was not woke just to quit,
 		   then there must be a request */
 		if ( lib->request_queue_wait_count > 0u )
@@ -1189,10 +1189,10 @@ iot_status_t iot_action_process(
 				sizeof( struct iot_action_request *) *
 					 lib->request_queue_wait_count );
 		}
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 			os_thread_mutex_unlock( &lib->worker_mutex );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 		if ( request )
 		{
@@ -1215,7 +1215,7 @@ iot_status_t iot_action_process(
 
 			if ( lib->to_quit == IOT_FALSE && action )
 			{
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 				/* lock to support exclusive actions */
 				if ( action->flags & IOT_ACTION_EXCLUSIVE_APP )
 					os_thread_rwlock_write_lock(
@@ -1223,13 +1223,13 @@ iot_status_t iot_action_process(
 				else
 					os_thread_rwlock_read_lock(
 						&lib->worker_thread_exclusive_lock );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 				IOT_LOG( lib, IOT_LOG_DEBUG,
 					"Executing action: %s", action->name );
 				action_result = iot_action_execute( action,
 					request, max_time_out );
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 				/* done processing, unlock our operation */
 				if ( action->flags & IOT_ACTION_EXCLUSIVE_APP )
 					os_thread_rwlock_write_unlock(
@@ -1237,7 +1237,7 @@ iot_status_t iot_action_process(
 				else
 					os_thread_rwlock_read_unlock(
 						&lib->worker_thread_exclusive_lock );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			}
 			else if ( lib->to_quit == IOT_FALSE )
 				IOT_LOG( lib, IOT_LOG_NOTICE,
@@ -1255,24 +1255,24 @@ iot_status_t iot_action_process(
 			iot_action_request_free( request );
 
 			/* mark request spot as clear */
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 			{
 				os_thread_mutex_lock(
 					&lib->worker_mutex );
 			}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			os_memzero( request,
 				sizeof( struct iot_action_request ) );
 			--lib->request_queue_free_count;
 
 			/* add request space to last free spot */
 			lib->request_queue_free[lib->request_queue_free_count] = request;
-#ifndef  IOT_NO_THREAD_SUPPORT
+#ifdef  IOT_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 				os_thread_mutex_unlock(
 					&lib->worker_mutex );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			result = IOT_STATUS_SUCCESS;
 		}
 	}
@@ -1368,13 +1368,13 @@ iot_action_request_t *iot_action_request_allocate(
 			name_len = IOT_NAME_MAX_LEN;
 		if ( source_len > IOT_ID_MAX_LEN )
 			source_len = IOT_ID_MAX_LEN;
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 		{
 			os_thread_mutex_lock(
 				&lib->worker_mutex );
 		}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		if ( lib->request_queue_free_count < IOT_ACTION_QUEUE_MAX )
 			result = lib->request_queue_free[lib->request_queue_free_count];
 
@@ -1403,11 +1403,11 @@ iot_action_request_t *iot_action_request_allocate(
 			}
 			++lib->request_queue_free_count;
 		}
-#ifndef  IOT_NO_THREAD_SUPPORT
+#ifdef  IOT_THREAD_SUPPORT
 		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 			os_thread_mutex_unlock(
 				&lib->worker_mutex );
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 	}
 	return result;
 }
@@ -1674,18 +1674,18 @@ iot_status_t iot_action_request_execute(
 		{
 			struct iot *lib = request->lib;
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 			{
 				os_thread_mutex_lock( &lib->worker_mutex );
 			}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 			lib->request_queue_wait[
 				lib->request_queue_wait_count] = request;
 			++lib->request_queue_wait_count;
 
-#ifndef  IOT_NO_THREAD_SUPPORT
+#ifdef  IOT_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
 			{
 				os_thread_mutex_unlock( &lib->worker_mutex );
@@ -1693,7 +1693,7 @@ iot_status_t iot_action_request_execute(
 					&lib->worker_signal,
 					&lib->worker_mutex );
 			}
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 		}
 	}
 	return result;

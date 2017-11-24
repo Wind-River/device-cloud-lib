@@ -1119,10 +1119,10 @@ iot_status_t device_manager_initialize( const char *app_path,
 	{
 		iot_t *iot_lib = NULL;
 		char *p_path = NULL;
-#ifndef NO_FILEIO_SUPPORT
+#if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
 		struct device_manager_file_io_info *file_io = &device_manager->file_io_info;
 		os_thread_mutex_t *file_transfer_lock = &file_io->file_transfer_mutex;
-#endif /* ifndef NO_FILEIO_SUPPORT */
+#endif /* defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
 
 		iot_lib = iot_initialize( "device-manager", NULL, 0u );
 		if ( iot_lib == NULL )
@@ -1169,10 +1169,10 @@ iot_status_t device_manager_initialize( const char *app_path,
 		{
 			device_manager->iot_lib = iot_lib;
 
-#if !defined( NO_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
+#if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
 			if ( os_thread_mutex_create( file_transfer_lock ) != OS_STATUS_SUCCESS )
 				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s", "Failed to create file_transfer_mutex" );
-#endif /* if !defined( NO_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
+#endif /* if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
 			if ( device_manager_actions_register( device_manager ) != IOT_STATUS_SUCCESS )
 				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s",	"Failed to register device-manager actions" );
 #ifndef NO_FILEIO_SUPPORT
@@ -1538,17 +1538,17 @@ iot_status_t device_manager_terminate(
 	if ( device_manager )
 	{
 		iot_t *iot_lib = device_manager->iot_lib;
-#if !defined( NO_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
+#if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
 		os_thread_mutex_t *file_transfer_lock = &device_manager->file_io_info.file_transfer_mutex;
-#endif /* if !defined( NO_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
+#endif /* if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
 
 #if ( IOT_DEFAULT_ENABLE_PERSISTENT_ACTIONS == 0 )
 		device_manager_actions_deregister( device_manager );
 #endif
 
-#if !defined( NO_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
+#if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
 		os_thread_mutex_destroy( file_transfer_lock );
-#endif /* if !defined( NO_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
+#endif /* if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
 
 		iot_disconnect( iot_lib, 0u );
 		iot_terminate( iot_lib, 0u );

@@ -7,8 +7,10 @@ os:
   - linux
 env:
   matrix:
-    - BUILD_TYPE=Debug
-    - BUILD_TYPE=Release
+    - BUILD_TYPE=Debug   THREAD_SUPPORT=ON
+    - BUILD_TYPE=Debug   THREAD_SUPPORT=OFF
+    - BUILD_TYPE=Release THREAD_SUPPORT=ON
+    - BUILD_TYPE=Release THREAD_SUPPORT=OFF
 
 addons:
   apt:

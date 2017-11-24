@@ -522,7 +522,7 @@ struct iot
 	/** @brief user data to pass to log callback */
 	void                        *logger_user_data;
 
-#ifndef IOT_NO_THREAD_SUPPORT
+#ifdef IOT_THREAD_SUPPORT
 	/** @brief handle to a mutex to allow log correctly with multiple
 	 * threads */
 	os_thread_mutex_t           log_mutex;
@@ -542,7 +542,7 @@ struct iot
 	os_thread_condition_t       worker_signal;
 	/** @brief Lock for commands which cannot run concurrently */
 	os_thread_rwlock_t          worker_thread_exclusive_lock;
-#endif /* ifndef IOT_NO_THREAD_SUPPORT */
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 #ifdef IOT_STACK_ONLY
 	/** @brief storage of connect configuration filename

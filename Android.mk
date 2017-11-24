@@ -20,5 +20,6 @@ $( info ($(shell ( cd ${LOCAL_PATH}; ./build-sys/generate_header.sh && sed -E "s
 # generate build_info
 $( info ($(shell ${LOCAL_PATH}/build-sys/android/generate_android_buildinfo.sh )))
 
+LOCAL_CFLAGS := -DIOT_THREAD_SUPPORT=1
 include $(call all-subdir-makefiles)
 

@@ -55,8 +55,8 @@ option_select( IOT_MQTT_LIBRARY
 	DESCRIPTION "MQTT Library to use"
 	DEFAULT "paho" "mosquitto" "paho"
 )
-option( IOT_NO_THREAD_SUPPORT "do not support the use of threads" OFF )
-option( IOT_STACK_ONLY "build library without the use of the heap" OFF )
+option( IOT_THREAD_SUPPORT   "support the use of threads" ON )
+option( IOT_STACK_ONLY       "build library without the use of the heap" OFF )
 
 # Enforce Build Type
 # set a default build type if none was specified
@@ -177,6 +177,12 @@ if( NOT MQTT_LIBRARIES OR NOT JSON_LIBRARIES )
 endif( NOT MQTT_LIBRARIES OR NOT JSON_LIBRARIES )
 
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
+set( LIB_OPTIONS "IOT_THREAD_SUPPORT" "IOT_STACK_ONLY" )
+foreach( LIB_OPTION ${LIB_OPTIONS} )
+	if ( ${LIB_OPTION} )
+		add_definitions( "-D${LIB_OPTION}" )
+	endif( ${LIB_OPTION} )
+endforeach( LIB_OPTION )
 include_directories( "src/api/public" "src" "${CMAKE_BINARY_DIR}" )
 add_subdirectory( "src" )
 add_subdirectory( "share" )
