@@ -17,6 +17,7 @@
 #include "shared/iot_base64.h"
 #include "shared/iot_types.h"
 
+#include <limits.h> /* for CHAR_BIT */
 #include <stdarg.h>
 
 /** @brief Maximum size of action command output */
@@ -29,22 +30,6 @@
 #define IOT_ACTION_COMMAND_STDOUT                "stdout"
 /** @brief Characters that cannot be used in parameter names */
 #define IOT_PARAMETER_NAME_BAD_CHARACTERS        "=\\;&|"
-
-/**
- * @brief Sets the value of an action option
- *
- * @param[in,out]  action              action object to set
- * @param[in]      name                option name
- * @param[in]      data                option value to set
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STAUTS_FULL             maximum number of options reached
- * @retval IOT_STATUS_SUCCESS          on success
- */
-static IOT_SECTION iot_status_t iot_action_option_set_data(
-	iot_action_t *action,
-	const char *name,
-	const struct iot_data *data );
 
 /**
  * @brief Executes the action specified
@@ -86,19 +71,33 @@ static IOT_SECTION iot_status_t iot_action_execute_command(
 	struct iot_action_request *request,
 	iot_millisecond_t max_time_out );
 
-#if 0
 /**
- * @brief Executes a system command parameter adjustment
+ * @brief Deletes all occurances of a word from a string
  *
- * @param[in]      command_param       command param need to be adjusted
+ * @param[in,out]  command_param       command param need to be adjusted
  * @param[in]      word                the word need to be deleted
  *
- * @return         the numuber of key word in the command_param
-*/
-size_t iot_action_parameter_adjustment(
+ * @return         the number of times word was found
+ */
+static IOT_SECTION size_t iot_action_parameter_adjustment(
 	char *command_param,
 	const char *word );
-#endif
+
+/**
+ * @brief Sets the value of an action option
+ *
+ * @param[in,out]  action              action object to set
+ * @param[in]      name                option name
+ * @param[in]      data                option value to set
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STAUTS_FULL             maximum number of options reached
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static IOT_SECTION iot_status_t iot_action_option_set_data(
+	iot_action_t *action,
+	const char *name,
+	const struct iot_data *data );
 
 /**
  * @brief Sets the value of an action request option
@@ -131,7 +130,7 @@ static IOT_SECTION iot_status_t iot_action_request_option_set_data(
  *
  * @see iot_action_request_parameter_set
  */
-static iot_status_t IOT_SECTION iot_action_request_parameter_set_args(
+static IOT_SECTION iot_status_t iot_action_request_parameter_set_args(
 	iot_action_request_t *request,
 	const char *name,
 	iot_type_t type,
@@ -308,7 +307,7 @@ iot_status_t iot_action_option_set_data(
 		for ( i = 0u;
 			attr == NULL && i < action->option_count; ++i )
 		{
-			if ( os_strcmp( action->option[i].name, name ) == 0 )
+			if ( os_strcasecmp( action->option[i].name, name ) == 0 )
 				attr = &action->option[i];
 		}
 
@@ -317,15 +316,12 @@ iot_status_t iot_action_option_set_data(
 		if ( !attr && action->option_count < IOT_OPTION_MAX )
 		{
 #ifndef IOT_STACK_ONLY
-			void *ptr = NULL;
-			if ( !action->option )
-			{
-				ptr = os_realloc( action->option,
-					sizeof( struct iot_option ) *
-						( action->option_count + 1u ) );
-				if ( ptr )
-					action->option = ptr;
-			}
+			void *ptr = os_realloc( action->option,
+				sizeof( struct iot_option ) *
+				( action->option_count + 1u ) );
+			if ( ptr )
+				action->option = ptr;
+
 			if ( action->option && ptr )
 #endif /* ifndef IOT_STACK_ONLY */
 			{
@@ -463,11 +459,9 @@ iot_status_t iot_action_execute(
 					param_required_name = reg_param->name;
 				else if ( req_param && iot_common_data_convert(
 					IOT_CONVERSION_BASIC,
-						reg_param->data.type,
-						&req_param->data ) == IOT_FALSE )
-				{
+					reg_param->data.type,
+					&req_param->data ) == IOT_FALSE )
 					param_bad_type_name = reg_param->name;
-				}
 			}
 
 			/* check for unknown parameters */
@@ -501,7 +495,8 @@ iot_status_t iot_action_execute(
 				if ( action->callback )
 					result = (*(action->callback))( request,
 						action->user_data );
-				else if ( action->command[0] != '\0' )
+				else if ( action->command &&
+					*action->command != '\0' )
 					result = iot_action_execute_command(
 						action, request, max_time_out );
 				else
@@ -600,6 +595,7 @@ iot_status_t iot_action_execute_command(
 				IOT_ACTION_COMMAND_STDOUT,
 				IOT_ACTION_COMMAND_STDERR,
 			};
+			os_status_t system_res;
 			int system_ret;
 
 			os_memzero( command_with_params, PATH_MAX + 1u );
@@ -639,6 +635,8 @@ iot_status_t iot_action_execute_command(
 				switch( p->data.type )
 				{
 					case IOT_TYPE_NULL:
+						os_snprintf( param_pos,
+							space_left, "[NULL]" );
 						break;
 					case IOT_TYPE_BOOL:
 						os_snprintf( param_pos,
@@ -677,8 +675,19 @@ iot_status_t iot_action_execute_command(
 							(long long int)p->data.value.int64 );
 						break;
 					case IOT_TYPE_LOCATION:
-						/** @todo to support location data */
+					{
+						iot_float64_t lon = 0.0;
+						iot_float64_t lat = 0.0;
+						if ( p->data.value.location )
+						{
+							lon = p->data.value.location->longitude;
+							lat = p->data.value.location->latitude;
+						}
+						os_snprintf( param_pos,
+							space_left, "[%f,%f]",
+							lon, lat );
 						break;
+					}
 					case IOT_TYPE_RAW:
 					{
 						/* convert data to base64 */
@@ -778,14 +787,14 @@ iot_status_t iot_action_execute_command(
 				buf_len[1] = IOT_ACTION_COMMAND_OUTPUT_MAX_LEN;
 			}
 
-#if 0
 			/* base64 encoded string, may contain "\r\n" characters.
 			 * Some OSs, (i.e. Windows), will next execute if the
 			 * line contains "\r\n".
 			 * Remove the CRLF in command parameter.
 			 */
-			iot_action_parameter_adjustment( command_with_params, "\r\n" );
-#endif
+			iot_action_parameter_adjustment( command_with_params,
+				"\r\n" );
+
 			IOT_LOG( action->lib, IOT_LOG_DEBUG,
 				"Executing command: %s", command_with_params );
 
@@ -799,10 +808,9 @@ iot_status_t iot_action_execute_command(
 				max_time_out = action->time_limit;
 			}
 
-			result = IOT_STATUS_FAILURE;
-			if ( os_system_run_wait( command_with_params,
-				&system_ret, buf, buf_len, max_time_out )
-				== OS_STATUS_SUCCESS )
+			system_res = os_system_run_wait( command_with_params,
+				&system_ret, buf, buf_len, max_time_out );
+			if ( system_res == OS_STATUS_SUCCESS )
 			{
 				if ( !( action->flags & IOT_ACTION_NO_RETURN ) )
 				{
@@ -833,14 +841,22 @@ iot_status_t iot_action_execute_command(
 					result = IOT_STATUS_SUCCESS;
 			}
 			else if ( ( action->flags & IOT_ACTION_NO_RETURN ) &&
-				result == IOT_STATUS_INVOKED )
+				system_res == OS_STATUS_INVOKED )
+			{
+				result = IOT_STATUS_INVOKED;
 				IOT_LOG( action->lib, IOT_LOG_INFO,
 					"Command \"%s\", has been invoked",
 					action->name );
+			}
 			else
+			{
+				result = IOT_STATUS_FAILURE;
 				IOT_LOG( action->lib, IOT_LOG_ERROR,
 					"Command \"%s\" failed, reason: %s\n",
-					action->name, iot_error( result ) );
+					action->name,
+					os_system_error_string(
+						os_system_error_last() ) );
+			}
 		}
 	}
 	return result;
@@ -872,12 +888,14 @@ iot_status_t iot_action_free( iot_action_t *action,
 			unsigned int i, max;
 			result = iot_action_deregister( action, NULL,
 				max_time_out );
-			/* find action within the client */
+
+			/* find action within the library */
 			max = lib->action_count;
 			for ( i = 0u; i < max &&
 				lib->action_ptr[ i ] != action;
 				++i );
 
+			result = IOT_STATUS_NOT_FOUND;
 			if ( i < max )
 			{
 #ifndef IOT_STACK_ONLY
@@ -894,6 +912,7 @@ iot_status_t iot_action_free( iot_action_t *action,
 				{
 					os_free_null(
 						(void **)&action->option[j].data.heap_storage );
+					os_free_null( (void **)&action->option[j].name );
 				}
 #endif /* ifndef IOT_STACK_ONLY */
 
@@ -934,29 +953,6 @@ iot_status_t iot_action_free( iot_action_t *action,
 	}
 	return result;
 }
-
-#if 0
-size_t iot_action_parameter_adjustment( char *command_param, const char *word )
-{
-	size_t word_length = os_strlen( word );
-	size_t count = 0;
-
-	if ( word_length != 0 && command_param )
-	{
-		char *param = command_param;
-
-		while ( ( param = os_strstr( param, word ) ) != NULL )
-		{
-			char *dst = param;
-			char *src = param + word_length;
-			while ( ( *dst++ = *src++ ) );
-			++count;
-		}
-	}
-
-	return count;
-}
-#endif
 
 iot_status_t iot_action_parameter_add(
 	iot_action_t *action,
@@ -1032,6 +1028,7 @@ iot_status_t iot_action_parameter_add(
 						p->data.type = data_type;
 						p->data.heap_storage = NULL;
 						++action->parameter_count;
+						result = IOT_STATUS_SUCCESS;
 					}
 				}
 				else
@@ -1053,6 +1050,28 @@ iot_status_t iot_action_parameter_add(
 				*bad_char );
 	}
 	return result;
+}
+
+size_t iot_action_parameter_adjustment( char *command_param, const char *word )
+{
+	size_t count = 0;
+	if ( command_param && word )
+	{
+		const size_t word_length = os_strlen( word );
+		if ( word_length > 0u )
+		{
+			char *param = command_param;
+
+			while ( ( param = os_strstr( param, word ) ) != NULL )
+			{
+				char *dst = param;
+				char *src = param + word_length;
+				while ( ( *dst++ = *src++ ) );
+				++count;
+			}
+		}
+	}
+	return count;
 }
 
 iot_status_t iot_action_parameter_get(
@@ -1119,74 +1138,18 @@ iot_status_t iot_action_parameter_set(
 }
 
 iot_status_t iot_action_parameter_set_raw(
-	iot_action_request_t *UNUSED(request),
-	const char *UNUSED(name),
-	size_t UNUSED(length),
-	const void *UNUSED(data) )
-{
-	return IOT_STATUS_SUCCESS;
-}
-
-#if 0
-iot_status_t iot_action_parameter_set_raw(
 	iot_action_request_t *request, const char *name,
 	size_t length, const void *data )
 {
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( request && name && data )
-	{
-		result = IOT_STATUS_BAD_REQUEST;
-		if ( os_strpbrk( name,
-			IOT_PARAMETER_NAME_BAD_CHARACTERS ) == NULL )
-		{
-			struct iot_action_parameter *p = NULL;
-			size_t i;
-			result = IOT_STATUS_NOT_FOUND;
-			for( i = 0u; i < request->parameter_count &&
-				result == IOT_STATUS_NOT_FOUND; ++i )
-			{
-				if ( os_strncasecmp( request->parameter[i].name,
-					name, IOT_NAME_MAX_LEN ) == 0 )
-				{
-					result = IOT_STATUS_BAD_REQUEST;
-					if ( request->parameter[i].data.type == IOT_TYPE_RAW ||
-						request->parameter[i].data.type == IOT_TYPE_NULL )
-					{
-						p = &request->parameter[i];
-						result = IOT_STATUS_SUCCESS;
-					}
-				}
-			}
-
-			/* support for out only parameters */
-			if ( result == IOT_STATUS_NOT_FOUND )
-			{
-				if ( request->parameter_count < IOT_PARAMETER_MAX )
-				{
-					p = &request->parameter[request->parameter_count];
-					os_strncpy( p->name, name, IOT_NAME_MAX_LEN );
-					++request->parameter_count;
-				}
-			}
-
-			if ( result != IOT_STATUS_BAD_REQUEST )
-			{
-				result = IOT_STATUS_FULL;
-				 if ( p )
-				 {
-					p->type |= IOT_PARAMETER_OUT;
-					p->data.type = IOT_TYPE_RAW;
-					p->data.value.raw.ptr = data;
-					p->data.value.raw.length = length;
-					p->data.has_value = IOT_TRUE;
-					result = IOT_STATUS_SUCCESS;
-				 }
-			}
-		}
-	}
-	return result;
+	struct iot_data data_obj;
+	os_memzero( &data_obj, sizeof( struct iot_data ) );
+	data_obj.type = IOT_TYPE_RAW;
+	data_obj.value.raw.ptr = data;
+	data_obj.value.raw.length = length;
+	data_obj.has_value = IOT_TRUE;
+	return iot_action_parameter_set( request, name,
+		IOT_TYPE_RAW, &data_obj );
 }
-#endif
 
 iot_status_t iot_action_process(
 	iot_t *lib,
@@ -1215,6 +1178,8 @@ iot_status_t iot_action_process(
 		{
 			request = lib->request_queue_wait[0u];
 			--lib->request_queue_wait_count;
+
+			/* move all items up by 1 in request wait queue */
 			os_memcpy( &lib->request_queue_wait[0u],
 				&lib->request_queue_wait[1u],
 				sizeof( struct iot_action_request *) *
@@ -1296,6 +1261,8 @@ iot_status_t iot_action_process(
 			os_memzero( request,
 				sizeof( struct iot_action_request ) );
 			--lib->request_queue_free_count;
+
+			/* add request space to last free spot */
 			lib->request_queue_free[lib->request_queue_free_count] = request;
 #ifndef  IOT_NO_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
@@ -1355,7 +1322,7 @@ iot_status_t iot_action_register_command( iot_action_t *action,
 	iot_millisecond_t max_time_out )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( action && command )
+	if ( action && action->lib && command )
 	{
 		char *buf;
 		size_t cmd_len;
@@ -1363,16 +1330,15 @@ iot_status_t iot_action_register_command( iot_action_t *action,
 		if ( cmd_len > PATH_MAX )
 			cmd_len = PATH_MAX;
 #ifdef IOT_STACK_ONLY
-		buf = action->command;
+		buf = action->_command;
 #else
 		result = IOT_STATUS_NO_MEMORY;
 		buf = (char*)os_realloc( action->command,
 			cmd_len + 1u );
-		if ( buf )
-			action->command = buf;
 #endif /* else IOT_STACK_ONLY */
 		if ( buf )
 		{
+			action->command = buf;
 			action->callback = NULL;
 			os_strncpy( buf, command, cmd_len );
 			buf[ cmd_len ] = '\0';
@@ -1577,16 +1543,36 @@ iot_status_t iot_action_request_copy( iot_action_request_t *dest,
 	size_t var_data_size )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( dest && request )
+	if ( dest && request && dest != request )
 	{
 		size_t i;
-		os_memcpy( dest, request,
-			sizeof( struct iot_action_request ) );
+		os_memcpy( dest, request, sizeof( struct iot_action_request ) );
 
 		/* copy variable data */
 		result = IOT_STATUS_SUCCESS;
-		for ( i = 0u; i < request->parameter_count &&
-			i < IOT_PARAMETER_MAX; ++i )
+		dest->parameter = NULL;
+		if ( request->parameter_count > 0u )
+		{
+#ifdef IOT_STACK_ONLY
+			dest->parameter = dest->_parameter;
+#else
+			result = IOT_STATUS_NO_MEMORY;
+			if ( var_data_size >=
+				sizeof( struct iot_action_parameter ) *
+				request->parameter_count )
+			{
+				dest->parameter = var_data;
+				var_data_size -=
+					sizeof( struct iot_action_parameter ) *
+					request->parameter_count;
+				var_data = (char*)var_data +
+					( sizeof( struct iot_action_parameter ) *
+					request->parameter_count );
+				result = IOT_STATUS_SUCCESS;
+			}
+#endif
+		}
+		for ( i = 0u; dest->parameter && i < request->parameter_count; ++i )
 		{
 			if ( request->parameter[i].data.has_value != IOT_FALSE )
 			{
@@ -1598,6 +1584,8 @@ iot_status_t iot_action_request_copy( iot_action_request_t *dest,
 					{
 						dest->parameter[i].data.value.raw.ptr
 							= var_data;
+						dest->parameter[i].data.value.raw.length =
+							request->parameter[i].data.value.raw.length;
 						os_memcpy( var_data,
 							request->parameter[i].data.value.raw.ptr,
 							request->parameter[i].data.value.raw.length );
@@ -1648,8 +1636,11 @@ size_t iot_action_request_copy_size(
 	if ( request )
 	{
 		size_t i;
-		for ( i = 0u; i < request->parameter_count &&
-			i < IOT_PARAMETER_MAX; ++i )
+#ifndef IOT_STACK_ONLY
+		result = sizeof( struct iot_action_parameter ) *
+			request->parameter_count;
+#endif
+		for ( i = 0u; i < request->parameter_count; ++i )
 		{
 			if ( request->parameter[i].data.has_value != IOT_FALSE )
 			{
@@ -1730,6 +1721,7 @@ iot_status_t iot_action_request_free(
 		os_free_null( (void**)&request->option );
 		os_free_null( (void**)&request->parameter );
 		os_free_null( (void**)&request->error );
+		os_free_null( (void**)&request->name );
 #endif /* ifndef IOT_STACK_ONLY */
 		result = IOT_STATUS_SUCCESS;
 	}
@@ -1976,8 +1968,6 @@ iot_status_t iot_action_request_parameter_set_args(
 				result = IOT_STATUS_FULL;
 				 if ( p )
 				 {
-					/* 0 will be changed during processing
-					 * if parameter is of a known type */
 					p->type = IOT_PARAMETER_OUT;
 					result = iot_common_arg_set(
 						&p->data, IOT_TRUE, type, args );

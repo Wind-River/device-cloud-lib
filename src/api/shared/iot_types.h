@@ -333,47 +333,6 @@ struct iot_location
 #endif /* ifdef IOT_STACK_ONLY */
 };
 
-#if 0
-struct iot_property
-{
-	/** @brief library handle */
-	struct iot *lib;
-	/** @brief property flags (permissions, visibility, etc.) */
-	iot_property_flags_t flags;
-	/** @brief last time property was updated (0=never updated) */
-	iot_timestamp_t last_update;
-	/** @brief property name */
-	char *name;
-	/** @brief who first registered the property ("" indicates cloud owner) */
-	char *owner;
-	/** @brief last updater of the property ("" indicates cloud source) */
-	char *source;
-	/** @brief property value */
-	struct iot_data data;
-
-#ifdef IOT_STACK_ONLY
-	/** @brief storage of name value on heap
-	 *
-	 * @note This is not to be used directly, use @c name instead
-	 */
-	char _name[ IOT_NAME_MAX_LEN + 1u ];
-	/** @brief storage of owner value on heap
-	 *
-	 * @note This is not to be used directly, use @c owner instead
-	 */
-	char _owner[ IOT_ID_MAX_LEN + 1u ];
-	/** @brief storage of source value on heap
-	 *
-	 * @note This is not to be used directly, use @c source instead
-	 */
-	char _source[ IOT_ID_MAX_LEN + 1u ];
-#else /* ifdef IOT_STACK_ONLY */
-	/** @brief location of the property, heap or stack */
-	iot_bool_t is_in_heap;
-#endif /* else IOT_STACK_ONLY */
-};
-#endif
-
 /**
  * @brief telemetry details
  */
@@ -455,46 +414,6 @@ struct iot_message
 	const char *dest_id;
 	/** @brief data payload */
 	struct iot_data payload;
-};
-/**
- * @brief information about the cloud being connected to
- */
-struct iot_cloud
-{
-	/** @brief host name or address */
-	char host[ IOT_HOST_MAX_LEN + 1u ];
-	/** @brief port to connect to */
-	iot_uint16_t port;
-	/** @brief application token */
-	char token[ IOT_TOKEN_MAX_LEN + 1u ];
-};
-
-/** @brief Structure containing information about proxy server used */
-struct iot_proxy
-{
-	/** @brief Proxy to use */
-	char host[ IOT_HOST_MAX_LEN + 1u ];
-	/** @brief Port number the proxy server listens to */
-	long port;
-	/** @brief Proxy protocol type to use */
-	char type[ IOT_PROXY_TYPE_MAX_LEN + 1u ];
-	/** @brief User name to use for proxy authentication */
-	char username[ IOT_USERNAME_MAX_LEN + 1u ];
-	/** @brief Password to use with proxy authentication */
-	char password[ IOT_PASSWORD_MAX_LEN + 1u ];
-};
-/** @brief structure for holding connection data */
-struct iot_connection {
-	/** @brief information about cloud connection */
-	struct iot_cloud cloud;
-	/** @brief if validating certification or not */
-	char validate_cert[ IOT_VALIDATE_CERT_MAX_LEN  + 1u ];
-	/** @brief certificate file to use with full path */
-	char cert_file[ PATH_MAX + 1u ];
-	/** @brief information about proxy server used */
-	struct iot_proxy proxy;
-	/** @brief confile file to save the information */
-	char config_file[ PATH_MAX + 1u ];
 };
 #endif
 /**

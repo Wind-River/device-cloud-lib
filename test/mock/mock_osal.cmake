@@ -58,6 +58,7 @@ set( MOCK_OSAL_FUNC
 	"os_system_error_string"
 	"os_system_pid"
 	"os_system_run"
+	"os_system_run_wait"
 	"os_terminal_vt100_support"
 	"os_thread_condition_broadcast"
 	"os_thread_condition_create"
