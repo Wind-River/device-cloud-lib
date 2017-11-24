@@ -20,6 +20,7 @@
 #include <iot_mqtt.h>
 #include <iot_plugin.h>
 #include <os.h>
+#include <curl/curl.h>
 
 /** @brief Maximum length for a "thingkey" */
 #define TR50_THING_KEY_MAX_LEN               ( IOT_ID_MAX_LEN * 2 ) + 1u
