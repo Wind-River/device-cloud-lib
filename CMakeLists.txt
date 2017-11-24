@@ -19,6 +19,12 @@ if( WIN32 )
 	set( IOT_USER "SYSTEM" )
 endif()
 
+# Generate Project Version information (from last git commit)
+include( VersionSupport )
+string( REGEX REPLACE "20([0-9][0-9])" "\\1" IOT_VERSION "${PROJECT_COMMIT_DATE}" )
+string( REPLACE "-" "." IOT_VERSION "${IOT_VERSION}" )
+version_split( IOT_VERSION "${IOT_VERSION}" )
+
 # Project information
 set( PROJECT_NAME                      "${CMAKE_PROJECT_NAME}" )
 set( PROJECT_VERSION                   "${IOT_VERSION}" )
@@ -48,7 +54,6 @@ endif()
 # Options
 include( DefineCompilerFlags )
 include( GetFullPath )
-include( GitSha )
 include( OptionSelect )
 option_select( IOT_JSON_LIBRARY
 	DESCRIPTION "JSON Library to use"
