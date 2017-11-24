@@ -872,6 +872,7 @@ iot_t *iot_initialize(
 			for ( i = 0u; i < IOT_ACTION_QUEUE_MAX; ++i )
 				result->request_queue_free[i] = &result->request_queue[i];
 
+			result->logger_level = IOT_LOG_INFO;
 			if ( iot_configuration_file_set( result, cfg_path )
 				!= IOT_STATUS_NO_MEMORY )
 			{

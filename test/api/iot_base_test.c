@@ -1321,6 +1321,7 @@ static void test_iot_initialize_valid( void **state )
 	lib = iot_initialize( "blah", NULL, 0u );
 	assert_non_null( lib );
 	assert_string_equal( lib->id, "blah" );
+	assert_int_equal( lib->logger_level, IOT_LOG_INFO );
 
 	/* clean up */
 	os_free( lib->device_id );
