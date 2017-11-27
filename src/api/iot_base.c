@@ -487,73 +487,77 @@ iot_status_t iot_base_configuration_read(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( lib && file_path )
 	{
-		os_file_t fd = OS_FILE_INVALID;
-
+		result = IOT_STATUS_NOT_FOUND;
 		/* the configuration file must be there to continue */
 		IOT_LOG( lib, IOT_LOG_INFO,
 			"Looking for configuration file: %s", file_path );
-		fd = os_file_open( file_path, OS_READ );
-
-		result = IOT_STATUS_FAILURE;
-		if ( fd != OS_FILE_INVALID )
+		if ( os_file_exists( file_path ) != IOT_FALSE )
 		{
-			const size_t blk_size = 512u;
-			char *buf = NULL;
-			size_t buf_len = 0u;
-			iot_bool_t more_to_read = IOT_TRUE;
-
-			result = IOT_STATUS_SUCCESS;
-			while ( result == IOT_STATUS_SUCCESS &&
-				more_to_read == IOT_TRUE )
+			os_file_t fd = OS_FILE_INVALID;
+			fd = os_file_open( file_path, OS_READ );
+			result = IOT_STATUS_FAILURE;
+			if ( fd != OS_FILE_INVALID )
 			{
-				char *new_buf;
-#ifdef IOT_STACK_ONLY
-				char stack_buf[blk_size];
-				new_buf = stack_buf;
-				if ( buf_len < blk_size )
-#else
-				new_buf = os_realloc( buf,
-					sizeof( char ) * ( buf_len + blk_size ) );
-				if ( new_buf )
-#endif /* ifdef IOT_STACK_ONLY */
-				{
-					size_t bytes;
+				const size_t blk_size = 512u;
+				char *buf = NULL;
+				size_t buf_len = 0u;
+				iot_bool_t more_to_read = IOT_TRUE;
 
-					buf = new_buf;
-					bytes = os_file_read(
-						&buf[buf_len], sizeof(char),
-						blk_size, fd );
-					if ( bytes == 0 )
+				result = IOT_STATUS_SUCCESS;
+				while ( result == IOT_STATUS_SUCCESS &&
+					more_to_read == IOT_TRUE )
+				{
+					char *new_buf;
+#ifdef IOT_STACK_ONLY
+					char stack_buf[blk_size];
+					new_buf = stack_buf;
+					if ( buf_len < blk_size )
+#else
+					new_buf = os_realloc( buf,
+						sizeof( char ) *
+						( buf_len + blk_size ) );
+					if ( new_buf )
+#endif /* ifdef IOT_STACK_ONLY */
 					{
-						if ( !os_file_eof( fd ) )
-							result = IOT_STATUS_FAILURE;
-						more_to_read = IOT_FALSE;
+						size_t bytes;
+
+						buf = new_buf;
+						bytes = os_file_read(
+							&buf[buf_len],
+							sizeof(char),
+							blk_size, fd );
+						if ( bytes == 0 )
+						{
+							if ( !os_file_eof( fd ) )
+								result = IOT_STATUS_FAILURE;
+							more_to_read = IOT_FALSE;
+						}
+						else
+							buf_len += bytes;
 					}
 					else
-						buf_len += bytes;
+						result = IOT_STATUS_NO_MEMORY;
 				}
-				else
-					result = IOT_STATUS_NO_MEMORY;
+
+				if ( result == IOT_STATUS_SUCCESS )
+				{
+					/* process configuration file */
+					result = iot_base_configuration_parse(
+						lib, file_path, buf, buf_len );
+				}
+
+				if ( buf )
+					os_free( buf );
+				os_file_close ( fd );
+				result = IOT_STATUS_SUCCESS;
 			}
 
-			if ( result == IOT_STATUS_SUCCESS )
+			if ( result != IOT_STATUS_SUCCESS )
 			{
-				/* process configuration file */
-				result = iot_base_configuration_parse(
-					lib, file_path, buf, buf_len );
+				IOT_LOG( lib, IOT_LOG_ERROR,
+					"Failed to read configuration file: %s (%s)",
+						file_path, iot_error( result ) );
 			}
-
-			if ( buf )
-				os_free( buf );
-			os_file_close ( fd );
-			result = IOT_STATUS_SUCCESS;
-		}
-
-		if ( result != IOT_STATUS_SUCCESS )
-		{
-			IOT_LOG( lib, IOT_LOG_ERROR,
-				"Failed to read configuration file: %s (%s)",
-					file_path, iot_error( result ) );
 		}
 	}
 	return result;
