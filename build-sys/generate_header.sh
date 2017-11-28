@@ -13,8 +13,8 @@
 # OR CONDITIONS OF ANY KIND, either express or implied.
 #
 
+SRC_DIR="$( cd "$(dirname "$0")/.." ; pwd -P )"
 CFG_FILE="build.yml"
-SRC_DIR=$(pwd)
 DEST_DIR="."
 PREFIX="IOT"
 IN_EXT=".in"
@@ -25,15 +25,15 @@ GIT_PATH=`which git`
 GIT_SHA_CMD="log -1 --format=%H"
 GIT_DATE_CMD="log -1 --format=%cd --date=short"
 if [ -n "${GIT_PATH}" ]; then
-	export ${PREFIX}_GIT_SHA=`${GIT_PATH} ${GIT_SHA_CMD} 2>/dev/null`
-	export ${PREFIX}_COMMIT_DATE=`${GIT_PATH} ${GIT_DATE_CMD} 2>/dev/null`
+	export ${PREFIX}_GIT_SHA=`${GIT_PATH} -C "${SRC_DIR}" ${GIT_SHA_CMD} 2>/dev/null`
+	export ${PREFIX}_COMMIT_DATE=`${GIT_PATH} -C "${SRC_DIR}" ${GIT_DATE_CMD} 2>/dev/null`
 fi
 
-export IOT_VERSION=`echo ${IOT_COMMIT_DATE} | sed -e "s|20\([0-9][0-9]\)|\\1|g" -e "s|-|.|g"`
-export IOT_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
-export IOT_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
-export IOT_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
-export IOT_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
+export ${PREFIX}_VERSION=`echo ${IOT_COMMIT_DATE} | sed -e "s|20\([0-9][0-9]\)|\\1|g" -e "s|-|.|g"`
+export ${PREFIX}_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
+export ${PREFIX}_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
+export ${PREFIX}_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
+export ${PREFIX}_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
 
 # read yaml file
 # derived from https://gist.github.com/epiloque/8cf512c6d64641bde388
@@ -61,7 +61,7 @@ parse_yaml() {
 }
 
 # parse config file and save into variables
-eval $(parse_yaml "${CFG_FILE}" "")
+eval $(parse_yaml "${SRC_DIR}/${CFG_FILE}" "")
 
 # set variables for generating built-in plugin support
 for i in ${!IOT_PLUGIN_BUILTIN[@]}; do
