@@ -897,6 +897,8 @@ iot_status_t tr50_connect(
 			IOT_TYPE_STRING, &app_token );
 		iot_config_get( lib, "ca_bundle_file", IOT_FALSE,
 			IOT_TYPE_STRING, &ca_bundle );
+		if ( !ca_bundle )
+			ca_bundle = IOT_DEFAULT_CERT_PATH;
 		iot_config_get( lib, "validate_cloud_cert", IOT_FALSE,
 			IOT_TYPE_BOOL, &validate_cert );
 
@@ -1417,10 +1419,8 @@ OS_THREAD_DECL tr50_file_transfer(
 				iot_config_get( data->lib,
 					"validate_cloud_cert", IOT_FALSE,
 					IOT_TYPE_BOOL, &validate_cert );
-#ifdef __ANDROID__
-					if ( !ca_bundle_file )
-						ca_bundle_file = "/system/etc/security/cacerts/ca-certificates.crt";
-#endif /* ifdef __ANDROID__ */
+				if ( !ca_bundle_file )
+					ca_bundle_file = IOT_DEFAULT_CERT_PATH;
 				curl_easy_setopt( transfer->lib_curl,
 					CURLOPT_CAINFO, ca_bundle_file );
 

@@ -49,12 +49,6 @@
 /** @brief Log timestamp max length */
 #define RELAY_LOG_TIMESTAMP_LEN    16u
 
-/* FIXME: read this from iot.cfg */
-#ifdef __ANDROID__
-#define IOT_DEFAULT_CERT_PATH "/etc/security/cacerts/ca-certificates.crt"
-#endif
-
-
 /* libwebsockets backwards support defines */
 #if LWS_LIBRARY_VERSION_MAJOR < 1 || ( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR < 6 )
 /** @{ */
