@@ -60,13 +60,8 @@
 #else
 	/** @brief directory separator */
 	#define DIR_SEP '/'
-#	ifdef  __ANDROID__
-	/** @brief test script's name */
-	#define TEST_SCRIPT "actions_script_android.sh"
-#	else
 	/** @brief test script's name */
 	#define TEST_SCRIPT "actions_script.sh"
-#	endif
 #endif
 
 #ifdef _WRS_KERNEL

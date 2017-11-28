@@ -153,9 +153,6 @@
 /** @brief Default state of enable offline action - do not unregister actions */
 #define IOT_DEFAULT_ENABLE_PERSISTENT_ACTIONS             @IOT_DEFAULT_ENABLE_PERSISTENT_ACTIONS@
 
-/** @brief Default state of enable automation test on Android */
-#define IOT_DEFAULT_ENABLE_AUTOMATION_TEST_ON_ANDROID     @IOT_DEFAULT_ENABLE_AUTOMATION_TEST_ON_ANDROID@
-
 /** @brief Default state of uploaded file removal upon success */
 #define IOT_DEFAULT_UPLOAD_REMOVE_ON_SUCCESS              @IOT_DEFAULT_UPLOAD_REMOVE_ON_SUCCESS@
 

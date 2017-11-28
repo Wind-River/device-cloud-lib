@@ -22,8 +22,8 @@ LOCAL_SRC_FILES := actions.c
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := actions_script_android.sh
-LOCAL_SRC_FILES := actions_script_android.sh
+LOCAL_MODULE := actions_script.sh
+LOCAL_SRC_FILES := actions_script.sh
 LOCAL_MODULE_CLASS := EXECUTABLES
 LOCAL_MODULE_PATH := $(TARGET_OUT_EXECUTABLES)
 include $(BUILD_PREBUILT)
