@@ -1,105 +1,202 @@
-﻿WIND RIVER HELIX DEVICE CLOUD TERMS OF SERVICE
 
-IMPORTANT - THIS HELIX DEVICE CLOUD TERMS OF SERVICE ("AGREEMENT") IS A LEGAL CONTRACT BETWEEN WIND RIVER SYSTEMS, INC. ("WIND RIVER") AND YOU OR THE EMPLOYER OR OTHER ENTITY FOR WHOSE BENEFIT YOU ACT ("YOU" OR ”CUSTOMER”). THE RIGHT TO ACCESS AND USE THE SERVICES PROVIDED UNDER THIS AGREEMENT IS GRANTED ONLY ON THE CONDITION THAT YOU ACCEPT AND AGREE TO THESE TERMS:
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
 
-TERMS
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-1. DEFINITIONS.
+   1. Definitions.
 
-"Agent Software" means the computer software programs made available by Wind River in Object Code for the purpose of enabling a device to connect to the Services.
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
 
-"Asset" means a piece of electronics equipment used in the deployment of an Internet of Things (IoT) system.
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
 
-"Asset Under Management" means an Asset that is uniquely identified and monitored, supported, serviced, or managed by the Services or has data collected by the Services.
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
 
-"Confidential Information" means (i) Wind River’s technology, ideas, know-how, documentation, processes, algorithms and trade secrets associated with the Services, (ii) usernames and passwords provided to you by Wind River, and (iii) any other business or technical information of Wind River, its suppliers, or licensors that is provided or made accessible to you in connection with this Agreement or the Services. Confidential Information does not include any information that is (a) published or otherwise available to the public other than by breach of this Agreement by you; (b) rightfully received by you from a third party without confidential limitations; (c) independently developed by you as evidenced by appropriate records; (d) known to you prior to your first receipt of same from Wind River, its suppliers, or licensors as evidenced by appropriate records; (e) hereinafter disclosed by Wind River, its suppliers, or licensors to a third party without restriction on disclosure; or (f) approved for public release by written authorization of Wind River.
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
 
-"Customer Content" means the information, passwords, account identifiers, applications, files, information, data, software, and other information and content provided or created by you in connection with your use of the Services.
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
 
-"Documentation" means written materials and instructions made available to you in connection with the operation of the Services and any Downloadable Software, and any updates to those materials and instructions.
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
 
-"Downloadable Software" means any computer software programs, in Source Code or Object Code, made available by Wind River for download by you from the Services, other than the Agent Software.
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
 
-"End User" means any person or entity to whom you provide, for that person’s or entity’s own use, an Asset on which the Agent Software has been installed.
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
 
-"Feedback" means your opinions, observations, comments, criticisms, and suggested improvements with respect to the Services, whether in written or oral form.
-"Intellectual Property Rights" means all copyrights, trademarks, trade secrets, patents, mask works, and other intellectual property rights recognized in any jurisdiction worldwide, including all applications and registrations with respect thereto.
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
 
-"Object Code" means computer programming code in the form not readily perceivable by humans and suitable for machine execution without the intervening steps of interpretation or compilation.
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
 
-"Order Form" means the order document entered into by Wind River and you that details the specific business terms applicable to your access to the Services, including the Subscription Term, number of authorized Assets Under Management, applicable fees, payment terms, and taxes and exclusions.
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
 
-"Services" means the Wind River cloud-based IoT management platform, together with associated Documentation, that is specified in an Order Form, described at http://www.windriver.com/products/product-overviews/wr-helix-cloud_overview.pdf and identified as Wind River Helix Device Cloud.
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
 
-"Source Code" means computer programming code in human readable form that is not suitable for machine execution without the intervening steps of interpretation or compilation.
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
 
-"Subscription Term" means the term of your right to access and use the Services, as set forth in the applicable Order Form.
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
 
-"Utilization Limits" means 70 gigabytes per month bandwidth utilization, 250 gigabyte per month storage utilization, 500,000 API queries per month, 16000 API queries per day and 2 API queries per second, where the stated utilization is determined per 100 Devices connected to the Services by you.
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
 
-2. GRANT OF RIGHTS AND LICENSES.
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
 
-2.1. Services.  Subject to the limitations set forth below and your compliance with the terms and conditions of this Agreement, including any additional terms set forth in the applicable Order Form, Wind River grants to you the following rights:
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
 
-2.1.1. Helix Device Cloud Services – Development System and Proof of Concept. Upon the effective date of an Order Form providing access to Helix Device Cloud Services Development System or Helix Device Cloud Services Proof of Concept and subject to the Utilization Limits, Wind River grants to you, during the Subscription Term, a fee-bearing, nontransferable, nonexclusive, time-limited right to access and use, in your internal development environment, the Services and the associated software (other than Downloadable Software), Documentation, tools, interfaces, license keys, and functionality made available via the Services solely for the purpose of developing, building, and testing the functionality of up to the number of Assets for which you have paid the applicable fees.
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
 
-2.1.2. Helix Device Cloud Services – Production. Upon the effective date of the Order Form providing access to Helix Device Cloud Services  Production and subject to the Utilization Limits, Wind River grants to you, during the Subscription Term, a fee-bearing, nontransferable, nonexclusive, time-limited right to access and use the Services and the associated software (other than Downloadable Software), Documentation, tools, interfaces, license keys, and functionality made available via the Services solely for the purpose of:  (i)  developing, building, and testing the functionality of up to the number of Assets for which you have paid the applicable fee, in your internal development environment and (ii) for your ordinary business purposes (i.e., either in your internal development environment or in connection with Assets that have been deployed by you in a commercial IoT system), monitoring, supporting, servicing, collecting data from and managing up the number of Assets for which you have paid the applicable fees.  In no event may the total number of Assets Under Management under this Agreement exceed the number of Assets for which you have paid the applicable fees.
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
 
-2.2. Agent Software.  Subject to your compliance with the terms and conditions of this Agreement and the applicable Order Form, Wind River grants to you, during the Subscription Term, a restricted, personal, nontransferable, nonexclusive, license to:  (i) download the Agent Software; (ii) install the Agent Software on one or more Assets; (iii) distribute a copy of the Agent Software to End Users worldwide solely as inseparably embedded content in the Assets; (iv) use the Agent Software solely for the purpose of connecting Assets to the Services and (v) authorize each End User to use the Agent Software solely for the purpose of enabling you to connect Assets purchased by End Users to the Services.
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
 
-3. RESTRICTIONS.
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
 
-3.1. General.  You agree to comply with the Utilization Limits in addition to any other limitations established by Wind River with respect to the maximum number of Assets Under Management and other restrictions associated with your use of the Services. Your authorization to access and use the Services is also subject to the following conditions and other limitations set forth in this Agreement:  (i) you may not modify, create derivative works of, translate, reverse engineer, decompile, disassemble or attempt to derive the Source Code of any software accessible by or underlying the Services, except as provided by applicable law; (ii) you may not market, distribute, or otherwise transfer access to or use of the Services or Agent Software to others, except to the extent necessary to exercise your rights pursuant to Section 2.1.2(ii), Section 2.2(iii) and Section 2.2(v); (iii) you may not sublicense, rent, lease, loan, timeshare, sell, disclose, publish, assign or transfer any rights, grant a security interest in, or transfer any rights granted under this Agreement to the Services or the Agent Software; (iv) you may not copy any features or the look-and-feel of the Services or Agent Software; (v) you may not interfere or attempt to interfere with the operation of the Services or any activities of Wind River; (vi) you may not bypass or seek to circumvent any security or other measures used by Wind River to restrict or prevent unauthorized access to the Services; (vii) you may not give any third party access to the Services, except to the extent necessary to exercise your rights pursuant to Section 2.1.2(ii), or share or permit sharing of access keys, logins or passwords; and (viii) you may not give to any third party any communication that compares the features, functions, or performance characteristics of the Services or Agent Software with any other product or service of yours or any third party.
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
 
-3.2. Utilization Limit Overage.  In the event that your use of the Helix Device Cloud Service exceeds the Utilization Limits, Wind River may notify you of the overage.  If your use of the Services is not reduced during the fifteen (15) day period following Wind River’s notice sufficiently to bring your use in compliance with the Utilization Limits, Wind River may charge you an overage fee.  The overage fee will be calculated by multiplying the fee applicable to the relevant Services pursuant to the Order Form by the percentage of the overage.  If you fail to pay the overage fee within thirty (30) days after the date of Wind River’s invoice or notice of the overage fee, in addition to any other rights and remedies available to Wind River, Wind River may immediately suspend or terminate your access and right to use the Services.
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
 
-4. OTHER SOFTWARE AND SERVICES. If the Services include access to or use of Downloadable Software or other third party software or services, you agree to comply with any separate licenses or terms provided ("Other Terms"), including, without limitation, terms for any software that is subject to an open source license agreement. Other Terms are set forth in notice files or agreements made available to you in connection with your use of the Downloadable Software or other third party software or services, or at http://www.windriver.com/products/helix/device-cloud/. Other Terms that are in addition to or in conflict with the terms of this Agreement will apply only with respect to such Downloadable Software, third party software or services and are binding upon your use of the applicable software or services.
+   END OF TERMS AND CONDITIONS
 
-5. CONFIDENTIAL INFORMATION; PRIVACY. You will not use or disclose any Confidential Information, except as expressly authorized by this Agreement, and will protect all such Confidential Information using the same degree of care which you use with respect to your own proprietary information, but in no event with safeguards less than a reasonably prudent business would exercise under similar circumstances. Your obligations regarding the protection of Confidential Information will survive any expiration or termination of this Agreement. You will take prompt and appropriate action to prevent unauthorized use or disclosure of Confidential Information. If any Confidential Information must be disclosed to a third party by reason of legal, accounting, or regulatory requirements beyond your reasonable control, you will promptly notify Wind River of the order or request and permit Wind River (at its own expense) to seek an appropriate protective order. By accessing and using the Services, you agree to the terms of Wind River’s Privacy Statement and other applicable policies located at http://www.windriver.com/company/terms/privacy.html, as updated by Wind River from time to time. If you reside outside of the United States, these terms may not apply to you and you may have other legal rights that vary from jurisdiction to jurisdiction. To the extent permitted by applicable law, you hereby consent to provide information pursuant to the registration form for the Services and subject to the Wind River privacy policy.
+   APPENDIX: How to apply the Apache License to your work.
 
-6. OWNERSHIP. Wind River, its suppliers, and licensors retain exclusive ownership of all Intellectual Property Rights in and to the Services and any modifications thereof and all such rights not expressly granted to you in this Agreement are expressly reserved for Wind River, its suppliers, and licensors. If you provide Wind River with Feedback, Wind River will have the right to use such Feedback for any purpose as it deems appropriate.
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
 
-7. TERM AND TERMINATION. In addition to Wind River’s right to terminate this Agreement pursuant to Section 3.2, Wind River may terminate this Agreement upon ten (10) days’ notice in the event of your breach of this Agreement or an Order Form (including non-payment of any required fees) for the Services. You may terminate this Agreement immediately upon notice for the material breach of Wind River, which breach is curable and has remained uncured for a period of thirty (30) days from the date of notice.  Either party may terminate this Agreement upon ten (10) days' notice to the other upon expiration or termination of all licenses under this Agreement. Upon any expiration or termination of a Subscription Term or this Agreement, you will (a) not access or use the Services for any purpose whatsoever; (b) immediately destroy or return your username and password, together with any material and Confidential Information belonging to Wind River, its suppliers, or licensors in your possession or control; (c) immediately deactivate and discontinue use of all Agent Software activated or used by you; (d) immediately decommission all Assets under Management from the Services; and (e) certify to Wind River in writing that you have done so. These remedies are cumulative and in addition to any other remedies available to Wind River. In the event Wind River elects to terminate this Agreement or to cease providing the Services, Wind River will make commercially reasonable efforts to make the Services available solely for the purpose of allowing you to recover any Customer Content for a period of not less than ten (10) days after notice to you. You must make such request within three (3) days following notice of termination. Otherwise, any Customer Content you have stored with the Service may not be retrievable, and Wind River will have no obligation to maintain any such Customer Content. Except for the rights granted in Section 2, the provisions of this Agreement will survive any termination.
+   Copyright [yyyy] [name of copyright owner]
 
-8. PAYMENT TERMS; TAXES.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-8.1. Payment Terms. You will pay Wind River the fees set forth in the applicable Order Document.  Wind River will invoice you upon confirmation and acceptance of a purchase order.  Payment terms herein are subject to prior credit approval by Wind River.  You will pay all invoices within thirty (30) days of the date of such invoice, in U.S. Dollars unless otherwise set forth in an Order Document.  Interest on late payments will accrue at the rate of one and one-half percent (1.5%) per month or partial month, or, if lower, the highest rate permitted by law.  You are responsible for reasonable costs associated with collection of overdue amounts, including without limitation, reasonable attorneys’ fees and court costs.  Failure to pay any invoice in the manner described in this Section may, at Wind River’s discretion, be deemed a material breach of this Agreement.  All Fees paid are non-refundable, non-creditable and not subject to set-off.
+       http://www.apache.org/licenses/LICENSE-2.0
 
-8.2. Taxes. All amounts due hereunder will be paid without deduction, set-off or counter claim, free and clear of any restrictions or conditions, and without deduction for any taxes, levies, imposts, duties, fees, deductions, withholdings or other governmental charges.  If any deduction is required to be made by law, you will pay the full license or other fee owed to Wind River plus the amount to be deducted, so that Wind River will receive the same amount as it would have received had the deduction not been required.  If you are claiming sales or use tax exemption, a valid and fully executed Tax Exempt Certificate must be attached to the purchase order.  You will promptly pay or reimburse all taxes (exclusive of taxes on Wind River’s net income), duties and assessments arising from amounts payable to Wind River under this Agreement, or furnish Wind River with evidence acceptable to the taxing authority to sustain exemption therefrom. For the avoidance of doubt, the applicable interest rate will be the applicable interest rate for each jurisdiction's respective rate for indirect tax underpayments.
-
-9. ACCOUNT ACCESS, USERNAME AND PASSWORD. To access and use the Services, you must create an account associated with a valid e-mail address for each authorized user. Only one account may be created for any e-mail address. You are responsible for all activities within or from your account. Wind River, its suppliers, and licensors are not responsible for unauthorized access to any of your accounts. Wind River agrees to provide to you a username and password that permit you to access and use the access keys for the Services, provided that you provide any information required to issue such username and password. All usernames and passwords issued by Wind River are Confidential Information of Wind River. You agree to use your best efforts to protect your user names, passwords and other access to the Services from unauthorized access, reproduction, disclosure or use. In the event that you become aware of any such unauthorized access, reproduction, disclosure or use, you agree to notify Wind River immediately and fully cooperate, at Wind River’s direction and at your expense, to minimize the effects of such unauthorized access, reproduction, disclosure or use.
-
-10. AUDIT. You must maintain accurate written records relating to your use of the Services and Agent Software, including records of Assets using the Agent Software. Wind River, its suppliers, and licensors may, upon reasonable notice and in a manner so as not to unreasonably interfere with your normal business activities, audit your use and supporting records to confirm compliance with the terms of this Agreement, including any applicable third party terms and conditions.
-
-11. WARRANTY DISCLAIMER. EXCEPT AS EXPRESSLY SET FORTH IN THE APPLICABLE ORDER FORM, THE SERVICES AND AGENT SOFTWARE ARE PROVIDED FOR YOUR ACCESS AND USE "AS IS." WIND RIVER, ITS SUPPLIERS, AND LICENSORS DISCLAIM ALL WARRANTIES, EXPRESS, IMPLIED AND STATUTORY INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. NO ORAL OR WRITTEN INFORMATION OR ADVICE GIVEN BY WIND RIVER, ITS DEALERS, DISTRIBUTORS, AGENTS OR EMPLOYEES WILL IN ANY WAY MODIFY THIS DISCLAIMER OR CREATE ANY WARRANTY. Without limitation, Wind River, its suppliers, and licensors (i) make no warranty with respect to the Services and Agent Software or to any malfunctions or other errors in hardware or software products caused by virus, infection, worm, or similar malicious code, (ii) make no warranty that the Services or any hardware or software products will protect against all possible security threats, including intentional misconduct by third parties, and (iii) are not liable for any downtime or service interruption, for any lost or stolen data or systems, or for any other damages arising out of or relating to any such actions or intrusions.
-
-12. CUSTOMER CONTENT. You are solely responsible for the creation, content, operation, maintenance, security, backup, use of and claims relating to any Customer Content and for any software and systems you employ when accessing or using the Services. You agree to implement security measures that are commercially reasonable for your access and use of the Services and to protect the Services from unauthorized access, reproduction, disclosure or use. You acknowledge that the Services will be deployed from servers and other platforms located in the United States and elsewhere and warrant that you are authorized to provide the Customer Content to Wind River in connection with the Services. You agree to indemnify and hold harmless Wind River from any third party claims, losses and liability either arising out of or in connection to the Customer Content or any breach of this Agreement. Wind River may monitor, obtain and use data relating to your access to and use of the Services and any Customer Content, including, without limitation, data in anonymized form. Wind River may use such data for business purposes, including, without limitation, enhancing Wind River’s product and service features, functionality and usability, and in connection with targeted marketing. You acknowledge that:  (i) Wind River has no obligation to retain any Customer Content for a period of more than ninety (90) calendar days after the Customer Content has been uploaded to Wind River’s servers or the Services and (ii) Wind River may delete Customer Content from the Services ninety (90) calendar days after the Customer Content has been uploaded to or stored on Wind River’s servers or the Services.
-
-13. LIMITATION OF LIABILITY. WIND RIVER, ITS SUPPLIERS AND ITS LICENSORS WILL NOT BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY LOSS OF PROFITS, REVENUE OR GOODWILL, COSTS OF PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, LOSS OR INTERRUPTION OF BUSINESS, LOSS OF ANTICIPATED SAVINGS, OR LOSS OF DATA, OR ANY INDIRECT, EXAMPLARY, PUNITIVE, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF ANY KIND, HOWEVER CAUSED AND REGARDLESS OF THE FORM OF ACTION WHETHER IN CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT PRODUCT LIABILITY OR ANY OTHER LEGAL OR EQUITABLE THEORY, EVEN IF WIND RIVER HAS BEEN ADVISED OR SHOULD HAVE KNOWN OF THE POSSIBILITY OF SUCH DAMAGES. IN NO EVENT WILL WIND RIVER’S AGGREGATE CUMULATIVE LIABILITY FOR ANY CLAIMS ARISING OUT OF OR RELATED TO THIS AGREEMENT EXCEED THE AMOUNTS PAID TO WIND RIVER BY YOU FOR THE AFFECTED SOFTWARE OR SERVICES UNDER THE APPLICABLE ORDER FORM IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.  Some jurisdictions do not allow the exclusion or limitation of incidental or consequential damages so this limitation and exclusion may not apply to you.
-
-THE LIMITED WARRANTY, LIMITED REMEDIES, WARRANTY DISCLAIMER AND LIMITED LIABILITY ARE FUNDAMENTAL ELEMENTS OF THE BASIS OF THE BARGAIN BETWEEN WIND RIVER AND YOU.  WIND RIVER WOULD NOT BE ABLE TO PROVIDE THE SOFTWARE OR ANY OTHER PRODUCTS OR SERVICES (INCLUDING ANY OPEN SOURCE MATERIALS) WITHOUT SUCH LIMITATIONS.
-
-14. ADDITIONAL SERVICES.
-
-14.1. Support.  Support, if included in an Order Form, will be provided subject to your payment of the applicable fees.  Support is provided in accordance with the terms of Wind River’s then current Software Support and Maintenance Agreement which terms are hereby incorporated by reference into this Agreement.  A copy of the current Support and Maintenance Agreement can be accessed through Wind River’s website:  http://www.windriver.com/support/SupportTerms.pdf.
-
-14.2. Education and Training.  Education and training products offered by Wind River (e.g., mentoring, live or remote classes, etc.), if included in an Order Form, will be provided at additional cost and subject to Wind River’s then current Education Services Terms and Conditions, which terms are hereby incorporated by reference into this Agreement.  A copy of the current Education Services Terms and Conditions can be accessed through Wind River’s website:  https://education.windriver.com/content/public/resources/Supplemental_Education_Services_Terms_and_Conditions.pdf.
-
-15. EXPORT CONTROL. The Services and any software and technical information delivered or otherwise made available under this Agreement are subject to U.S. export controls under the Export Administration Regulations (the “EAR”) or the International Traffic in Arms Regulations (the “ITAR”) and may be subject to export, re-export or import regulations in other countries. You agree to strictly comply with all such laws and regulations. You may not export or re-export the software and technical information, directly or indirectly, to: (i) any countries that are subject to US export restrictions (currently including, but not necessarily limited to, the Crimea Region of Ukraine, Cuba, Iran, North Korea, Sudan, and Syria); (ii) any end user whom you know or have reason to know will utilize them in the design, development or production of nuclear, chemical or biological weapons, or rocket systems, space launch vehicles, and sounding rockets, or unmanned air vehicle systems; or (iii) any end user who has been prohibited from participating in US export transactions by any federal agency of the US government. Some of Wind River’s products are classified as “restricted” encryption products under Section 740.17(b)(2) of the EAR and may not be exported or re-exported to government end-users (as defined in Part 772 of the EAR) outside the countries listed in Supplement No. 3 to Part 740 of the EAR without authorization from the U.S. government.
-
-16. GENERAL.
-
-16.1. Governing Law; Venue; Relief. This Agreement is governed in all respects by the laws of the United States of America and the State of Delaware, without reference to conflict of laws principles, and is subject to the exclusive jurisdiction of the courts of the State of Delaware or of the Federal courts therein, provided, however, that Wind River will be entitled to seek injunctive relief in any appropriate forum. You consent to the personal jurisdiction of the designated courts and waive all objections to the designated jurisdiction and venue for those disputes. You agree that your breach of this Agreement may cause Wind River irreparable harm for which recovery of money damages would be inadequate, and that Wind River will therefore be entitled to obtain timely injunctive relief to protect Wind River’s rights in addition to any and all remedies available at law. If you reside outside of the United States, you may have other legal rights that vary from jurisdiction to jurisdiction. The United Nations Convention on Contracts for the International Sale of Goods is specifically excluded from application to this Agreement.
-
-16.2. Government End Users. All software and any data relating thereto or derived therefrom are "commercial items" as defined in 48 CFR 2.101, consisting of “commercial computer software” and “commercial computer software documentation” as such terms are used in 48 CFR 12.212. If you are a U.S. Government agency, department, or instrumentality, then the use, duplication, reproduction, release, modification, disclosure, or transfer of the any software and any data relating thereto or derived therefrom, is restricted in accordance with 48 CFR §12.211, 48 CFR §12.212, 48 CFR §227.7102-2, and 48 CFR §227.7202, as applicable. Any software provided to the U.S. Government or to U.S. Government end users only pursuant to an end user license agreement in accordance with the terms of this Agreement. This U.S. Government end users clause is in lieu of, and supersedes, any Federal Acquisition Regulations ("FAR"), the Defense FAR Supplement ("DFARS"), or other clause or provision that addresses U.S. Government rights in computer software or technical data.
-
-16.3. Notices. Wind River will provide any notices to you under this Agreement by posting a notice on the website for the Services or by sending a message to the email address associated with your account, or both, with notice to be effective upon the earlier of posting or email transmittal. You will provide any notices to Wind River under this Agreement by sending a written notice by certified or registered U.S. mail or by recognized overnight commercial courier, confirmation of delivery requested, addressed to Wind River Systems, Inc., 500 Wind River Way, Alameda, California 94501, USA, Attn: General Counsel, notice to be effective upon receipt.
-
-16.4. Force Majeure. Wind River, its suppliers, and licensors will not be liable for any failure or delay on account of strikes, shortages, riots, insurrection, fires, explosions, acts of God, war, governmental action, labor conditions, material shortages, or any other cause which is beyond their reasonable control, including, without limitation, failure of the Internet, power failure, or any failure of third party service providers.
-
-16.5. Assignment. You may not assign, transfer, or delegate any right, license or obligation under this Agreement to a third party, directly or indirectly, including by operation of law or through bankruptcy, merger, acquisition, sale or transfer of all, substantially all, or any part of your business or assets. Any purported assignment, transfer, or delegation is null and void. Wind River may assign, transfer, or delegate this Agreement or any right, license, or obligation hereunder in its sole discretion.
-
-16.6. Miscellaneous. This Agreement does not create any agency, employment relationship, partnership, or other form of joint enterprise between you and Wind River. Failure to require your performance of any obligation under this Agreement will not preclude Wind River from requiring performance in the future. This Agreement constitutes the entire agreement and supersedes all prior oral or written agreements by you and Wind River with respect to the Services. The terms and conditions of any purchase order or other instrument issued by you in connection with this Agreement will be of no force or effect. If a provision of this Agreement is unenforceable or invalid, the provision will be revised so as to best accomplish the objectives you and Wind River. This Agreement is in the English language only, which language will be controlling in all respects, and all versions of this Agreement in any other language will be for accommodation only and will not be binding on you or Wind River.
-
-PLEASE READ THE TERMS CAREFULLY. BY CLICKING THE "ACCEPT" BUTTON, YOU AGREE TO ALL OF THE TERMS OF THIS AGREEMENT, AS OF THE DATE YOU "ACCEPT" ("EFFECTIVE DATE"). If YOU do not ACCEPT these terms, you may not access or use the Services.
-
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
