@@ -83,6 +83,8 @@ static iot_action_t *script_action = NULL;
 static iot_action_t *test_params_action = NULL;
 /** @brief Pointer to the test file upload action */
 static iot_action_t *file_upload_action = NULL;
+/** @brief Pointer to the test alarm*/
+static iot_alarm_t *alarm_test = NULL;
 
 /**
  * @brief Send telemetry data to the agent
@@ -279,6 +281,10 @@ static iot_t* initialize( void )
 				"Failed to register action. Reason: %s",
 				iot_error( status ) );
 		}
+
+		/* register an alarm */
+		alarm_test = iot_alarm_register( iot_lib, "test_alarm" );
+
 	}
 	else
 		IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s", "Failed to connect" );
@@ -492,8 +498,15 @@ int main( int argc, char *argv[] )
 
 	if ( iot_lib )
 	{
+		iot_severity_t alarm_severity = 0;
+
 		signal( SIGINT, sig_handler );
 
+		IOT_LOG( iot_lib, IOT_LOG_INFO, "Sending alarm   : %d", alarm_severity );
+		iot_alarm_publish_string( alarm_test, NULL, NULL, alarm_severity,
+			"Example Alarm" );
+
+		iot_event_publish( iot_lib, NULL, NULL, "Starting action demo..." );
 		while ( running != IOT_FALSE )
 		{
 #ifdef _WIN32
@@ -506,6 +519,10 @@ int main( int argc, char *argv[] )
 #endif
 		}
 	}
+
+	
+	/* Test Free API for alarm resources */
+	iot_alarm_deregister( alarm_test );
 
 	/* Test Free API (calls deregister) */
 	iot_action_free( script_action, 0u );
