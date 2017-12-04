@@ -973,7 +973,7 @@ iot_status_t device_manager_file_download(
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME,
 			IOT_FALSE, IOT_TYPE_STRING, &file_name );
 		IOT_LOG( dm->iot_lib, IOT_LOG_TRACE,
-			"param %s = %s result=%d\n",
+			"param %s = %s result=%d",
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME, file_name,
 			(int)result);
 
@@ -982,7 +982,7 @@ iot_status_t device_manager_file_download(
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH,
 			IOT_FALSE, IOT_TYPE_STRING, &file_path );
 		IOT_LOG( dm->iot_lib, IOT_LOG_TRACE,
-			"param %s = %s result=%d\n",
+			"param %s = %s result=%d",
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH, file_path,
 			(int)result);
 
@@ -991,7 +991,7 @@ iot_status_t device_manager_file_download(
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE,
 			IOT_FALSE, IOT_TYPE_BOOL, &use_global_store);
 		IOT_LOG( dm->iot_lib, IOT_LOG_TRACE,
-			"param %s = %d result=%d\n",
+			"param %s = %d result=%d",
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE,
 			(int)use_global_store, (int)result);
 
@@ -1048,7 +1048,7 @@ iot_status_t device_manager_file_upload(
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME,
 			IOT_FALSE, IOT_TYPE_STRING, &file_name );
 		IOT_LOG( dm->iot_lib, IOT_LOG_TRACE,
-			"param %s = %s result=%d\n",
+			"param %s = %s result=%d",
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME, file_name,
 			(int)result);
 
@@ -1057,7 +1057,7 @@ iot_status_t device_manager_file_upload(
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH,
 			IOT_FALSE, IOT_TYPE_STRING, &file_path );
 		IOT_LOG( dm->iot_lib, IOT_LOG_TRACE,
-			"param %s = %s result=%d\n",
+			"param %s = %s result=%d",
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH, file_path,
 			(int)result);
 
@@ -1066,7 +1066,7 @@ iot_status_t device_manager_file_upload(
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE,
 			IOT_FALSE, IOT_TYPE_BOOL, &use_global_store);
 		IOT_LOG( dm->iot_lib, IOT_LOG_TRACE,
-			"param %s = %d result=%d\n",
+			"param %s = %d result=%d",
 			DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE,
 			(int)use_global_store, (int)result);
 
@@ -1105,7 +1105,7 @@ void device_manager_file_progress(
 
 	iot_file_progress_get( progress, &status, &percent, &complete );
 	IOT_LOG( (iot_t*)user_data, IOT_LOG_TRACE,
-		"File Download Status: %s (completed: %s [%f %%])\n",
+		"File Download Status: %s (completed: %s [%f %%])",
 		iot_error( status ),
 		( complete == IOT_FALSE ? "no" : "yes" ),
 		(double)percent );
@@ -1161,7 +1161,7 @@ iot_status_t device_manager_initialize( const char *app_path,
 			IOT_LOG( iot_lib, IOT_LOG_INFO, "%s", "Connected" );
 		else
 		{
-			IOT_LOG( iot_lib, IOT_LOG_INFO, "%s", "Failed to connect\n" );
+			IOT_LOG( iot_lib, IOT_LOG_INFO, "%s", "Failed to connect" );
 			result = IOT_STATUS_FAILURE;
 		}
 
@@ -1711,7 +1711,7 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 
 		IOT_LOG( iot_lib, IOT_LOG_TRACE,
 			"Remote login params host=%s, protocol=%s, url=%s, "
-			"debug-mode=%d\n",
+			"debug-mode=%d",
 			host_in, protocol_in, url_in, debug_mode );
 
 		if ( host_in && *host_in != '\0'
@@ -1726,12 +1726,12 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 				IOT_TARGET_RELAY,
 				host_in, os_atoi(protocol_in), url_in );
 
-			IOT_LOG( iot_lib, IOT_LOG_TRACE, "Remote login cmd:\n%s\n",
+			IOT_LOG( iot_lib, IOT_LOG_TRACE, "Remote login cmd: %s",
 				relay_cmd );
 
 			run_status = os_system_run( relay_cmd, NULL, out_files);
 			IOT_LOG( iot_lib, IOT_LOG_TRACE,
-				"System Run returned %d\n", result );
+				"System Run returned %d", result );
 			os_time_sleep( 10, IOT_FALSE );
 
 			/* remote login protocol requires us to return
