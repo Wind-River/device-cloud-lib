@@ -128,12 +128,11 @@ iot_status_t __wrap_iot_alarm_deregister( iot_telemetry_t *alarm )
 size_t __wrap_iot_base64_encode( uint8_t *out, size_t out_len, const uint8_t *in, size_t in_len )
 {
 	size_t place;
-	size_t max_len;
+	size_t max_len = 0u;
 	assert_non_null( out );
 	assert_non_null( out_len );
-	assert_non_null( in );
-	assert_non_null( in_len );
-	max_len = mock_type( size_t );
+	if ( in && in_len > 0u )
+		max_len = mock_type( size_t );
 	for ( place = 0u; place < max_len; place++ )
 		out[place] = (uint8_t)'b';
 	/*out[place] = 1u;*/

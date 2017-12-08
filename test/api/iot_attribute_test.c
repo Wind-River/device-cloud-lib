@@ -66,8 +66,10 @@ static void test_iot_attribute_publish_string_time_out( void **state )
 	opts.option = test_malloc( sizeof( struct iot_option ) );
 	assert_non_null( opts.option );
 	opts.option_count = 1u;
+#ifndef IOT_STACK_ONLY
 	opts.option[0u].name = test_malloc( IOT_NAME_MAX_LEN + 1u );
 	assert_non_null( opts.option[0u].name );
+#endif /* ifndef IOT_STACK_ONLY */
 	snprintf( opts.option[0u].name, IOT_NAME_MAX_LEN, "max_time_out" );
 	opts.option[0u].name[ IOT_NAME_MAX_LEN ] = '\0';
 	opts.option[0u].data.has_value = IOT_TRUE;
@@ -79,7 +81,9 @@ static void test_iot_attribute_publish_string_time_out( void **state )
 	assert_int_equal( result, IOT_STATUS_TIMED_OUT );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	test_free( opts.option[0u].name );
+#endif /* ifndef IOT_STACK_ONLY */
 	test_free( opts.option );
 }
 

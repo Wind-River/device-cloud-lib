@@ -48,7 +48,7 @@ iot_alarm_t *iot_alarm_register(
 			}
 #endif
 
-			if( alarm )
+			if ( alarm )
 			{
 				unsigned int cur_idx = 0u;
 				unsigned int min_idx = 0u;

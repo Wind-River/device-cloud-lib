@@ -74,11 +74,14 @@ iot_telemetry_t *iot_telemetry_allocate(
 		if ( lib->telemetry_count < IOT_TELEMETRY_MAX )
 		{
 			const unsigned int count = lib->telemetry_count;
+#ifndef IOT_STACK_ONLY
 			iot_bool_t is_in_heap = IOT_FALSE;
+#endif /* ifndef IOT_STACK_ONLY */
 
 			/* look for free telemetry in stack */
 			result = lib->telemetry_ptr[count];
 
+#ifndef IOT_STACK_ONLY
 			/* allocate telemetry in heap if none is available in stack */
 			if ( !result )
 			{
@@ -86,6 +89,7 @@ iot_telemetry_t *iot_telemetry_allocate(
 					sizeof( struct iot_telemetry ) );
 				is_in_heap = IOT_TRUE;
 			}
+#endif /* ifndef IOT_STACK_ONLY */
 
 			if ( result )
 			{
@@ -264,7 +268,7 @@ iot_status_t iot_telemetry_option_set_data(
 				}
 			}
 
-			if ( update )
+			if ( update != IOT_FALSE )
 			{
 				/** @todo fix this to take ownership */
 				os_memcpy( &attr->data, data,

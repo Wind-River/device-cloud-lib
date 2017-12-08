@@ -208,7 +208,7 @@ os_file_t __wrap_os_file_open( const char *file_path, int flags )
 size_t __wrap_os_file_read( void *ptr, size_t size, size_t nmemb, os_file_t stream )
 {
 	size_t result = mock_type( size_t );
-	if ( result != 0 )
+	if ( result != 0u )
 		result = size * nmemb;
 	return result;
 }

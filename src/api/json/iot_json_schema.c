@@ -208,7 +208,7 @@ iot_status_t iot_json_schema_allocate_item(
 	iot_status_t result = IOT_STATUS_NO_MEMORY;
 
 #ifndef IOT_STACK_ONLY
-	if ( schema->decoder->flags & IOT_JSON_FLAG_DYNAMIC )
+	if ( schema->decoder->flags & IOT_JSON_FLAG_DYNAMIC && count )
 	{
 		base = iot_json_realloc( *out,
 			sizeof( struct iot_json_schema_item ) * (*count + 1u) );
@@ -219,8 +219,10 @@ iot_status_t iot_json_schema_allocate_item(
 		}
 	}
 #else
-	base = (char *)((char*)v + sizeof( struct iot_json_schema )) +
-		(sizeof( struct iot_json_schema_item ) * (*count));
+	if ( count )
+		base = (struct iot_json_schema_item *)(
+			(char*)schema + sizeof( struct iot_json_schema )) +
+			(sizeof( struct iot_json_schema_item ) * (*count));
 #endif /* ifndef IOT_STACK_ONLY */
 	if ( base && item_type != IOT_JSON_TYPE_NULL )
 	{
@@ -608,7 +610,8 @@ iot_status_t iot_json_schema_allocate_item(
 #ifndef IOT_STACK_ONLY
 			parent_obj = *out + idx;
 #else
-			parent_obj = (struct iot_json_schema_item *)((char*)v + sizeof( struct iot_json_schema )) + idx;
+			parent_obj = (struct iot_json_schema_item *)(
+				(char*)schema + sizeof( struct iot_json_schema )) + idx;
 #endif
 			parent_obj->last_child = (unsigned int)(*count);
 		}
@@ -1198,7 +1201,7 @@ iot_json_schema_object_iterator_t *
 			unsigned int p_idx = (unsigned int)(i - schema->root);
 #else
 			unsigned int p_idx =
-				((char*)item - (char*)v - sizeof( struct iot_json_validate ))
+				((char*)item - (char*)schema - sizeof( struct iot_json_schema ))
 					/ sizeof( struct iot_json_schema_item );
 #endif /* ifndef IOT_STACK_ONLY */
 			j_obj = iot_json_decode_object_find( schema->decoder, i->item,
@@ -1271,7 +1274,7 @@ iot_json_schema_object_iterator_t *
 			unsigned int c_idx = (unsigned int)(it - schema->root);
 #else
 			unsigned int c_idx =
-				((char*)iter - (char*)v - sizeof( struct iot_json_validate ))
+				((char*)iter - (char*)schema - sizeof( struct iot_json_schema ))
 					/ sizeof( struct iot_json_schema_item );
 #endif /* ifndef IOT_STACK_ONLY */
 

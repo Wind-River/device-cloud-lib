@@ -512,8 +512,8 @@ const char *iot_json_encode_dump(
 				s >>= JSON_STRUCT_BITS;
 			}
 			*p_cur = '\0';
+			result = encoder->buf;
 		}
-		result = encoder->buf;
 	}
 #endif /* defined( IOT_JSON_JSMN ) */
 	return result;
@@ -567,7 +567,7 @@ iot_json_encoder_t *iot_json_encode_initialize(
 			os_memzero( encoder, sizeof( struct iot_json_encoder ) );
 #else /* defined( IOT_JSON_JSMN ) */
 			encoder->buf = (char*)buf + sizeof(struct iot_json_encoder);
-			encoder->cur = encoder->buf;
+			encoder->cur = NULL;
 			encoder->len = len - sizeof(struct iot_json_encoder);
 #endif /* defined( IOT_JSON_JSMN ) */
 #ifndef IOT_STACK_ONLY
@@ -744,7 +744,12 @@ iot_status_t iot_json_encode_key(
 					space = new_space;
 				}
 			}
+			else
 #endif /* ifndef IOT_STACK_ONLY */
+			{
+				if ( !encoder->cur )
+					encoder->cur = encoder->buf;
+			}
 
 			if ( key_len + value_len + extra_space <= space )
 			{

@@ -684,8 +684,14 @@ iot_status_t tr50_alarm_publish(
 	char id[6u];
 	const char *out_msg;
 
+#ifdef IOT_STACK_ONLY
+	char buffer[1024u];
+	iot_json_encoder_t *const json =
+		iot_json_encode_initialize( buffer, 1024u, 0 );
+#else
 	iot_json_encoder_t *const json =
 		iot_json_encode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#endif
 
 	/* convert id to string */
 	os_snprintf( id, 5u, "%d", data->msg_id );
@@ -804,8 +810,13 @@ iot_status_t tr50_attribute_publish(
 	if ( data && key && value )
 	{
 		iot_json_encoder_t *json;
+#ifdef IOT_STACK_ONLY
+		char buffer[1024u];
+		json = iot_json_encode_initialize( buffer, 1024u, 0 );
+#else
 		json = iot_json_encode_initialize(
 			NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#endif
 		result = IOT_STATUS_NO_MEMORY;
 		if ( json )
 		{
@@ -1121,8 +1132,13 @@ iot_status_t tr50_event_publish(
 	if ( data && message )
 	{
 		iot_json_encoder_t *json;
+#ifdef IOT_STACK_ONLY
+		char buffer[1024u];
+		json = iot_json_encode_initialize( buffer, 1024u, 0 );
+#else
 		json = iot_json_encode_initialize(
 			NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#endif
 		result = IOT_STATUS_NO_MEMORY;
 		if ( json )
 		{

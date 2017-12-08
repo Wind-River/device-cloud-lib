@@ -312,9 +312,9 @@ iot_status_t iot_base_configuration_read(
 				{
 					char *new_buf;
 #ifdef IOT_STACK_ONLY
-					char stack_buf[blk_size];
+					char stack_buf[blk_size * 2u];
 					new_buf = stack_buf;
-					if ( buf_len < blk_size )
+					if ( buf_len < blk_size * 2u )
 #else
 					new_buf = os_realloc( buf,
 						sizeof( char ) *
@@ -329,7 +329,7 @@ iot_status_t iot_base_configuration_read(
 							&buf[buf_len],
 							sizeof(char),
 							blk_size, fd );
-						if ( bytes == 0 )
+						if ( bytes == 0u )
 						{
 							if ( !os_file_eof( fd ) )
 								result = IOT_STATUS_FAILURE;
@@ -339,7 +339,9 @@ iot_status_t iot_base_configuration_read(
 							buf_len += bytes;
 					}
 					else
+					{
 						result = IOT_STATUS_NO_MEMORY;
+					}
 				}
 
 				if ( result == IOT_STATUS_SUCCESS )
@@ -349,8 +351,10 @@ iot_status_t iot_base_configuration_read(
 						lib, file_path, buf, buf_len );
 				}
 
+#ifndef IOT_STACK_ONLY
 				if ( buf )
 					os_free( buf );
+#endif /* ifndef IOT_STACK_ONLY */
 				os_file_close ( fd );
 			}
 
@@ -381,8 +385,13 @@ iot_status_t iot_base_configuration_parse(
 		const iot_json_item_t *root;
 		char err_msg[32u];
 
+#ifdef IOT_STACK_ONLY
+		char buffer[1024u];
+		json = iot_json_decode_initialize( buffer, 1024u, 0 );
+#else
 		json = iot_json_decode_initialize( NULL, 0u,
 			IOT_JSON_FLAG_DYNAMIC );
+#endif
 		if ( json &&
 			iot_json_decode_parse( json, buf, len, &root,
 				err_msg, 32u ) == IOT_STATUS_SUCCESS )
@@ -738,20 +747,20 @@ iot_status_t iot_configuration_file_set(
 			lib->cfg_file_path = os_realloc(
 				lib->cfg_file_path,
 				sizeof(char) * (len + 1u) );
-#endif
-			if ( lib->cfg_file_path )
-			{
-				os_strncpy( lib->cfg_file_path,
-					file_path, len );
-				lib->cfg_file_path[len] = '\0';
-				result = IOT_STATUS_SUCCESS;
-			}
-			else
+			if ( !lib->cfg_file_path )
 			{
 				IOT_LOG( lib, IOT_LOG_ERROR, "%s",
 					"not enough memory to store connect "
 					"configuration file path");
 				result = IOT_STATUS_NO_MEMORY;
+			}
+			else
+#endif
+			{
+				os_strncpy( lib->cfg_file_path,
+					file_path, len );
+				lib->cfg_file_path[len] = '\0';
+				result = IOT_STATUS_SUCCESS;
 			}
 		}
 	}

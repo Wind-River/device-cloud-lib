@@ -136,16 +136,13 @@ struct iot_action_parameter
 struct iot_option
 {
 	/** @brief option name */
+#ifdef IOT_STACK_ONLY
+	char name[ IOT_NAME_MAX_LEN + 1u ];
+#else
 	char *name;
+#endif /* IOT_STACK_ONLY */
 	/** @brief option data */
 	struct iot_data data;
-#ifdef IOT_STACK_ONLY
-	/** @brief storage of name value on heap
-	 *
-	 * @note This is not to be used directly, use @p name instead
-	 */
-	char _name[ IOT_NAME_MAX_LEN + 1u ];
-#endif /* IOT_STACK_ONLY */
 };
 
 /**
@@ -164,7 +161,7 @@ struct iot_options
 	 *
 	 * @note This is not to be used directly, use @p name instead
 	 */
-	struct iot_option _option[ IOT_OPTION_STACK_MAX ];
+	struct iot_option _option[ IOT_OPTION_MAX ];
 #endif /* IOT_STACK_ONLY */
 };
 
@@ -252,10 +249,10 @@ struct iot_action_request
 	/** @brief result of the action */
 	iot_status_t result;
 #ifdef IOT_STACK_ONLY
-	/** @brief holds value of options */
-	struct iot_option _option[ IOT_OPTION_MAX ];
 	/** @brief error message details */
 	char _error[ IOT_NAME_MAX_LEN + 1u ];
+	/** @brief holds value of options */
+	struct iot_option _option[ IOT_OPTION_MAX ];
 	/** @brief storage of name value on heap
 	 *
 	 * @note This is not to be used directly, use @c name instead
@@ -283,7 +280,7 @@ struct iot_alarm
 	 *
 	 * @note This is not to be used directly, use @c name instead
 	 */
-	const char _name[ IOT_NAME_MAX_LEN + 1u ];
+	char _name[ IOT_NAME_MAX_LEN + 1u ];
 #else
 	/** @brief location of the action, heap or stack */
 	iot_bool_t is_in_heap;
@@ -550,16 +547,14 @@ struct iot
 	 * @note This is not to be used directly, use @c connect_cfg_file_path instead
 	 */
 	char                        _cfg_file_path[PATH_MAX + 1u];
-	/** @brief storage on the stack for the connect configuration
-	 * @note This is not to be used directly, use @c connect_setting instead
-	 */
-	struct iot_connect_setting  _connect_setting;
 	/** @brief storage on the stack for the device id (use 'device_id' instead) */
 	char                        _device_id[ IOT_ID_MAX_LEN + 1u ];
 	/** @brief storage on the stack for the app id (use 'id' instead) */
 	char                        _id[ IOT_ID_MAX_LEN + 1u ];
 	/** @brief storage of option maps */
-	struct iot_options          *_options[ IOT_OPTION_STACK_MAX ];
+	struct iot_options          _options[ IOT_OPTION_MAX ];
+	/** @brief pointers to the location of option maps */
+	struct iot_options          *_options_ptrs[ IOT_OPTION_MAX ];
 #endif /* ifdef IOT_STACK_ONLY */
 };
 

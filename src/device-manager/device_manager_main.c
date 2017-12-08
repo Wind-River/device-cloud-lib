@@ -851,7 +851,14 @@ iot_status_t device_manager_config_read(
 				const char *temp = NULL;
 				size_t temp_len = 0u;
 
-				json = iot_json_decode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#ifdef IOT_STACK_ONLY
+				char buffer[1024u];
+				json = iot_json_decode_initialize(
+					buffer, 1024u, 0u );
+#else
+				json = iot_json_decode_initialize( NULL, 0u,
+					IOT_JSON_FLAG_DYNAMIC );
+#endif
 				if ( json && iot_json_decode_parse( json,
 							json_string,
 							json_size, &json_root,
