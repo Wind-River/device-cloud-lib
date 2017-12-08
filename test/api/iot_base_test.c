@@ -37,8 +37,10 @@ static void test_log_callback( iot_log_level_t log_level,
 /* iot_config_get */
 static void test_iot_config_get_not_found( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	struct iot_data data;
 	struct iot lib;
 	struct iot_options opts;
@@ -46,7 +48,9 @@ static void test_iot_config_get_not_found( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_RAW;
 	opt.data.heap_storage = test_malloc( 1u );
@@ -205,8 +209,10 @@ static void test_iot_config_get_null_name( void **state )
 
 static void test_iot_config_get_valid( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	const char *const test_value = "test_data";
 	const char *data = NULL;
 	struct iot lib;
@@ -216,7 +222,9 @@ static void test_iot_config_get_valid( void **state )
 
 	bzero( &lib, sizeof( struct iot ) );
 
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_STRING;
 	opt.data.heap_storage =
@@ -249,8 +257,10 @@ static void test_iot_config_get_valid( void **state )
 
 static void test_iot_config_get_valid_convert_int32( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	iot_int32_t test_value = 32;
 	struct iot_data data;
 	struct iot lib;
@@ -259,7 +269,9 @@ static void test_iot_config_get_valid_convert_int32( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_INT32;
 	opt.data.has_value = IOT_TRUE;
@@ -323,8 +335,10 @@ static void test_iot_config_get_valid_convert_int32( void **state )
 
 static void test_iot_config_get_wrong_type( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	const char *data = NULL;
 	struct iot lib;
 	struct iot_options opts;
@@ -332,7 +346,9 @@ static void test_iot_config_get_wrong_type( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_INT32;
 	opt.data.has_value = IOT_TRUE;
@@ -359,8 +375,10 @@ static void test_iot_config_get_wrong_type( void **state )
 /* iot_config_get_raw */
 static void test_iot_config_get_raw_not_found( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	const void *data = NULL;
 	size_t length = 0u;
 	struct iot lib;
@@ -369,7 +387,9 @@ static void test_iot_config_get_raw_not_found( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_RAW;
 	opt.data.heap_storage = test_malloc( 1u );
@@ -435,8 +455,10 @@ static void test_iot_config_get_raw_null_data( void **state )
 
 static void test_iot_config_get_raw_valid( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	const void *data = NULL;
 	size_t length = 0u;
 	struct iot lib;
@@ -445,7 +467,9 @@ static void test_iot_config_get_raw_valid( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_RAW;
 	opt.data.heap_storage = test_malloc( 1u );
@@ -477,8 +501,10 @@ static void test_iot_config_get_raw_valid( void **state )
 
 static void test_iot_config_get_raw_wrong_type( void **state )
 {
-	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt;
 	const void *data = NULL;
 	size_t length = 0u;
 	struct iot lib;
@@ -487,7 +513,9 @@ static void test_iot_config_get_raw_wrong_type( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_INT32;
 	opt.data.has_value = IOT_TRUE;
@@ -514,8 +542,10 @@ static void test_iot_config_get_raw_wrong_type( void **state )
 /* iot_config_set */
 static void test_iot_config_set_full( void **state )
 {
-	struct iot_option opt[ IOT_OPTION_MAX ];
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_OPTION_MAX ][ IOT_NAME_MAX_LEN + 1u ];
+#endif
+	struct iot_option opt[ IOT_OPTION_MAX ];
 	unsigned int i;
 	struct iot lib;
 	struct iot_data_raw raw_data;
@@ -545,7 +575,9 @@ static void test_iot_config_set_full( void **state )
 		char opt_name[25u];
 		snprintf( opt_name, 25u, "opt-%d", i );
 		++opts.option_count;
+#ifndef IOT_STACK_ONLY
 		opts.option[i].name = name[i];
+#endif
 		strncpy( opts.option[i].name, opt_name, IOT_NAME_MAX_LEN );
 	}
 
@@ -570,11 +602,15 @@ static void test_iot_config_set_full( void **state )
 	result = iot_config_set( &lib, "new_opt_int64",
 		IOT_TYPE_INT64, 64 );
 	assert_int_equal( result, IOT_STATUS_FULL );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* temp obj */
+#endif
 	result = iot_config_set( &lib, "new_opt_raw",
 		IOT_TYPE_RAW, &raw_data );
 	assert_int_equal( result, IOT_STATUS_FULL );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* temp obj */
+#endif
 	result = iot_config_set( &lib, "new_opt_string",
 		IOT_TYPE_STRING, str_data );
 	assert_int_equal( result, IOT_STATUS_FULL );
@@ -686,49 +722,71 @@ static void test_iot_config_set_null_data( void **state )
 	struct iot lib;
 	iot_status_t result;
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
 	will_return( __wrap_os_realloc, 1 ); /* extend options list for new option */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
+#endif
 
 	/* add raw option item */
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* option array */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
+#endif
 	result = iot_config_set( &lib, "raw", IOT_TYPE_RAW, NULL );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_non_null( lib.options_config );
 	assert_int_equal( lib.options_config->option_count, 1 );
 	assert_string_equal( lib.options_config->option[0].name, "raw" );
 	assert_null( lib.options_config->option[0].data.value.raw.ptr );
-	assert_true( lib.options_config->option[0].data.has_value == IOT_FALSE );
+	assert_int_equal( lib.options_config->option[0].data.has_value, IOT_FALSE );
 
 	/* add string option item */
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* option array */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
+#endif
 	result = iot_config_set( &lib, "string", IOT_TYPE_STRING, NULL );
-	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_non_null( lib.options_config );
+#ifdef IOT_STACK_ONLY
+	assert_int_equal( result, IOT_STATUS_NO_MEMORY );
+	assert_int_equal( lib.options_config->option_count, 1 );
+	assert_string_equal( lib.options_config->option[0].name, "raw" );
+#else
+	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_int_equal( lib.options_config->option_count, 2 );
 	assert_string_equal( lib.options_config->option[0].name, "raw" );
 	assert_string_equal( lib.options_config->option[1].name, "string" );
+	assert_non_null( lib.options_config->option[1].data.value.string );
 	assert_string_equal( lib.options_config->option[1].data.value.string, "" );
-	assert_true( lib.options_config->option[1].data.has_value != IOT_FALSE );
+	assert_int_equal( lib.options_config->option[1].data.has_value, IOT_TRUE );
+#endif
 
-	/* add int option item */
+	/* add another raw option item */
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* option array */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
+#endif
 	result = iot_config_set( &lib, "opt_raw", IOT_TYPE_RAW, NULL );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_non_null( lib.options_config );
+#ifdef IOT_STACK_ONLY
+	assert_int_equal( lib.options_config->option_count, 2 );
+	assert_string_equal( lib.options_config->option[0].name, "opt_raw" );
+	assert_string_equal( lib.options_config->option[1].name, "raw" );
+#else
 	assert_int_equal( lib.options_config->option_count, 3 );
 	assert_string_equal( lib.options_config->option[0].name, "opt_raw" );
 	assert_string_equal( lib.options_config->option[1].name, "raw" );
 	assert_string_equal( lib.options_config->option[2].name, "string" );
+#endif
 	assert_null( lib.options_config->option[0].data.value.raw.ptr );
 	assert_true( lib.options_config->option[0].data.has_value == IOT_FALSE );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	os_free( lib.options[0]->option[2].data.heap_storage );
 	os_free( lib.options[0]->option[2].name );
 	os_free( lib.options[0]->option[1].name );
@@ -737,12 +795,15 @@ static void test_iot_config_set_null_data( void **state )
 	os_free( lib.options[0]->option );
 	os_free( lib.options[0] );
 	os_free( lib.options );
+#endif
 }
 
 static void test_iot_config_set_overwrite( void **state )
 {
 	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
 	const char *data = "test_string";
 	struct iot lib;
 	struct iot_options opts;
@@ -754,7 +815,9 @@ static void test_iot_config_set_overwrite( void **state )
 	raw_data.length = strlen( data );
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_RAW;
 	will_return( __wrap_os_malloc, 1 );
@@ -821,19 +884,27 @@ static void test_iot_config_set_overwrite( void **state )
 	assert_int_equal( lib.options_config->option[0].data.type, IOT_TYPE_INT64 );
 	assert_int_equal( lib.options_config->option[0].data.value.int64, 64 );
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 );
 	will_return( __wrap_os_realloc, 1 );
+#endif
 	result = iot_config_set( &lib, "opt_name",
 		IOT_TYPE_RAW, &raw_data );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_non_null( lib.options_config );
 	assert_int_equal( lib.options_config->option[0].data.type, IOT_TYPE_RAW );
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 );
 	will_return( __wrap_os_realloc, 1 );
+#endif
 	result = iot_config_set( &lib, "opt_name",
 		IOT_TYPE_STRING, data );
+#ifdef IOT_STACK_ONLY
+	assert_int_equal( result, IOT_STATUS_NO_MEMORY );
+#else
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
+#endif
 	assert_non_null( lib.options_config );
 	assert_int_equal( lib.options_config->option[0].data.type, IOT_TYPE_STRING );
 
@@ -872,10 +943,12 @@ static void test_iot_config_set_valid( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
 	will_return( __wrap_os_realloc, 1 ); /* extend options list for new option */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
+#endif
 	result = iot_config_set( &lib, "opt_name",
 		IOT_TYPE_INT64, (iot_int64_t)64 );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -885,17 +958,21 @@ static void test_iot_config_set_valid( void **state )
 	assert_int_equal( lib.options_config->option[0].data.value.int64, 64 );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	os_free( lib.options[0]->option[0].name );
 	os_free( lib.options[0]->option );
 	os_free( lib.options[0] );
 	os_free( lib.options );
+#endif
 }
 
 /* iot_config_set_raw */
 static void test_iot_config_set_raw_full( void **state )
 {
 	struct iot_option opt[ IOT_OPTION_MAX ];
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_OPTION_MAX ][ IOT_NAME_MAX_LEN + 1u ];
+#endif
 	unsigned int i;
 	struct iot lib;
 	struct iot_options opts;
@@ -920,7 +997,9 @@ static void test_iot_config_set_raw_full( void **state )
 		char opt_name[25u];
 		snprintf( opt_name, 25u, "opt-%d", i );
 		++opts.option_count;
+#ifndef IOT_STACK_ONLY
 		opt[i].name = name[i];
+#endif
 		strncpy( opt[i].name, opt_name,
 			IOT_NAME_MAX_LEN );
 	}
@@ -956,10 +1035,12 @@ static void test_iot_config_set_raw_null_data( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
 	will_return( __wrap_os_realloc, 1 ); /* extend option list */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
+#endif
 
 	result = iot_config_set_raw( &lib, "opt_name", 0u, NULL );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -967,16 +1048,20 @@ static void test_iot_config_set_raw_null_data( void **state )
 	assert_null( lib.options_config->option[0].data.value.raw.ptr );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	os_free( lib.options[0]->option[0].name );
 	os_free( lib.options[0]->option );
 	os_free( lib.options[0] );
 	os_free( lib.options );
+#endif
 }
 
 static void test_iot_config_set_raw_overwrite_data( void **state )
 {
 	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
 	const char *data = "raw_data";
 	struct iot lib;
 	struct iot_options opts;
@@ -984,7 +1069,9 @@ static void test_iot_config_set_raw_overwrite_data( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_RAW;
 	will_return( __wrap_os_malloc, 1 );
@@ -1004,13 +1091,22 @@ static void test_iot_config_set_raw_overwrite_data( void **state )
 	lib.options_count = 1u;
 	lib.options_config = &opts;
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* option value */
+#endif
 	result = iot_config_set_raw( &lib, "opt_name",
 		strlen( data ), &data );
+#ifdef IOT_STACK_ONLY
+	assert_int_equal( result, IOT_STATUS_NO_MEMORY );
+	assert_int_equal( lib.options_config->option[0].data.type, IOT_TYPE_RAW );
+	assert_null( lib.options_config->option[0].data.value.raw.ptr );
+	assert_int_equal( lib.options_config->option[0].data.has_value, IOT_FALSE );
+#else
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
-	assert_true( lib.options_config->option[0].data.type == IOT_TYPE_RAW );
+	assert_int_equal( lib.options_config->option[0].data.type, IOT_TYPE_RAW );
 	assert_non_null( lib.options_config->option[0].data.value.raw.ptr );
-	assert_true( lib.options_config->option[0].data.has_value != IOT_FALSE );
+	assert_int_equal( lib.options_config->option[0].data.has_value, IOT_TRUE );
+#endif
 
 	/* clean up */
 	os_free( opt.data.heap_storage );
@@ -1019,14 +1115,18 @@ static void test_iot_config_set_raw_overwrite_data( void **state )
 static void test_iot_config_set_raw_overwrite_null( void **state )
 {
 	struct iot_option opt;
+#ifndef IOT_STACK_ONLY
 	char name[ IOT_NAME_MAX_LEN + 1u ];
+#endif
 	struct iot lib;
 	struct iot_options opts;
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	opt.name = name;
+#endif
 	strncpy( opt.name, "opt_name", IOT_NAME_MAX_LEN );
 	opt.data.type = IOT_TYPE_RAW;
 	will_return( __wrap_os_malloc, 1 );
@@ -1060,28 +1160,42 @@ static void test_iot_config_set_raw_valid( void **state )
 	iot_status_t result;
 
 	bzero( &lib, sizeof( struct iot ) );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
 	will_return( __wrap_os_realloc, 1 ); /* extend options list for new option */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
 	will_return( __wrap_os_malloc, 1 ); /* option value */
+#endif
 	result = iot_config_set_raw( &lib, "opt_name",
 		strlen( data ), &data );
+#ifdef IOT_STACK_ONLY
+	assert_int_equal( result, IOT_STATUS_NO_MEMORY );
+	assert_int_equal( lib.options_config->option_count, 0u );
+#else
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
-	assert_non_null( lib.options );
-	assert_int_equal( lib.options_count, 1u );
-	assert_non_null( lib.options_config );
 	assert_int_equal( lib.options_config->option_count, 1u );
+#endif
+	assert_non_null( lib.options );
+	assert_non_null( lib.options_config );
+	assert_int_equal( lib.options_count, 1u );
 	assert_true( lib.options_config->option[0].data.type == IOT_TYPE_RAW );
+#ifdef IOT_STACK_ONLY
+	assert_null( lib.options_config->option[0].data.value.raw.ptr );
+	assert_int_equal( lib.options_config->option[0].data.has_value, IOT_FALSE );
+#else
 	assert_non_null( lib.options_config->option[0].data.value.raw.ptr );
-	assert_true( lib.options_config->option[0].data.has_value != IOT_FALSE );
+	assert_int_equal( lib.options_config->option[0].data.has_value, IOT_TRUE );
+#endif
 
+#ifndef IOT_STACK_ONLY
 	/* clean up */
 	os_free( lib.options_config->option[0].data.heap_storage );
 	os_free( lib.options_config->option[0].name );
 	os_free( lib.options_config->option );
 	os_free( lib.options_config );
 	os_free( lib.options );
+#endif
 }
 
 /* iot_configuration_file_set */
@@ -1148,10 +1262,14 @@ static void test_iot_connect_configuration_fail_to_parse( void **state )
 	/* iot-connect.cfg */
 	will_return( __wrap_os_file_exists, OS_TRUE );
 	will_return( __wrap_os_file_open, 1u );
+#ifdef IOT_STACK_ONLY
+	will_return( __wrap_os_file_read, 1u );
+#else
 	will_return_count( __wrap_os_realloc, 1u, 3u );
 	will_return_count( __wrap_os_file_read, 1u, 2u );
+#endif
 	will_return( __wrap_os_file_read, 0u );
-	will_return( __wrap_os_file_eof, IOT_TRUE );
+	will_return( __wrap_os_file_eof, OS_TRUE );
 	/* fail to parse configuration file */
 	will_return( __wrap_iot_json_decode_initialize, 0 );
 
@@ -1173,7 +1291,9 @@ static void test_iot_connect_configuration_fail_to_read( void **state )
 	assert_non_null( lib.id );
 	strncpy( lib.id, "test", 5u );
 
+#ifndef IOT_STACK_ONLY
 	opt.name = test_malloc( 10u );
+#endif /* ifndef IOT_STACK_ONLY */
 	assert_non_null( opt.name );
 	strncpy( opt.name, "log_level", 10u );
 	opt.data.type = IOT_TYPE_STRING;
@@ -1188,16 +1308,22 @@ static void test_iot_connect_configuration_fail_to_read( void **state )
 	/* app_id.cfg */
 	will_return( __wrap_os_file_exists, OS_TRUE );
 	will_return( __wrap_os_file_open, 1u );
+#ifdef IOT_STACK_ONLY
+	will_return( __wrap_os_file_read, 1u );
+#else
 	will_return_count( __wrap_os_realloc, 1u, 3u );
 	will_return_count( __wrap_os_file_read, 1u, 2u );
+#endif
 	will_return( __wrap_os_file_read, 0u );
-	will_return( __wrap_os_file_eof, IOT_FALSE );
+	will_return( __wrap_os_file_eof, OS_FALSE );
 
 	result = iot_connect( &lib, 100u );
 	assert_int_equal( result, IOT_STATUS_FAILURE );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	test_free( opt.name );
+#endif /* ifndef IOT_STACK_ONLY */
 	test_free( lib.id );
 }
 
@@ -1215,7 +1341,9 @@ static void test_iot_connect_configuration_no_memory( void **state )
 	assert_non_null( lib.id );
 	strncpy( lib.id, "test", 5u );
 
+#ifndef IOT_STACK_ONLY
 	opt.name = test_malloc( 10u );
+#endif /* ifndef IOT_STACK_ONLY */
 	assert_non_null( opt.name );
 	strncpy( opt.name, "log_level", 10u );
 	opt.data.type = IOT_TYPE_STRING;
@@ -1226,15 +1354,23 @@ static void test_iot_connect_configuration_no_memory( void **state )
 	lib.options_config = &opts;
 
 	/* iot-connect.cfg */
+#ifdef IOT_STACK_ONLY
+	will_return( __wrap_os_file_exists, OS_TRUE );
+	will_return( __wrap_os_file_open, 1u );
+	will_return_count( __wrap_os_file_read, 1u, 2u );
+#else
 	will_return( __wrap_os_file_exists, OS_TRUE );
 	will_return( __wrap_os_file_open, 1u );
 	will_return( __wrap_os_realloc, 0u );
+#endif
 
 	result = iot_connect( &lib, 100u );
 	assert_int_equal( result, IOT_STATUS_NO_MEMORY );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	test_free( opt.name );
+#endif /* ifndef IOT_STACK_ONLY */
 	test_free( lib.id );
 }
 
@@ -1290,7 +1426,9 @@ static void test_iot_connect_plugin_connect_fail( void **state )
 	assert_non_null( lib.id );
 	strncpy( lib.id, "test", 5u );
 
+#ifndef IOT_STACK_ONLY
 	opt.name = test_malloc( 10u );
+#endif /* ifndef IOT_STACK_ONLY */
 	assert_non_null( opt.name );
 	strncpy( opt.name, "log_level", 10u );
 	opt.data.type = IOT_TYPE_STRING;
@@ -1305,8 +1443,12 @@ static void test_iot_connect_plugin_connect_fail( void **state )
 	/* app_id.cfg */
 	will_return( __wrap_os_file_exists, OS_TRUE );
 	will_return( __wrap_os_file_open, 1u );
+#ifdef IOT_STACK_ONLY
+	will_return( __wrap_os_file_read, 1u );
+#else
 	will_return_count( __wrap_os_realloc, 1u, 3u );
 	will_return_count( __wrap_os_file_read, 1u, 2u );
+#endif
 	will_return( __wrap_os_file_read, 0u );
 	will_return( __wrap_os_file_eof, IOT_TRUE );
 	/* parse file */
@@ -1322,7 +1464,9 @@ static void test_iot_connect_plugin_connect_fail( void **state )
 	assert_int_equal( result, IOT_STATUS_FAILURE );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	test_free( opt.name );
+#endif /* ifndef IOT_STACK_ONLY */
 	test_free( lib.id );
 }
 
@@ -1384,8 +1528,12 @@ static void test_iot_connect_threads_main_loop_fail( void **state )
 	/* app_id.cfg */
 	will_return( __wrap_os_file_exists, OS_TRUE );
 	will_return( __wrap_os_file_open, 1u );
+#ifdef IOT_STACK_ONLY
+	will_return( __wrap_os_file_read, 1u );
+#else
 	will_return_count( __wrap_os_realloc, 1u, 3u );
 	will_return_count( __wrap_os_file_read, 1u, 2u );
+#endif
 	will_return( __wrap_os_file_read, 0u );
 	will_return( __wrap_os_file_eof, OS_TRUE );
 
@@ -1395,27 +1543,35 @@ static void test_iot_connect_threads_main_loop_fail( void **state )
 	will_return( __wrap_iot_json_decode_type, IOT_JSON_TYPE_STRING );
 	will_return( __wrap_iot_json_decode_string, "INFO" );
 	will_return( __wrap_os_malloc, 1u ); /* allocate global options array */
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u ); /* resize pointer to option arrays */
 	will_return( __wrap_os_realloc, 1u ); /* add to global options array */
 	will_return( __wrap_os_malloc, 1u ); /* allocate key for option */
 	will_return( __wrap_os_realloc, 1u ); /* allocate data storage */
 	will_return( __wrap_os_malloc, 1u ); /* allocate data storage */
 	will_return( __wrap_os_malloc, 1u ); /* allocate data storage */
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_json_decode_object_iterator_next, 1u );
 	will_return( __wrap_iot_json_decode_object_iterator_key, "int_value" );
 	will_return( __wrap_iot_json_decode_type, IOT_JSON_TYPE_INTEGER );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u ); /* add to global options array */
 	will_return( __wrap_os_malloc, 1u ); /* allocate key for option */
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_json_decode_object_iterator_next, 1u );
 	will_return( __wrap_iot_json_decode_object_iterator_key, "bool_value" );
 	will_return( __wrap_iot_json_decode_type, IOT_JSON_TYPE_BOOL );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u ); /* add to global options array */
 	will_return( __wrap_os_malloc, 1u ); /* allocate key for option */
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_json_decode_object_iterator_next, 1u );
 	will_return( __wrap_iot_json_decode_object_iterator_key, "real_value" );
 	will_return( __wrap_iot_json_decode_type, IOT_JSON_TYPE_REAL );
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u ); /* add to global options array */
 	will_return( __wrap_os_malloc, 1u ); /* allocate key for option */
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_json_decode_object_iterator_next, 1u );
 	will_return( __wrap_iot_json_decode_object_iterator_key, "object" );
 	will_return( __wrap_iot_json_decode_type, IOT_JSON_TYPE_OBJECT );
@@ -1440,6 +1596,7 @@ static void test_iot_connect_threads_main_loop_fail( void **state )
 #endif /* ifdef IOT_THREAD_SUPPORT */
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	if ( lib.options )
 	{
 		size_t i;
@@ -1464,6 +1621,7 @@ static void test_iot_connect_threads_main_loop_fail( void **state )
 		}
 		os_free( lib.options );
 	}
+#endif /* ifndef IOT_STACK_ONLY */
 	test_free( lib.cfg_file_path );
 }
 
@@ -1685,8 +1843,10 @@ static void test_iot_initialize_unable_to_write( void **state )
 {
 	iot_t *lib = NULL;
 
+#ifndef IOT_STACK_ONLY
 	/* library object */
 	will_return( __wrap_os_malloc, 1 );
+#endif
 	/* read device-id file */
 	will_return( __wrap_os_file_open, OS_FILE_INVALID );
 	/* write device-id file */
@@ -1699,14 +1859,19 @@ static void test_iot_initialize_valid_generate_uuid( void **state )
 {
 	iot_t *lib = NULL;
 
+#ifndef IOT_STACK_ONLY
 	/* library object */
 	will_return( __wrap_os_malloc, 1 );
+#endif
 	/* read device-id file */
 	will_return( __wrap_os_file_open, OS_FILE_INVALID );
 	/* write device-id file */
 	will_return( __wrap_os_file_open, 1 );
+#ifndef IOT_STACK_ONLY
 	/* device id */
 	will_return( __wrap_os_realloc, 1 );
+#endif /* ifndef IOT_STACK_ONLY */
+
 	/* number of plug-ins */
 	will_return( __wrap_iot_plugin_builtin_load, 0u );
 	lib = iot_initialize( "blah", NULL, 0u );
@@ -1715,8 +1880,10 @@ static void test_iot_initialize_valid_generate_uuid( void **state )
 	assert_int_equal( lib->logger_level, IOT_LOG_INFO );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	os_free( lib->device_id );
 	os_free( lib );
+#endif
 }
 
 static void test_iot_initialize_valid_read_uuid( void **state )
@@ -1724,22 +1891,29 @@ static void test_iot_initialize_valid_read_uuid( void **state )
 	iot_t *lib = NULL;
 
 	/* library object */
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 );
+#endif /* ifndef IOT_STACK_ONLY */
 	/* read device-id file */
 	will_return( __wrap_os_file_open, 1u );
 	will_return( __wrap_os_file_read, 1u );
+#ifndef IOT_STACK_ONLY
 	/* device id */
 	will_return( __wrap_os_realloc, 1 );
+#endif /* ifndef IOT_STACK_ONLY */
 	/* number of plug-ins */
 	will_return( __wrap_iot_plugin_builtin_load, 1u );
+
 	lib = iot_initialize( "blah", NULL, 0u );
 	assert_non_null( lib );
 	assert_string_equal( lib->id, "blah" );
 	assert_int_equal( lib->logger_level, IOT_LOG_INFO );
 
 	/* clean up */
+#ifndef IOT_STACK_ONLY
 	os_free( lib->device_id );
 	os_free( lib );
+#endif
 }
 
 /* iot_log */
@@ -2190,7 +2364,9 @@ static void test_iot_terminate_action( void **state )
 	lib->device_id = os_malloc( 10u );
 #endif
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_iot_action_free, IOT_STATUS_FAILURE );
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 
 	result = iot_terminate( lib, 0u );
@@ -2215,7 +2391,9 @@ static void test_iot_terminate_alarm( void **state )
 	lib->alarm_count = 1u;
 	lib->alarm_ptr[0] = &alarm;
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_iot_alarm_deregister, IOT_STATUS_FAILURE );
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 
 	result = iot_terminate( lib, 0u );
@@ -2277,9 +2455,7 @@ static void test_iot_terminate_option( void **state )
 	opts_ptr[0] = opts;
 	lib->options = opts_ptr;
 	lib->options_count = 1u;
-#ifdef IOT_STACK_ONLY
-	opt->name = opt->_name;
-#else
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1u );
 	opt->name = os_malloc( IOT_NAME_MAX_LEN );
 #endif
@@ -2298,6 +2474,9 @@ static void test_iot_terminate_option( void **state )
 
 	/* clean up */
 #ifdef IOT_STACK_ONLY
+	os_free( opts_ptr );
+	os_free( opts );
+	os_free( opt );
 	os_free( lib );
 #endif
 }
@@ -2315,7 +2494,9 @@ static void test_iot_terminate_telemetry( void **state )
 	lib->telemetry_count = 1u;
 	lib->telemetry_ptr[0] = &telemetry;
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_iot_telemetry_free, IOT_STATUS_FAILURE );
+#endif /* ifndef IOT_STACK_ONLY */
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 
 	result = iot_terminate( lib, 0u );

@@ -108,13 +108,16 @@ static void test_iot_alarm_register_stack_full( void **state )
 	result = iot_alarm_register( &lib, name );
 	if ( IOT_ALARM_MAX > IOT_ALARM_STACK_MAX )
 	{
+#ifdef IOT_STACK_ONLY
+		assert_null( result );
+		assert_int_equal( lib.alarm_count, IOT_ALARM_STACK_MAX );
+#else
 		assert_non_null( result );
 		assert_int_equal( lib.alarm_count, IOT_ALARM_STACK_MAX + 1u );
-#ifndef IOT_STACK_ONLY
 		assert_int_equal( result->is_in_heap, 1 );
-#endif
 		os_free( result->name );
 		os_free( result );
+#endif
 	}
 	else
 	{
@@ -158,13 +161,8 @@ static void test_iot_alarm_register_no_memory_obj( void **state )
 	will_return( __wrap_os_malloc, 0u ); /* for new alarm */
 #endif
 	result = iot_alarm_register( &lib, "new alarm" );
-#ifdef IOT_STACK_ONLY
-	assert_non_null( result );
-	assert_int_equal( lib.alarm_count, 1u );
-#else
 	assert_null( result );
 	assert_int_equal( lib.alarm_count, 0u );
-#endif
 }
 
 static void test_iot_alarm_register_no_memory_name( void **state )
@@ -178,13 +176,8 @@ static void test_iot_alarm_register_no_memory_name( void **state )
 	will_return( __wrap_os_malloc, 0u ); /* for name */
 #endif
 	result = iot_alarm_register( &lib, "new alarm" );
-#ifdef IOT_STACK_ONLY
-	assert_non_null( result );
-	assert_int_equal( lib.alarm_count, 1u );
-#else
 	assert_null( result );
 	assert_int_equal( lib.alarm_count, 0u );
-#endif
 }
 
 static void test_iot_alarm_register_valid( void **state )
@@ -209,19 +202,18 @@ static void test_iot_alarm_register_valid( void **state )
 	test_generate_random_string( name, IOT_NAME_MAX_LEN + 2u );
 	name[0] = (char)(IOT_ALARM_STACK_MAX/2u) + '0' ; /* ensure first letter in middle of list*/
 #ifndef IOT_STACK_ONLY
-	will_return( __wrap_os_malloc, 1 ); /* for alarm object */
+	will_return( __wrap_os_malloc, 1 ); /* for alarm message */
 #endif
 	result = iot_alarm_register( &lib, name );
-#ifdef IOT_STACK_ONLY
-	assert_null( result );
-	assert_int_equal( lib.alarm_count, IOT_ALARM_STACK_MAX );
-#else
 	assert_non_null( result );
 	assert_int_equal( lib.alarm_count, IOT_ALARM_STACK_MAX );
 	assert_ptr_equal( result, lib.alarm_ptr[IOT_ALARM_STACK_MAX / 2u] );
-#endif
+
+	/* clean up */
 	test_free( t_names );
+#ifndef IOT_STACK_ONLY
 	test_free( lib.alarm[IOT_ALARM_STACK_MAX / 2u + 1 ].name );
+#endif
 }
 
 static void test_iot_alarm_deregister_null_alarm( void **state )
@@ -278,7 +270,7 @@ static void test_iot_alarm_deregister_valid_in_heap( void **state )
 	for ( i = 0u; i < IOT_ALARM_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
-		lib.alarm_ptr[i] = lib.alarm[i];
+		lib.alarm_ptr[i] = &lib.alarm[i];
 		bzero( lib.alarm_ptr[i], sizeof( struct iot_alarm ) );
 #else
 		will_return( __wrap_os_malloc, 1u );

@@ -38,19 +38,25 @@ iot_options_t *iot_options_allocate( iot_t *lib )
 	if ( lib )
 	{
 #ifdef IOT_STACK_ONLY
-		if ( lib->options_count < IOT_OPTION_STACK_MAX )
+		size_t i;
+		if ( !lib->options )
+		{
+			lib->options = lib->_options_ptrs;
+			for ( i = 0u; i < IOT_OPTION_MAX; ++i )
+				lib->options[i] = &lib->_options[i];
+		}
+		if ( lib->options_count < IOT_OPTION_MAX )
 			result = lib->options[lib->options_count];
 #else
-		if ( lib->options_count < UCHAR_MAX )
+		if ( lib->options_count < IOT_OPTION_MAX )
 			result = os_malloc( sizeof( struct iot_options ) );
 #endif
 		if ( result )
 		{
 			os_memzero( result, sizeof( struct iot_options ) );
 			result->lib = lib;
-
 #ifdef IOT_STACK_ONLY
-			lib->options = lib->_options;
+			result->option = result->_option;
 #else
 			{
 				struct iot_options **arr;
@@ -68,7 +74,7 @@ iot_options_t *iot_options_allocate( iot_t *lib )
 					result = NULL;
 				}
 			}
-#endif /* ifndef IOT_STACK_ONLY */
+#endif /* ifdef IOT_STACK_ONLY */
 
 			/* ensure memory allocation succeeded */
 			if ( lib->options && result )
@@ -398,7 +404,11 @@ iot_status_t iot_options_set_data(
 		{
 			iot_bool_t update = IOT_TRUE;
 			/* add name if not already given */
-			if ( !opt->name || *opt->name == '\0' )
+			if (
+#ifndef IOT_STACK_ONLY
+				!opt->name ||
+#endif /* ifndef IOT_STACK_ONLY */
+				*opt->name == '\0' )
 			{
 				size_t name_len = os_strlen( name );
 				if ( name_len > IOT_NAME_MAX_LEN )
@@ -406,12 +416,10 @@ iot_status_t iot_options_set_data(
 #ifndef IOT_STACK_ONLY
 				opt->name = os_malloc( (name_len + 1u) );
 				result = IOT_STATUS_NO_MEMORY;
-#else
-				opt->name = opt->_name;
-#endif /* ifndef IOT_STACK_ONLY */
 				if ( !opt->name )
 					update = IOT_FALSE;
 				else
+#endif /* ifndef IOT_STACK_ONLY */
 				{
 					os_strncpy( opt->name, name, name_len );
 					opt->name[name_len] = '\0';
@@ -421,9 +429,21 @@ iot_status_t iot_options_set_data(
 			if ( update )
 			{
 				os_free_null( (void **)&opt->data.heap_storage );
-				iot_common_data_copy( &opt->data, data,
+				result = iot_common_data_copy( &opt->data, data,
 					IOT_TRUE );
-				result = IOT_STATUS_SUCCESS;
+
+				/** @todo fix up on failure */
+				if ( result != IOT_STATUS_SUCCESS )
+				{
+#ifndef IOT_STACK_ONLY
+					os_free( opt->name );
+#endif
+					--options->option_count;
+					os_memmove( &options->option[cur_idx],
+						&options->option[cur_idx + 1u],
+						sizeof( struct iot_option ) *
+							(options->option_count - cur_idx) );
+				}
 			}
 		}
 	}

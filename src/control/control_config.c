@@ -195,8 +195,14 @@ iot_status_t control_config_generate( void )
 	iot_json_encoder_t *encoder;
 	iot_status_t result = IOT_STATUS_NO_MEMORY;
 
-	encoder = iot_json_encode_initialize( NULL, 0u,
-		IOT_JSON_FLAG_DYNAMIC | IOT_JSON_FLAG_INDENT(2) | IOT_JSON_FLAG_EXPAND );
+#ifdef IOT_STACK_ONLY
+	char buffer[1024u];
+	encoder = iot_json_encode_initialize( buffer, 1024u,
+		IOT_JSON_FLAG_INDENT(2) | IOT_JSON_FLAG_EXPAND );
+#else
+	encoder = iot_json_encode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC |
+		IOT_JSON_FLAG_INDENT(2) | IOT_JSON_FLAG_EXPAND );
+#endif
 	if ( encoder )
 	{
 		iot_bool_t value_set = IOT_FALSE;
@@ -632,8 +638,12 @@ iot_status_t control_config_user_interface(
 	iot_json_schema_item_t *root = NULL;
 	char json_error[ 256u ];
 
-	schema = iot_json_schema_initialize(
-		NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#ifdef IOT_STACK_ONLY
+	char buffer[4096u];
+	schema = iot_json_schema_initialize( buffer, sizeof(buffer), 0u );
+#else
+	schema = iot_json_schema_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#endif
 
 	result = iot_json_schema_parse( schema, IOT_CONNECT_SCHEMA,
 		os_strlen( IOT_CONNECT_SCHEMA ), &root, json_error, 256u );

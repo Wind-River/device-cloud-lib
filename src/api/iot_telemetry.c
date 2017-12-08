@@ -74,11 +74,14 @@ iot_telemetry_t *iot_telemetry_allocate(
 		if ( lib->telemetry_count < IOT_TELEMETRY_MAX )
 		{
 			const unsigned int count = lib->telemetry_count;
+#ifndef IOT_STACK_ONLY
 			iot_bool_t is_in_heap = IOT_FALSE;
+#endif /* ifndef IOT_STACK_ONLY */
 
 			/* look for free telemetry in stack */
 			result = lib->telemetry_ptr[count];
 
+#ifndef IOT_STACK_ONLY
 			/* allocate telemetry in heap if none is available in stack */
 			if ( !result )
 			{
@@ -86,6 +89,7 @@ iot_telemetry_t *iot_telemetry_allocate(
 					sizeof( struct iot_telemetry ) );
 				is_in_heap = IOT_TRUE;
 			}
+#endif /* ifndef IOT_STACK_ONLY */
 
 			if ( result )
 			{
@@ -210,19 +214,19 @@ iot_status_t iot_telemetry_option_set_data(
 	if ( telemetry && data )
 	{
 		unsigned int i;
-		struct iot_option *attr = NULL;
+		struct iot_option *opt = NULL;
 
 		/* see if this is an option update */
 		for ( i = 0u;
-			attr == NULL && i < telemetry->option_count; ++i )
+			opt == NULL && i < telemetry->option_count; ++i )
 		{
 			if ( os_strcmp( telemetry->option[i].name, name ) == 0 )
-				attr = &telemetry->option[i];
+				opt = &telemetry->option[i];
 		}
 
 		/* adding a new option */
 		result = IOT_STATUS_FULL;
-		if ( !attr && telemetry->option_count < IOT_OPTION_MAX )
+		if ( !opt && telemetry->option_count < IOT_OPTION_MAX )
 		{
 #ifndef IOT_STACK_ONLY
 			if ( !telemetry->option )
@@ -236,38 +240,42 @@ iot_status_t iot_telemetry_option_set_data(
 			if ( telemetry->option )
 #endif /* ifndef IOT_STACK_ONLY */
 			{
-				attr = &telemetry->option[telemetry->option_count];
-				os_memzero( attr, sizeof( struct iot_option ) );
+				opt = &telemetry->option[telemetry->option_count];
+				os_memzero( opt, sizeof( struct iot_option ) );
 				++telemetry->option_count;
 			}
 		}
 
 		/* add or update the option */
-		if ( attr )
+		if ( opt )
 		{
 			iot_bool_t update = IOT_TRUE;
 			/* add name if not already given */
-			if ( !attr->name || *attr->name == '\0' )
+			if (
+#ifndef IOT_STACK_ONLY
+				!opt->name ||
+#endif /* ifndef IOT_STACK_ONLY */
+				*opt->name == '\0' )
 			{
 				size_t name_len = os_strlen( name );
 				if ( name_len > IOT_NAME_MAX_LEN )
 					name_len = IOT_NAME_MAX_LEN;
 #ifndef IOT_STACK_ONLY
-				attr->name = os_malloc( sizeof( char ) * (name_len + 1u) );
-#endif /* ifndef IOT_STACK_ONLY */
-				if ( !attr->name )
+				opt->name = os_malloc( name_len + 1u );
+				if ( !opt->name )
 					update = IOT_FALSE;
 				else
+#endif /* ifndef IOT_STACK_ONLY */
 				{
-					os_strncpy( attr->name, name, name_len );
-					attr->name[name_len] = '\0';
+					os_strncpy( opt->name, name, name_len );
+					opt->name[name_len] = '\0';
 				}
 			}
 
-			if ( update )
+			if ( update != IOT_FALSE )
 			{
 				/** @todo fix this to take ownership */
-				os_memcpy( &attr->data, data,
+				os_memcpy( &opt->data, data,
 					sizeof( struct iot_data ) );
 				result = IOT_STATUS_SUCCESS;
 			}

@@ -962,6 +962,8 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 			{
 				if ( heap_alloc != IOT_FALSE )
 				{
+					result = IOT_STATUS_NO_MEMORY;
+#ifndef IOT_STACK_ONLY
 					obj->heap_storage =
 						os_realloc(
 							obj->heap_storage,
@@ -976,6 +978,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 						obj->value.raw.ptr = obj->heap_storage;
 						result = IOT_STATUS_SUCCESS;
 					}
+#endif
 				}
 				else
 				{
@@ -999,6 +1002,10 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 			const char *src_str = va_arg( args, const char * );
 			if ( heap_alloc != IOT_FALSE )
 			{
+#ifdef IOT_STACK_ONLY
+				result = IOT_STATUS_NO_MEMORY;
+				obj->value.string = NULL;
+#else
 				char *dest_str;
 				size_t str_len = 0u;
 				if ( src_str )
@@ -1016,6 +1023,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 					result = IOT_STATUS_SUCCESS;
 				}
 				obj->value.string = dest_str;
+#endif
 			}
 			else
 				obj->value.string = src_str;
@@ -1050,6 +1058,7 @@ iot_status_t iot_common_data_copy( struct iot_data *to,
 			os_free_null( (void**)&to->heap_storage );
 			os_memcpy( to, from, sizeof( struct iot_data ) );
 		}
+
 		if ( copy_dynamic_data != IOT_FALSE &&
 			to->has_value != IOT_FALSE )
 		{
@@ -1067,9 +1076,10 @@ iot_status_t iot_common_data_copy( struct iot_data *to,
 			else if ( to->type == IOT_TYPE_STRING )
 			{
 				/* supporting blank string from the cloud */
+				mem_size = 1u;
 				if ( to->value.string )
-					mem_size = os_strlen(
-						to->value.string ) + 1u;
+					mem_size += os_strlen(
+						to->value.string );
 			}
 			else if ( to->type == IOT_TYPE_LOCATION )
 			{
@@ -1079,8 +1089,12 @@ iot_status_t iot_common_data_copy( struct iot_data *to,
 
 			if ( mem_size > 0u && ( to != from || !to->heap_storage ) )
 			{
+#ifdef IOT_STACK_ONLY
+				to->heap_storage = NULL;
+#else
 				to->heap_storage =
 					os_malloc( mem_size );
+#endif
 				if ( to->heap_storage )
 				{
 					if ( to->type == IOT_TYPE_RAW )

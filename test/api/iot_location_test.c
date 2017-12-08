@@ -337,12 +337,16 @@ static void test_iot_location_tag_set( void **state )
 
 	memset( &sample, 0, sizeof( struct iot_location ) );
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for tag */
+#endif
 	result = iot_location_tag_set( &sample, value );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_true( sample.flags & IOT_FLAG_LOCATION_TAG );
-	assert_false( strcmp( sample.tag, value ) );
+	assert_string_equal( sample.tag, value );
+#ifndef IOT_STACK_ONLY
 	os_free( sample.tag );
+#endif
 }
 
 static void test_iot_location_tag_set_empty_tag( void **state )
@@ -353,12 +357,16 @@ static void test_iot_location_tag_set_empty_tag( void **state )
 
 	memset( &sample, 0, sizeof( struct iot_location ) );
 
+#ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for tag */
+#endif
 	result = iot_location_tag_set( &sample, value );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_true( sample.flags & IOT_FLAG_LOCATION_TAG );
-	assert_false( strcmp( sample.tag, value ) );
+	assert_string_equal( sample.tag, value );
+#ifndef IOT_STACK_ONLY
 	os_free( sample.tag );
+#endif
 }
 
 static void test_iot_location_tag_set_null_sample( void **state )

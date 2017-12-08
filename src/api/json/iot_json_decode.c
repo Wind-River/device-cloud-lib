@@ -919,7 +919,7 @@ iot_status_t iot_json_decode_parse(
 		const char *error_text = NULL;
 		int i;
 		result = IOT_STATUS_PARSE_ERROR;
-#ifndef IOT_NO_STACK
+#ifndef IOT_STACK_ONLY
 		if ( decoder->flags & IOT_JSON_FLAG_DYNAMIC )
 		{
 			i = JSMN_ERROR_NOMEM;
@@ -970,7 +970,7 @@ iot_status_t iot_json_decode_parse(
 			}
 		}
 		else
-#endif /* ifndef IOT_NO_STACK */
+#endif /* ifndef IOT_STACK_ONLY */
 		{
 			size_t j;
 			jsmn_init( &parser );
@@ -1136,16 +1136,18 @@ void iot_json_decode_terminate(
 			json_decref( decoder->j_root );
 #elif defined( IOT_JSON_JSONC )
 #else /* defined( IOT_JSON_JSMN ) */
+#ifndef IOT_STACK_ONLY
 		if ( decoder->flags & IOT_JSON_FLAG_DYNAMIC )
 			iot_json_free( decoder->tokens );
+#endif /* ifndef IOT_STACK_ONLY */
 #endif /* defined( IOT_JSON_JSMN ) */
 
 #ifndef IOT_STACK_ONLY
 		/* free object from heap */
 		if ( decoder->flags & IOT_JSON_FLAG_DYNAMIC )
 			iot_json_free( decoder );
-	}
 #endif /* ifndef IOT_STACK_ONLY */
+	}
 }
 
 iot_json_type_t iot_json_decode_type(

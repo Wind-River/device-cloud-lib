@@ -1441,10 +1441,11 @@ static void test_iot_json_decode_parse_dynamic( void **state )
 #endif
 
 	snprintf( json, 256u, "{\"item1\":\"value1\"}" );
-	decoder = iot_json_decode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
 #ifdef IOT_STACK_ONLY
+	decoder = iot_json_decode_initialize( NULL, 0u, 0u );
 	assert_null( decoder );
 #else
+	decoder = iot_json_decode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
 	assert_non_null( decoder );
 	result = iot_json_decode_parse( decoder, json, strlen(json), &root, NULL, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );

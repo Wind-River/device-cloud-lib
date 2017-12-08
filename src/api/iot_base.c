@@ -26,6 +26,8 @@
 
 /** @brief Maximum log message line length */
 #define IOT_LOG_MSG_MAX 16384u
+/** @brief Size of read chunk to use when reading configuration file */
+#define IOT_READ_BLOCK_SIZE 512u
 
 #ifdef IOT_STACK_ONLY
 /** @brief static library on the stack */
@@ -301,7 +303,6 @@ iot_status_t iot_base_configuration_read(
 
 			if ( fd != OS_FILE_INVALID )
 			{
-				const size_t blk_size = 512u;
 				char *buf = NULL;
 				size_t buf_len = 0u;
 				iot_bool_t more_to_read = IOT_TRUE;
@@ -312,13 +313,13 @@ iot_status_t iot_base_configuration_read(
 				{
 					char *new_buf;
 #ifdef IOT_STACK_ONLY
-					char stack_buf[blk_size];
+					char stack_buf[IOT_READ_BLOCK_SIZE * 2u];
 					new_buf = stack_buf;
-					if ( buf_len < blk_size )
+					if ( buf_len < IOT_READ_BLOCK_SIZE * 2u )
 #else
 					new_buf = os_realloc( buf,
 						sizeof( char ) *
-						( buf_len + blk_size ) );
+						( buf_len + IOT_READ_BLOCK_SIZE ) );
 					if ( new_buf )
 #endif /* ifdef IOT_STACK_ONLY */
 					{
@@ -328,8 +329,8 @@ iot_status_t iot_base_configuration_read(
 						bytes = os_file_read(
 							&buf[buf_len],
 							sizeof(char),
-							blk_size, fd );
-						if ( bytes == 0 )
+							IOT_READ_BLOCK_SIZE, fd );
+						if ( bytes == 0u )
 						{
 							if ( !os_file_eof( fd ) )
 								result = IOT_STATUS_FAILURE;
@@ -339,7 +340,9 @@ iot_status_t iot_base_configuration_read(
 							buf_len += bytes;
 					}
 					else
+					{
 						result = IOT_STATUS_NO_MEMORY;
+					}
 				}
 
 				if ( result == IOT_STATUS_SUCCESS )
@@ -349,8 +352,10 @@ iot_status_t iot_base_configuration_read(
 						lib, file_path, buf, buf_len );
 				}
 
+#ifndef IOT_STACK_ONLY
 				if ( buf )
 					os_free( buf );
+#endif /* ifndef IOT_STACK_ONLY */
 				os_file_close ( fd );
 			}
 
@@ -381,8 +386,13 @@ iot_status_t iot_base_configuration_parse(
 		const iot_json_item_t *root;
 		char err_msg[32u];
 
+#ifdef IOT_STACK_ONLY
+		char buffer[1024u];
+		json = iot_json_decode_initialize( buffer, 1024u, 0 );
+#else
 		json = iot_json_decode_initialize( NULL, 0u,
 			IOT_JSON_FLAG_DYNAMIC );
+#endif
 		if ( json &&
 			iot_json_decode_parse( json, buf, len, &root,
 				err_msg, 32u ) == IOT_STATUS_SUCCESS )
@@ -738,20 +748,20 @@ iot_status_t iot_configuration_file_set(
 			lib->cfg_file_path = os_realloc(
 				lib->cfg_file_path,
 				sizeof(char) * (len + 1u) );
-#endif
-			if ( lib->cfg_file_path )
-			{
-				os_strncpy( lib->cfg_file_path,
-					file_path, len );
-				lib->cfg_file_path[len] = '\0';
-				result = IOT_STATUS_SUCCESS;
-			}
-			else
+			if ( !lib->cfg_file_path )
 			{
 				IOT_LOG( lib, IOT_LOG_ERROR, "%s",
 					"not enough memory to store connect "
 					"configuration file path");
 				result = IOT_STATUS_NO_MEMORY;
+			}
+			else
+#endif
+			{
+				os_strncpy( lib->cfg_file_path,
+					file_path, len );
+				lib->cfg_file_path[len] = '\0';
+				result = IOT_STATUS_SUCCESS;
 			}
 		}
 	}
