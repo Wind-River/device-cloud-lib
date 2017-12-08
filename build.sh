@@ -30,10 +30,10 @@ if [ -n "${GIT_PATH}" ]; then
 fi
 
 export IOT_VERSION=`echo ${IOT_COMMIT_DATE} | sed -e "s|20\([0-9][0-9]\)|\\1|g" -e "s|-|.|g"`
-export IOT_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{print match($1, /[^ ]/) ? $1 : "0"}'`
-export IOT_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{print match($2, /[^ ]/) ? $2 : "0"}'`
-export IOT_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{print match($3, /[^ ]/) ? $3 : "0"}'`
-export IOT_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{print match($4, /[^ ]/) ? $4 : "0"}'`
+export IOT_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
+export IOT_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
+export IOT_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
+export IOT_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
 
 # read yaml file
 # derived from https://gist.github.com/epiloque/8cf512c6d64641bde388
