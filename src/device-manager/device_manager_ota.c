@@ -30,6 +30,8 @@
 #define DEVICE_MANAGER_OTA_PKG_PARAM   "package"
 /** @brief Name of the parameter for download timeout */
 #define DEVICE_MANAGER_OTA_TIMEOUT     "ota_timeout"
+/** @brief Name of the parameter for global file store*/
+#define DEVICE_MANAGER_OTA_USE_GLOBAL_STORE     "use_global_store"
 
 
 /**
@@ -155,6 +157,11 @@ iot_status_t device_manager_ota_register(
 			DEVICE_MANAGER_OTA_TIMEOUT,
 			IOT_PARAMETER_IN, IOT_TYPE_INT64, 0u );
 
+		/* this parameter is not used by the c lib */
+		iot_action_parameter_add( action->ptr,
+			DEVICE_MANAGER_OTA_USE_GLOBAL_STORE,
+			IOT_PARAMETER_IN, IOT_TYPE_BOOL, 0u );
+
 		iot_action_flags_set( action->ptr,
 			IOT_ACTION_EXCLUSIVE_DEVICE );
 		result = iot_action_register_callback( action->ptr,
@@ -179,7 +186,7 @@ iot_status_t device_manager_ota_register(
 }
 
 /**
- * @brief Callback function to return the ota progress 
+ * @brief Callback function to return the ota progress
  *
  * @param[in]      progress            progress structure
  * @param[in]      user_data           User data
@@ -219,13 +226,25 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 		struct device_manager_info * device_manager_info =
 			(struct device_manager_info * )user_data;
         	const char *file_to_download = NULL;
+		const iot_bool_t use_global_store = IOT_TRUE;
 		iot_t *const iot_lib = device_manager_info->iot_lib;
 
-		/* get the parameter */
+		/* get the parameters */
+		/* 1. get the pkg name to download */
 		result = iot_action_parameter_get( request,
 						DEVICE_MANAGER_OTA_PKG_PARAM,
 						IOT_FALSE, IOT_TYPE_STRING,
 						&file_to_download);
+
+		/* 2. decide to use global or private file store */
+		if ( result == IOT_STATUS_SUCCESS )
+		{
+			result = iot_action_parameter_get( request,
+						DEVICE_MANAGER_OTA_USE_GLOBAL_STORE,
+						IOT_FALSE, IOT_TYPE_BOOL,
+						&use_global_store );
+		}
+
 		if ( result != IOT_STATUS_SUCCESS )
 		{
 			result = IOT_STATUS_BAD_PARAMETER;
@@ -238,6 +257,7 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 			char local_archive_path[ PATH_MAX + 1u ];
 			char sw_update_log[  PATH_MAX + 1u ];
 			char runtime_dir[ PATH_MAX + 1u];
+			iot_file_progress_t ctx;
 
 			printf( "Value for parameter: %s = %s\n",
 				DEVICE_MANAGER_OTA_PKG_PARAM,
@@ -271,7 +291,6 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 			}
 			if ( result == IOT_STATUS_SUCCESS )
 			{
-				iot_file_progress_t ctx;
 				iot_options_t *const options =
 					iot_options_allocate(
 						device_manager_info->iot_lib );
@@ -283,10 +302,7 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 					"Checking global file store for pkg: %s download to %s\n",
 					file_to_download, sw_update_dir);
 
-				/* FIXME: this should be an optional
-				 * parameter to the cb */
-				iot_options_set_bool( options, "global",
-					IOT_TRUE );
+				iot_options_set_bool( options, "global", use_global_store);
 
 				/* Setup the local path */
 				os_snprintf(local_archive_path, PATH_MAX,
@@ -312,23 +328,40 @@ iot_status_t device_manager_ota( iot_action_request_t *request, void *user_data 
 
 				/* need to wait for the file to arrive */
 				do {
-					if ( os_file_exists(local_archive_path))
-						done = IOT_TRUE;
-					else
-						os_time_sleep(1000, IOT_FALSE);
-
 					IOT_LOG( iot_lib, IOT_LOG_DEBUG,
 						"Waiting for file %s\n", local_archive_path);
 
+					/* check to see if there was
+					 * an error during the download > 400 */
+					if ( ctx.completed == IOT_TRUE)
+					{
+						IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+							"OTA package download complete, status %d",
+							ctx.status );
+						done = IOT_TRUE;
+					}
+
+					os_time_sleep(1000, IOT_FALSE);
+
+
 				} while( done != IOT_TRUE );
+				if ( ctx.status != IOT_STATUS_SUCCESS)
+				{
+					IOT_LOG( iot_lib, IOT_LOG_ERROR,
+						"OTA download returned a non recoverable error %d",
+						ctx.status);
+					result = IOT_STATUS_NOT_FOUND;
+				}
+				else
+				{
+					IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+						"File %s downloaded successfully\n", local_archive_path);
 
-				IOT_LOG( iot_lib, IOT_LOG_DEBUG,
-					"File %s downloaded successfully\n", local_archive_path);
-
-				result = device_manager_ota_install_execute(
+					result = device_manager_ota_install_execute(
 						device_manager_info,
 						sw_update_dir,
 						file_to_download);
+				}
 			}
 			IOT_LOG( iot_lib , IOT_LOG_TRACE,
 				"software update install result: %d", result );

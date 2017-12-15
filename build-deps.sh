@@ -32,7 +32,9 @@
 # Repository access.  If device-cloud-osal is not public, make sure to
 # enable ssh clone access in your github account (e.g. add ssh key)
 #
+set -e
 export DEPS_DIR=`pwd`/deps
+rm -fr deps
 mkdir -p $DEPS_DIR
 
 # cmocka
