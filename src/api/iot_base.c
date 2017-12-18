@@ -500,6 +500,7 @@ iot_status_t iot_base_configuration_read(
 			os_file_t fd = OS_FILE_INVALID;
 			fd = os_file_open( file_path, OS_READ );
 			result = IOT_STATUS_FAILURE;
+
 			if ( fd != OS_FILE_INVALID )
 			{
 				const size_t blk_size = 512u;
@@ -563,6 +564,9 @@ iot_status_t iot_base_configuration_read(
 						file_path, iot_error( result ) );
 			}
 		}
+		else
+			IOT_LOG( lib, IOT_LOG_TRACE,
+				"Could not find configuration file: %s", file_path );
 	}
 	return result;
 }
