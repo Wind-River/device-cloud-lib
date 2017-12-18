@@ -16,6 +16,7 @@
  */
 #include "control_config.h"
 
+#include "api/shared/iot_types.h"   /* for iot_directory_name_get */
 #include "iot-connect.schema.json.h"
 #include "iot_build.h"
 #include "os.h"
@@ -211,17 +212,18 @@ iot_status_t control_config_generate( void )
 		if ( result == IOT_STATUS_SUCCESS && value_set == IOT_TRUE )
 		{
 			char config_file[ PATH_MAX + 1u ];
+			size_t config_file_len = 0u;
 			os_file_t connection_file;
 
 			/* generate connection configuration file */
-			/** @todo fix this to use API for configuration directory */
-			os_snprintf( config_file,
-				PATH_MAX, "%s%c%s%s",
-				IOT_DEFAULT_DIR_CONFIG, OS_DIR_SEP,
-				IOT_DEFAULT_FILE_CONFIG,
+			config_file_len = iot_directory_name_get(
+				IOT_DIR_CONFIG, config_file, PATH_MAX );
+			os_snprintf( &config_file[config_file_len],
+				PATH_MAX - config_file_len, "%c%s%s",
+				OS_DIR_SEP, IOT_DEFAULT_FILE_CONFIG,
 				IOT_DEFAULT_FILE_CONFIG_EXT );
 
-			if ( os_file_exists( config_file ) )
+			if ( os_file_exists( config_file ) != IOT_FALSE )
 				os_file_delete( config_file );
 
 			connection_file = os_file_open( config_file,

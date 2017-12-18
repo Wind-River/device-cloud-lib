@@ -22,7 +22,6 @@
 #include "utilities/app_arg.h"
 #include "iot_build.h"
 
-#include <iot_json.h>
 #include <os.h>
 #include <stdlib.h>                    /* for EXIT_SUCCESS, EXIT_FAILURE */
 
@@ -41,15 +40,15 @@ int control_device_shutdown( iot_bool_t shutdown, unsigned int delay )
 int control_device_decommission( void )
 {
 	char file_path[ PATH_MAX ];
-	iot_status_t result = IOT_STATUS_NO_PERMISSION;
+	size_t file_path_len = 0u;
+	iot_status_t result = IOT_STATUS_NOT_FOUND;
 
 	/* #1 config dir: remove the iot-connect.cfg file, reboot. */
-	/** @todo fix this to use iot_directory_name_get */
-	os_snprintf( file_path,
-		PATH_MAX, "%s%c%s%s",
-		IOT_DEFAULT_DIR_CONFIG, OS_DIR_SEP,
+	file_path_len = iot_directory_name_get( IOT_DIR_CONFIG,
+		file_path, PATH_MAX );
+	os_snprintf( &file_path[file_path_len], PATH_MAX - file_path_len,
+		"%c%s%s", OS_DIR_SEP,
 		IOT_DEFAULT_FILE_CONFIG, IOT_DEFAULT_FILE_CONFIG_EXT );
-
 	if ( os_file_exists( file_path ) )
 	{
 		os_printf("Found %s\n", file_path );
@@ -61,12 +60,11 @@ int control_device_decommission( void )
 
 	/* #2: runtime dir: the API uses config dir and runtime dir.
 	 * Check the runtime dir as well */
-	/** @todo fix this to use iot_directory_name_get */
-	os_snprintf( file_path,
-		PATH_MAX, "%s%c%s%s",
-		IOT_DEFAULT_DIR_RUNTIME, OS_DIR_SEP,
+	file_path_len = iot_directory_name_get( IOT_DIR_RUNTIME,
+		file_path, PATH_MAX );
+	os_snprintf( &file_path[file_path_len], PATH_MAX - file_path_len,
+		"%c%s%s", OS_DIR_SEP,
 		IOT_DEFAULT_FILE_CONFIG, IOT_DEFAULT_FILE_CONFIG_EXT );
-
 	if ( os_file_exists( file_path ) )
 	{
 		os_printf("Found %s\n", file_path );
@@ -80,10 +78,8 @@ int control_device_decommission( void )
 	}
 
 	/* #3: remove the device id */
-	os_snprintf( file_path,
-		PATH_MAX, "%s%c%s",
-		IOT_DEFAULT_DIR_RUNTIME, OS_DIR_SEP,
-		IOT_DEFAULT_FILE_DEVICE_ID);
+	os_snprintf( &file_path[file_path_len], PATH_MAX - file_path_len,
+		"%c%s", OS_DIR_SEP, IOT_DEFAULT_FILE_DEVICE_ID );
 	if ( os_file_exists( file_path ) )
 	{
 		os_printf("Found %s\n", file_path );
