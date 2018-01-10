@@ -2,7 +2,7 @@
  * @file
  * @brief declares common internal types within the api
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -758,26 +758,6 @@ IOT_API IOT_SECTION iot_status_t iot_action_process( iot_t *lib,
 	iot_millisecond_t max_time_out );
 
 /**
- * @brief Internal function to handle action registration
- *
- * @param[in,out]  action              action to register
- * @param[out]     txn                 transaction status (optional)
- * @param[in]      max_time_out        maximum time to wait in milliseconds
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
- * @retval IOT_STATUS_FAILURE          on failure
- * @retval IOT_STATUS_SUCCESS          pointer was successfully set
- * @retval IOT_STATUS_TIMED_OUT        timed out while waiting for registration
- *
- * @see iot_action_register_callback
- * @see iot_action_register_command
- */
-IOT_API IOT_SECTION iot_status_t iot_action_register(
-	iot_action_t *action,
-	iot_transaction_t *txn,
-	iot_millisecond_t max_time_out );
-
-/**
  * @brief Returns the value of a telemetry option
  *
  * @param[in,out]  telemetry           telemetry object to set
@@ -947,7 +927,7 @@ IOT_API IOT_SECTION iot_status_t iot_action_request_copy(
  *
  * @see iot_action_request_copy
  */
-size_t iot_action_request_copy_size(
+IOT_API IOT_SECTION size_t iot_action_request_copy_size(
 	const iot_action_request_t *request );
 
 #if 0

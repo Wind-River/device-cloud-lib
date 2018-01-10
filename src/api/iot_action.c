@@ -2,7 +2,7 @@
  * @file
  * @brief source file containing functions for handling actions
  *
- * @copyright Copyright (C) 2016-2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,18 +76,6 @@ static IOT_SECTION iot_status_t iot_action_execute_command(
 	iot_millisecond_t max_time_out );
 
 /**
- * @brief Deletes all occurances of a word from a string
- *
- * @param[in,out]  command_param       command param need to be adjusted
- * @param[in]      word                the word need to be deleted
- *
- * @return         the number of times word was found
- */
-static IOT_SECTION size_t iot_action_parameter_adjustment(
-	char *command_param,
-	const char *word );
-
-/**
  * @brief Sets the value of an action option
  *
  * @param[in,out]  action              action object to set
@@ -102,6 +90,38 @@ static IOT_SECTION iot_status_t iot_action_option_set_data(
 	iot_action_t *action,
 	const char *name,
 	const struct iot_data *data );
+
+/**
+ * @brief Deletes all occurances of a word from a string
+ *
+ * @param[in,out]  command_param       command param need to be adjusted
+ * @param[in]      word                the word need to be deleted
+ *
+ * @return         the number of times word was found
+ */
+static IOT_SECTION size_t iot_action_parameter_adjustment(
+	char *command_param,
+	const char *word );
+
+/**
+ * @brief Internal function to handle action registration
+ *
+ * @param[in,out]  action              action to register
+ * @param[out]     txn                 transaction status (optional)
+ * @param[in]      max_time_out        maximum time to wait in milliseconds
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
+ * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_SUCCESS          pointer was successfully set
+ * @retval IOT_STATUS_TIMED_OUT        timed out while waiting for registration
+ *
+ * @see iot_action_register_callback
+ * @see iot_action_register_command
+ */
+static IOT_SECTION iot_status_t iot_action_register(
+	iot_action_t *action,
+	iot_transaction_t *txn,
+	iot_millisecond_t max_time_out );
 
 /**
  * @brief Sets the value of an action request option
@@ -253,135 +273,6 @@ iot_action_t *iot_action_allocate(
 				IOT_ACTION_MAX, name );
 	}
 	return result;
-}
-
-iot_status_t iot_action_option_get(
-	const iot_action_t *action,
-	const char *name,
-	iot_bool_t convert,
-	iot_type_t type, ... )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( action && name )
-	{
-		va_list args;
-		size_t i;
-		result = IOT_STATUS_NOT_FOUND;
-		va_start( args, type );
-		for ( i = 0u; i < action->option_count &&
-			result == IOT_STATUS_NOT_FOUND; ++i )
-		{
-			if ( os_strncmp( action->option[i].name,
-				name, IOT_NAME_MAX_LEN ) == 0 )
-				result = iot_common_arg_get(
-					&action->option[i].data,
-					convert, type, args );
-		}
-		va_end( args );
-	}
-	return result;
-}
-
-iot_status_t iot_action_option_set(
-	iot_action_t *action,
-	const char* name,
-	iot_type_t type, ... )
-{
-	va_list args;
-	struct iot_data data;
-	os_memzero( &data, sizeof( struct iot_data ) );
-	va_start( args, type );
-	iot_common_arg_set( &data, IOT_TRUE, type, args );
-	va_end( args );
-	return iot_action_option_set_data( action, name, &data );
-}
-
-iot_status_t iot_action_option_set_data(
-	iot_action_t *action,
-	const char *name,
-	const struct iot_data *data )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( action && data )
-	{
-		unsigned int i;
-		struct iot_option *attr = NULL;
-
-		/* see if this is an option update */
-		for ( i = 0u;
-			attr == NULL && i < action->option_count; ++i )
-		{
-			if ( os_strcasecmp( action->option[i].name, name ) == 0 )
-				attr = &action->option[i];
-		}
-
-		/* adding a new option */
-		result = IOT_STATUS_FULL;
-		if ( !attr && action->option_count < IOT_OPTION_MAX )
-		{
-#ifndef IOT_STACK_ONLY
-			void *ptr = os_realloc( action->option,
-				sizeof( struct iot_option ) *
-				( action->option_count + 1u ) );
-			if ( ptr )
-				action->option = ptr;
-
-			if ( action->option && ptr )
-#endif /* ifndef IOT_STACK_ONLY */
-			{
-				attr = &action->option[action->option_count];
-				os_memzero( attr, sizeof( struct iot_option ) );
-				++action->option_count;
-			}
-		}
-
-		/* add or update the option */
-		if ( attr )
-		{
-			iot_bool_t update = IOT_TRUE;
-			/* add name if not already given */
-			if ( !attr->name || *attr->name == '\0' )
-			{
-				size_t name_len = os_strlen( name );
-				if ( name_len > IOT_NAME_MAX_LEN )
-					name_len = IOT_NAME_MAX_LEN;
-#ifndef IOT_STACK_ONLY
-				attr->name = os_malloc( sizeof( char ) * (name_len + 1u) );
-#endif /* ifndef IOT_STACK_ONLY */
-				if ( !attr->name )
-					update = IOT_FALSE;
-				else
-				{
-					os_strncpy( attr->name, name, name_len );
-					attr->name[name_len] = '\0';
-				}
-			}
-
-			if ( update )
-			{
-				/** @todo fix this to take ownership */
-				os_memcpy( &attr->data, data,
-					sizeof( struct iot_data ) );
-				result = IOT_STATUS_SUCCESS;
-			}
-		}
-	}
-	return result;
-}
-
-iot_status_t iot_action_option_set_raw(
-	iot_action_t *action,
-	const char* name,
-	size_t length,
-	const void *ptr )
-{
-	struct iot_data data;
-	os_memzero( &data, sizeof( struct iot_data ) );
-	data.type = IOT_TYPE_RAW;
-	data.value.raw.ptr = ptr;
-	data.value.raw.length = length;
-	data.has_value = IOT_TRUE;
-	return iot_action_option_set_data( action, name, &data );
 }
 
 iot_status_t iot_action_deregister(
@@ -956,6 +847,135 @@ iot_status_t iot_action_free( iot_action_t *action,
 		}
 	}
 	return result;
+}
+
+iot_status_t iot_action_option_get(
+	const iot_action_t *action,
+	const char *name,
+	iot_bool_t convert,
+	iot_type_t type, ... )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( action && name )
+	{
+		va_list args;
+		size_t i;
+		result = IOT_STATUS_NOT_FOUND;
+		va_start( args, type );
+		for ( i = 0u; i < action->option_count &&
+			result == IOT_STATUS_NOT_FOUND; ++i )
+		{
+			if ( os_strncmp( action->option[i].name,
+				name, IOT_NAME_MAX_LEN ) == 0 )
+				result = iot_common_arg_get(
+					&action->option[i].data,
+					convert, type, args );
+		}
+		va_end( args );
+	}
+	return result;
+}
+
+iot_status_t iot_action_option_set(
+	iot_action_t *action,
+	const char* name,
+	iot_type_t type, ... )
+{
+	va_list args;
+	struct iot_data data;
+	os_memzero( &data, sizeof( struct iot_data ) );
+	va_start( args, type );
+	iot_common_arg_set( &data, IOT_TRUE, type, args );
+	va_end( args );
+	return iot_action_option_set_data( action, name, &data );
+}
+
+iot_status_t iot_action_option_set_data(
+	iot_action_t *action,
+	const char *name,
+	const struct iot_data *data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( action && data )
+	{
+		unsigned int i;
+		struct iot_option *attr = NULL;
+
+		/* see if this is an option update */
+		for ( i = 0u;
+			attr == NULL && i < action->option_count; ++i )
+		{
+			if ( os_strcasecmp( action->option[i].name, name ) == 0 )
+				attr = &action->option[i];
+		}
+
+		/* adding a new option */
+		result = IOT_STATUS_FULL;
+		if ( !attr && action->option_count < IOT_OPTION_MAX )
+		{
+#ifndef IOT_STACK_ONLY
+			void *ptr = os_realloc( action->option,
+				sizeof( struct iot_option ) *
+				( action->option_count + 1u ) );
+			if ( ptr )
+				action->option = ptr;
+
+			if ( action->option && ptr )
+#endif /* ifndef IOT_STACK_ONLY */
+			{
+				attr = &action->option[action->option_count];
+				os_memzero( attr, sizeof( struct iot_option ) );
+				++action->option_count;
+			}
+		}
+
+		/* add or update the option */
+		if ( attr )
+		{
+			iot_bool_t update = IOT_TRUE;
+			/* add name if not already given */
+			if ( !attr->name || *attr->name == '\0' )
+			{
+				size_t name_len = os_strlen( name );
+				if ( name_len > IOT_NAME_MAX_LEN )
+					name_len = IOT_NAME_MAX_LEN;
+#ifndef IOT_STACK_ONLY
+				attr->name = os_malloc( sizeof( char ) * (name_len + 1u) );
+#endif /* ifndef IOT_STACK_ONLY */
+				if ( !attr->name )
+					update = IOT_FALSE;
+				else
+				{
+					os_strncpy( attr->name, name, name_len );
+					attr->name[name_len] = '\0';
+				}
+			}
+
+			if ( update )
+			{
+				/** @todo fix this to take ownership */
+				os_memcpy( &attr->data, data,
+					sizeof( struct iot_data ) );
+				result = IOT_STATUS_SUCCESS;
+			}
+		}
+	}
+	return result;
+}
+
+iot_status_t iot_action_option_set_raw(
+	iot_action_t *action,
+	const char* name,
+	size_t length,
+	const void *ptr )
+{
+	struct iot_data data;
+	os_memzero( &data, sizeof( struct iot_data ) );
+	data.type = IOT_TYPE_RAW;
+	data.value.raw.ptr = ptr;
+	data.value.raw.length = length;
+	data.has_value = IOT_TRUE;
+	return iot_action_option_set_data( action, name, &data );
 }
 
 iot_status_t iot_action_parameter_add(
