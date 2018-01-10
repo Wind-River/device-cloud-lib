@@ -2,7 +2,7 @@
  * @file
  * @brief source file for the tr50 (telit) plugin
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1906,7 +1906,7 @@ void tr50_on_message(
 							j_messages = iot_json_decode_object_find( json,
 								j_params, "messages" );
 
-							/* actions/methods parsing */
+							/* actions (aka methods) parsing */
 							if ( j_messages && iot_json_decode_type( json, j_messages )
 								== IOT_JSON_TYPE_ARRAY )
 							{
@@ -1953,7 +1953,34 @@ void tr50_on_message(
 												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
 												name[ IOT_NAME_MAX_LEN ] = '\0';
 												req = iot_action_request_allocate( data->lib, name, "tr50" );
-												iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
+												if ( req )
+													iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
+												else
+												{
+													/* send response that message can't be handled */
+													const char *out_msg;
+													char out_msg_id[6u];
+													char out_msg_buf[ 512u ];
+													iot_json_encoder_t *out_json;
+													out_json = iot_json_encode_initialize( out_msg_buf, 512u, 0 );
+													os_snprintf( out_msg_id, 5u, "%d", data->msg_id );
+													out_msg_id[5u] = '\0';
+													iot_json_encode_object_start( out_json, out_msg_id );
+													iot_json_encode_string( out_json, "command", "mailbox.ack" );
+													iot_json_encode_object_start( out_json, "params" );
+													iot_json_encode_string( out_json, "id", id );
+													iot_json_encode_integer( out_json, "errorCode", (int)IOT_STATUS_FULL );
+													iot_json_encode_string( out_json, "errorMessage", "maximum inbound requests reached" );
+													iot_json_encode_object_end( out_json );
+													iot_json_encode_object_end( out_json );
+
+													out_msg = iot_json_encode_dump( out_json );
+													IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", out_msg );
+													iot_mqtt_publish( data->mqtt, "api",
+														out_msg, os_strlen( out_msg ),
+														TR50_MQTT_QOS, IOT_FALSE, NULL );
+													++data->msg_id;
+												}
 											}
 
 											/* for each parameter */

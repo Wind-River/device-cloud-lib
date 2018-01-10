@@ -1266,7 +1266,8 @@ iot_status_t iot_action_process(
 					iot_error( action_result ) );
 
 			/* send command execution result to the cloud */
-			request->result = action_result;
+			iot_action_request_set_status( request,
+				action_result, NULL );
 			result = iot_plugin_perform( lib, NULL, &max_time_out,
 				IOT_OPERATION_ACTION_COMPLETE, action, request,
 				NULL );
@@ -1684,7 +1685,7 @@ size_t iot_action_request_copy_size(
 
 iot_status_t iot_action_request_execute(
 	iot_action_request_t *request,
-	iot_millisecond_t UNUSED(max_time_out) )
+	iot_millisecond_t max_time_out )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( request )
@@ -1701,9 +1702,28 @@ iot_status_t iot_action_request_execute(
 			}
 #endif /* ifndef IOT_NO_THREAD_SUPPORT */
 
-			lib->request_queue_wait[
-				lib->request_queue_wait_count] = request;
-			++lib->request_queue_wait_count;
+			if ( lib->request_queue_wait_count < IOT_ACTION_QUEUE_MAX )
+			{
+				result = IOT_STATUS_SUCCESS;
+				lib->request_queue_wait[
+					lib->request_queue_wait_count] = request;
+				++lib->request_queue_wait_count;
+			}
+			else
+			{
+				iot_action_t *const action = NULL;
+				result = IOT_STATUS_FULL;
+				IOT_LOG( lib, IOT_LOG_NOTICE,
+					"Not executing action: %s; "
+					"reason: %s", request->name,
+					iot_error( result ) );
+				iot_action_request_set_status(
+					request, result, NULL );
+				iot_plugin_perform( lib, NULL,
+					&max_time_out,
+					IOT_OPERATION_ACTION_COMPLETE, action,
+					request, NULL );
+			}
 
 #ifndef  IOT_NO_THREAD_SUPPORT
 			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
@@ -2010,16 +2030,27 @@ void iot_action_request_set_status(
 	if ( request )
 	{
 		va_list args;
-		va_start( args, err_msg_fmt );
-		if ( status != IOT_STATUS_SUCCESS )
+		if ( status == IOT_STATUS_SUCCESS || !err_msg_fmt )
 		{
+#ifndef IOT_STACK_ONLY
+			if ( request->error )
+				os_free( request->error );
+#endif
+			request->error = NULL;
+		}
+		else
+		{
+#ifndef IOT_STACK_ONLY
+			int err_len = 0;
+#endif
+			va_start( args, err_msg_fmt );
 #ifdef IOT_STACK_ONLY
 			request->error = request->_error
 			os_vsnprintf( request->error, IOT_NAME_MAX_LEN,
 				err_msg_fmt, args );
 			request->error[ IOT_NAME_MAX_LEN ] = '\0';
 #else
-			const int err_len = os_vsnprintf( NULL, 0u,
+			err_len = os_vsnprintf( NULL, 0u,
 				err_msg_fmt, args );
 			va_end( args );
 			if ( err_len > 0 )
@@ -2039,9 +2070,8 @@ void iot_action_request_set_status(
 #endif
 			IOT_LOG( request->lib, IOT_LOG_ERROR, "%s",
 				request->error );
+			va_end( args );
 		}
-		va_end( args );
-
 		request->result = status;
 	}
 }

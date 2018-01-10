@@ -925,6 +925,8 @@ IOT_API IOT_SECTION iot_status_t iot_action_request_option_set_raw(
  * @param[in]      max_time_out        maximum time to wait (0=indefinite)
  *
  * @retval IOT_STATUS_BAD_PARAMETER    bad parameter passed to function
+ * @retval IOT_STATUS_FULL             the request queue is full
+ * @retval IOT_STATUS_NOT_INITIALIZED  the request was not correctly allocated
  * @retval IOT_STATUS_SUCCESS          on success
  *
  * @see iot_action_request_allocate

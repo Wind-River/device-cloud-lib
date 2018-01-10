@@ -2,7 +2,7 @@
  * @file
  * @brief unit testing for IoT library (action source file)
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4621,6 +4621,52 @@ static void test_iot_action_request_copy_size_string( void **state )
 #endif
 }
 
+static void test_iot_action_request_execute_invalid_request( void **state )
+{
+	struct iot_action_request req;
+	iot_status_t result;
+	bzero( &req, sizeof( struct iot_action_request ) );
+	result = iot_action_request_execute( &req, 0u );
+	assert_int_equal( result, IOT_STATUS_NOT_INITIALIZED );
+}
+
+static void test_iot_action_request_execute_full_queue( void **state )
+{
+	struct iot lib;
+	struct iot_action_request req;
+	iot_status_t result;
+	bzero( &lib, sizeof( struct iot ) );
+	bzero( &req, sizeof( struct iot_action_request ) );
+
+	/* sets the queue to full */
+	lib.request_queue_wait_count = IOT_ACTION_QUEUE_MAX;
+
+	req.lib = &lib;
+	will_return( __wrap_iot_error, "request queue is full" );
+	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
+	result = iot_action_request_execute( &req, 0u );
+	assert_int_equal( result, IOT_STATUS_FULL );
+}
+
+static void test_iot_action_request_execute_null_request( void **state )
+{
+	iot_status_t result;
+	result = iot_action_request_execute( NULL, 0u );
+	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
+}
+
+static void test_iot_action_request_execute_success( void **state )
+{
+	struct iot lib;
+	struct iot_action_request req;
+	iot_status_t result;
+	bzero( &lib, sizeof( struct iot ) );
+	bzero( &req, sizeof( struct iot_action_request ) );
+	req.lib = &lib;
+	result = iot_action_request_execute( &req, 0u );
+	assert_int_equal( result, IOT_STATUS_SUCCESS );
+}
+
 int main( int argc, char *argv[] )
 {
 	int result;
@@ -4728,7 +4774,11 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_action_request_copy_size_no_values ),
 		cmocka_unit_test( test_iot_action_request_copy_size_null_request ),
 		cmocka_unit_test( test_iot_action_request_copy_size_raw ),
-		cmocka_unit_test( test_iot_action_request_copy_size_string )
+		cmocka_unit_test( test_iot_action_request_copy_size_string ),
+		cmocka_unit_test( test_iot_action_request_execute_invalid_request ),
+		cmocka_unit_test( test_iot_action_request_execute_full_queue ),
+		cmocka_unit_test( test_iot_action_request_execute_null_request ),
+		cmocka_unit_test( test_iot_action_request_execute_success )
 	};
 	MOCK_SYSTEM_ENABLED = 1;
 	result = cmocka_run_group_tests( tests, NULL, NULL );
