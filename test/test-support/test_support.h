@@ -2,7 +2,7 @@
  * @file
  * @brief Header file declaring common unit test functionality
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,12 @@ extern "C" {
 /* functions */
 /**
  * @brief Generates a random string for testing
+ *
  * @note The returned string is null terminated
+ *
  * @param[out] dest       destination to put the generated string
- * @param[in]  len        length of the string to be generated
+ * @param[in]  len        size of the destination buffer, returned string is
+ *                        null-terminated (thus random characters are: len - 1u)
  */
 void test_generate_random_string( char *dest, size_t len );
 

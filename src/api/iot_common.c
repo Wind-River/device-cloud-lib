@@ -2,7 +2,7 @@
  * @file
  * @brief source file defining internal library functions
  *
- * @copyright Copyright (C) 2016 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -937,12 +937,14 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 							obj->heap_storage,
 							sizeof( struct iot_location )
 							);
+					result = IOT_STATUS_NO_MEMORY;
 					if ( obj->heap_storage )
 					{
 						os_memcpy( obj->heap_storage,
 							data_obj,
 							sizeof( struct iot_location ) );
 						obj->value.location = obj->heap_storage;
+						result = IOT_STATUS_SUCCESS;
 					}
 				}
 				else
@@ -964,6 +966,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 						os_realloc(
 							obj->heap_storage,
 							data_obj->length );
+					result = IOT_STATUS_NO_MEMORY;
 					if ( obj->heap_storage )
 					{
 						os_memcpy( obj->heap_storage,
@@ -971,6 +974,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 							data_obj->length );
 						obj->value.raw.length = data_obj->length;
 						obj->value.raw.ptr = obj->heap_storage;
+						result = IOT_STATUS_SUCCESS;
 					}
 				}
 				else
@@ -1001,6 +1005,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 					str_len = os_strlen( src_str );
 				dest_str = (char*)os_realloc(
 					obj->heap_storage, str_len + 1u );
+				result = IOT_STATUS_NO_MEMORY;
 				if ( dest_str )
 				{
 					if ( src_str )
@@ -1008,6 +1013,7 @@ iot_status_t iot_common_arg_set( struct iot_data *obj, iot_bool_t heap_alloc,
 							src_str, str_len );
 					dest_str[str_len] = '\0';
 					obj->heap_storage = dest_str;
+					result = IOT_STATUS_SUCCESS;
 				}
 				obj->value.string = dest_str;
 			}
