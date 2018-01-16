@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief source file for IoT library event support
+ * @brief source file for IoT library attribute support
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,12 @@ iot_status_t iot_attribute_publish_string(
 	const char *key,
 	const char *value )
 {
-	return iot_plugin_perform( lib, txn, NULL,
-		IOT_OPERATION_ATTRIBUTE_PUBLISH, key, value, options );
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( lib && key && value )
+	{
+		result = iot_plugin_perform( lib, txn, NULL,
+			IOT_OPERATION_ATTRIBUTE_PUBLISH, key, value, options );
+	}
+	return result;
 }
 

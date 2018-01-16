@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ set( TARGET "api" )
 set( TESTS
 	"iot_action"
 	"iot_alarm"
+	"iot_attribute"
 	"iot_base"
 	"iot_base64"
 	"iot_common"
@@ -35,6 +36,7 @@ endif( JSON_DEFINES )
 include( "mock_api" )
 include( "mock_osal" )
 
+# iot_action.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
 	"iot_action_free"
@@ -45,16 +47,23 @@ set( TEST_IOT_ACTION_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_action_test.c"
 set( TEST_IOT_ACTION_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
 set( TEST_IOT_ACTION_UNIT "iot_action.c" "iot_common.c" )
 
+# iot_alarm.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
 	"iot_alarm_deregister"
 )
-
 set( TEST_IOT_ALARM_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} )
 set( TEST_IOT_ALARM_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_alarm_test.c" )
 set( TEST_IOT_ALARM_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
 set( TEST_IOT_ALARM_UNIT "iot_alarm.c" )
 
+# iot_attribute.c
+set( TEST_IOT_ATTRIBUTE_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} )
+set( TEST_IOT_ATTRIBUTE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_attribute_test.c" )
+set( TEST_IOT_ATTRIBUTE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
+set( TEST_IOT_ATTRIBUTE_UNIT "iot_attribute.c" )
+
+# iot_base.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
 	"iot_error"
@@ -65,16 +74,19 @@ set( TEST_IOT_BASE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_base_test.c" )
 set( TEST_IOT_BASE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
 set( TEST_IOT_BASE_UNIT "iot_base.c" "iot_common.c" "iot_option.c" )
 
+# iot_base64.c
 set( TEST_IOT_BASE64_MOCK )
 set( TEST_IOT_BASE64_SRCS ${MOCK_API_SRCS} "iot_base64_test.c" )
 set( TEST_IOT_BASE64_LIBS ${MOCK_API_LIBS} )
 set( TEST_IOT_BASE64_UNIT "iot_base64.c" )
 
+# iot_common.c
 set( TEST_IOT_COMMON_MOCK ${MOCK_API_FUNC} ${MOCK_OSAL_FUNC} )
 set( TEST_IOT_COMMON_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_common_test.c" )
 set( TEST_IOT_COMMON_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
 set( TEST_IOT_COMMON_UNIT "iot_common.c" )
 
+# json/iot_json_decode.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
 	"iot_json_decode_array_at"
@@ -105,6 +117,7 @@ set( TEST_IOT_JSON_DECODE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_json_deco
 set( TEST_IOT_JSON_DECODE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} ${JSON_LIBRARIES} )
 set( TEST_IOT_JSON_DECODE_UNIT "json/iot_json_decode.c" "json/iot_json_base.c" )
 
+# json/iot_json_encode.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
 	"iot_json_encode_array_end"
@@ -126,11 +139,13 @@ set( TEST_IOT_JSON_ENCODE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_json_enco
 set( TEST_IOT_JSON_ENCODE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} ${JSON_LIBRARIES} )
 set( TEST_IOT_JSON_ENCODE_UNIT "json/iot_json_encode.c" "json/iot_json_base.c" )
 
+# iot_location.c
 set( TEST_IOT_LOCATION_MOCK ${MOCK_API_FUNC} ${MOCK_OSAL_FUNC} )
 set( TEST_IOT_LOCATION_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_location_test.c" )
 set( TEST_IOT_LOCATION_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
 set( TEST_IOT_LOCATION_UNIT "iot_location.c" )
 
+# iot_telemetry.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
 list( REMOVE_ITEM MOCK_API_PART
 	"iot_telemetry_free"
