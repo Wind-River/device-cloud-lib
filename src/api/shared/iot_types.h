@@ -395,16 +395,16 @@ struct iot_file_progress
 	iot_status_t status;
 };
 
-#if 0
 /**
  * @brief information about a transaction status for later querying
  */
 struct iot_transaction
 {
 	/** @brief indicates status */
-	iot_status_t status[IOT_PROTOCOL_STACKS];
+	iot_status_t status;
 };
 
+#if 0
 /**
  * @brief information for passing data between two (or more) clients
  */
@@ -1013,6 +1013,7 @@ IOT_SECTION iot_status_t iot_state_callback_set(
 	iot_t *lib,
 	iot_state_callback_t *state_callback,
 	void *user_data );
+#endif
 
 /* transaction */
 /**
@@ -1028,7 +1029,6 @@ IOT_SECTION iot_status_t iot_state_callback_set(
 IOT_SECTION iot_bool_t iot_transaction_status(
 	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out );
-#endif
 
 /* loop */
 /**
@@ -1343,7 +1343,6 @@ IOT_SECTION iot_status_t iot_plugin_unload(
  * @param[in]      file_path           connect configuration file path
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_NO_MEMORY        failure due to out of memory
  * @retval IOT_STATUS_NO_MEMORY        no memory to store configration filename
  * @retval IOT_STATUS_SUCCESS          on success
  */

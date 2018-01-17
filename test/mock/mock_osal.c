@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief Source code for mocking the IoT client library
+ * @brief Source code for mocking the operating system abstraction layer
  *
- * @copyright Copyright (C) 2016-2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,7 +207,10 @@ os_file_t __wrap_os_file_open( const char *file_path, int flags )
 
 size_t __wrap_os_file_read( void *ptr, size_t size, size_t nmemb, os_file_t stream )
 {
-	return size * nmemb;
+	size_t result = mock_type( size_t );
+	if ( result != 0 )
+		result = size * nmemb;
+	return result;
 }
 
 size_t __wrap_os_file_write( const void *ptr, size_t size, size_t nmemb, os_file_t stream )

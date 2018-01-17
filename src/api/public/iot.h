@@ -412,8 +412,12 @@ typedef void (iot_log_callback_t)(
  * @param[in]      max_time_out        maximum time to wait in milliseconds
  *                                     (0 = wait indefinitely)
  *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
- * @retval IOT_STATUS_FAILURE          internal system failure
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_FAILURE          system error reading configuration file
+ * @retval IOT_STATUS_FILE_OPEN_FAILED failed to open file for reading
+ * @retval IOT_STATUS_NO_MEMORY        out of memory
+ * @retval IOT_STATUS_NOT_FOUND        file not found
+ * @retval IOT_STATUS_PARSE_ERROR      failed to parse configuration file
  * @retval IOT_STATUS_SUCCESS          on success
  * @retval IOT_STATUS_TIMED_OUT        timed out while waiting for connection
  *

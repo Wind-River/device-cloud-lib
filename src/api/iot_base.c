@@ -2,7 +2,7 @@
  * @file
  * @brief source file for base IoT library functionality
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,7 +124,11 @@ static OS_THREAD_DECL iot_base_worker_thread_main( void *user_data );
  *                                     returns amount of time remaining
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_FAILURE          system error reading configuration file
+ * @retval IOT_STATUS_FILE_OPEN_FAILED failed to open file for reading
+ * @retval IOT_STATUS_NO_MEMORY        out of memory
+ * @retval IOT_STATUS_NOT_FOUND        file not found
+ * @retval IOT_STATUS_PARSE_ERROR      failed to parse configuration file
  * @retval IOT_STATUS_SUCCESS          on success
  */
 static IOT_SECTION iot_status_t iot_base_configuration_load(
@@ -141,7 +145,11 @@ static IOT_SECTION iot_status_t iot_base_configuration_load(
  *                                     returns amount of time remaining
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_FAILURE          system error reading configuration file
+ * @retval IOT_STATUS_FILE_OPEN_FAILED failed to open file for reading
+ * @retval IOT_STATUS_NO_MEMORY        out of memory
+ * @retval IOT_STATUS_NOT_FOUND        file not found
+ * @retval IOT_STATUS_PARSE_ERROR      failed to parse configuration file
  * @retval IOT_STATUS_SUCCESS          on success
  */
 static IOT_SECTION iot_status_t iot_base_configuration_read(
@@ -158,7 +166,7 @@ static IOT_SECTION iot_status_t iot_base_configuration_read(
  * @param[in]      len                 buffer length
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_PARSE_ERROR      failed to parse configuration file
  * @retval IOT_STATUS_SUCCESS          on success
  */
 static IOT_SECTION iot_status_t iot_base_configuration_parse(
@@ -199,218 +207,6 @@ static IOT_SECTION iot_status_t iot_base_configuration_parse_object(
 static IOT_SECTION iot_status_t iot_base_device_id_set(
 	iot_t *lib );
 
-iot_status_t iot_config_get(
-	const iot_t *handle,
-	const char *name,
-	iot_bool_t convert,
-	iot_type_t type, ... )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( handle && name )
-	{
-		result = IOT_STATUS_NOT_FOUND;
-		if ( handle->options_config )
-		{
-			va_list args;
-			va_start( args, type );
-			result = iot_options_get_args(
-				handle->options_config, name, convert,
-				type, args );
-			va_end( args );
-		}
-	}
-	return result;
-}
-
-iot_status_t iot_config_get_raw(
-	const iot_t *handle,
-	const char *name,
-	iot_bool_t convert,
-	size_t *length,
-	const void **data )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( data )
-	{
-		struct iot_data_raw raw_data;
-		os_memzero( &raw_data, sizeof( struct iot_data_raw ) );
-		result = iot_config_get( handle, name, convert,
-			IOT_TYPE_RAW, &raw_data );
-		if ( length )
-			*length = raw_data.length;
-		*data = raw_data.ptr;
-	}
-	return result;
-}
-
-iot_status_t iot_config_set(
-	iot_t *handle,
-	const char* name,
-	iot_type_t type, ... )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( handle && name && *name )
-	{
-		va_list args;
-		struct iot_data data;
-
-		os_memzero( &data, sizeof( struct iot_data ) );
-		va_start( args, type );
-		iot_common_arg_set( &data, IOT_TRUE, type, args );
-		va_end( args );
-		result = iot_config_set_data( handle, name, &data );
-		os_free_null( (void **)&data.heap_storage );
-	}
-	return result;
-}
-
-iot_status_t iot_config_set_data(
-	iot_t *handle,
-	const char *name,
-	const struct iot_data *data )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( handle && data )
-	{
-		/* if first option, set global options list */
-		result = IOT_STATUS_NO_MEMORY;
-		if ( !handle->options_config )
-		{
-			handle->options_config =
-				iot_options_allocate( handle );
-		}
-
-		if ( handle->options_config )
-		{
-			result = iot_options_set_data(
-				handle->options_config, name, data );
-		}
-	}
-	return result;
-}
-
-iot_status_t iot_config_set_raw(
-	iot_t *handle,
-	const char* name,
-	size_t length,
-	const void *ptr )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( handle && name && *name )
-	{
-		struct iot_data data;
-		os_memzero( &data, sizeof( struct iot_data ) );
-		data.type = IOT_TYPE_RAW;
-		data.value.raw.ptr = ptr;
-		data.value.raw.length = length;
-		data.has_value = IOT_TRUE;
-		result = iot_config_set_data( handle, name, &data );
-	}
-	return result;
-}
-
-#ifdef IOT_THREAD_SUPPORT
-OS_THREAD_DECL iot_base_main_thread( void *user_data )
-{
-	struct iot *lib = (struct iot *)user_data;
-	iot_loop_forever( lib );
-	return (OS_THREAD_RETURN)0;
-}
-
-OS_THREAD_DECL iot_base_worker_thread_main( void *user_data )
-{
-	struct iot *lib = (struct iot *)user_data;
-	iot_status_t result = IOT_STATUS_SUCCESS;
-	while( lib && lib->to_quit == IOT_FALSE &&
-		result == IOT_STATUS_SUCCESS )
-		result = iot_action_process( lib, 0u );
-	return (OS_THREAD_RETURN)0;
-}
-#endif /* ifdef IOT_THREAD_SUPPORT */
-
-iot_status_t iot_connect(
-	iot_t *lib,
-	iot_millisecond_t max_time_out )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( lib )
-	{
-		const char *log_level = NULL;
-
-		result = iot_base_configuration_load( lib, &max_time_out );
-		if ( result != IOT_STATUS_SUCCESS )
-			IOT_LOG( lib, IOT_LOG_ERROR, "%s",
-				"Failed getting connect configuration" );
-
-		/* set log level */
-		iot_config_get( lib, "log_level", IOT_FALSE,
-			IOT_TYPE_STRING, &log_level );
-		if ( log_level )
-			iot_log_level_set_string( lib, log_level );
-
-		result = iot_plugin_perform( lib,
-			NULL, &max_time_out,
-			IOT_OPERATION_CLIENT_CONNECT,
-			NULL, NULL, NULL );
-
-		if ( result == IOT_STATUS_SUCCESS )
-		{
-			IOT_LOG( lib, IOT_LOG_NOTICE, "%s",
-				"Connected successfully" );
-#ifdef IOT_THREAD_SUPPORT
-			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) &&
-				(result == IOT_STATUS_SUCCESS) )
-			{
-				result = iot_loop_start( lib );
-				if ( result != IOT_STATUS_SUCCESS )
-					IOT_LOG( lib,
-					IOT_LOG_ERROR, "%s",
-					"Failed to start main loop" );
-			}
-#endif /* ifdef IOT_THREAD_SUPPORT */
-		}
-		else
-		{
-			IOT_LOG( lib, IOT_LOG_ERROR, "%s",
-				"Failed to connect" );
-			result = IOT_STATUS_FAILURE;
-		}
-	}
-	return result;
-}
-
-size_t iot_directory_name_get(
-	iot_dir_type_t type,
-	char *buf,
-	size_t buf_len )
-{
-	size_t result = 0u;
-	const char *dir_fmt = NULL;
-	switch( type )
-	{
-		case IOT_DIR_CONFIG:
-			dir_fmt = IOT_DEFAULT_DIR_CONFIG;
-			break;
-		case IOT_DIR_RUNTIME:
-			dir_fmt = IOT_DEFAULT_DIR_RUNTIME;
-			break;
-		default:
-			break;
-	}
-
-	if ( dir_fmt )
-	{
-		result = os_strlen( dir_fmt );
-		if ( buf && buf_len > 0u )
-		{
-			os_strncpy( buf, dir_fmt, buf_len - 1u );
-			/** @todo expand environment variables in
-			 * path here */
-			buf[ buf_len - 1u ] = '\0';
-		}
-	}
-	return result;
-}
 
 iot_status_t iot_base_configuration_load(
 	iot_t *lib,
@@ -424,11 +220,10 @@ iot_status_t iot_base_configuration_load(
 		size_t config_dir_len = 0u;
 		unsigned int i;
 
-		result = IOT_STATUS_FAILURE;
-
+		result = IOT_STATUS_SUCCESS;
 		config_dir_len = iot_directory_name_get(
 			IOT_DIR_CONFIG, file_path, PATH_MAX );
-		for ( i = 0u; i < 2u; ++i )
+		for ( i = 0u; result == IOT_STATUS_SUCCESS && i < 2u; ++i )
 		{
 			if ( i == 0u && config_dir_len < PATH_MAX )
 			{
@@ -452,7 +247,7 @@ iot_status_t iot_base_configuration_load(
 						lib->cfg_file_path, PATH_MAX );
 					file_path_len = os_strlen( lib->cfg_file_path );
 				}
-				else if ( config_dir_len < PATH_MAX )
+				else if ( config_dir_len < PATH_MAX && lib->id )
 				{
 					/* option 2: app name config file */
 					os_snprintf( &file_path[config_dir_len],
@@ -475,8 +270,11 @@ iot_status_t iot_base_configuration_load(
 				/* process the connect configure file */
 				interim_result = iot_base_configuration_read(
 					lib, file_path, max_time_out );
-				if ( result != IOT_STATUS_SUCCESS )
+				if ( interim_result != IOT_STATUS_SUCCESS &&
+					interim_result != IOT_STATUS_NOT_FOUND )
+				{
 					result = interim_result;
+				}
 			}
 		}
 	}
@@ -499,7 +297,7 @@ iot_status_t iot_base_configuration_read(
 		{
 			os_file_t fd = OS_FILE_INVALID;
 			fd = os_file_open( file_path, OS_READ );
-			result = IOT_STATUS_FAILURE;
+			result = IOT_STATUS_FILE_OPEN_FAILED;
 
 			if ( fd != OS_FILE_INVALID )
 			{
@@ -554,7 +352,6 @@ iot_status_t iot_base_configuration_read(
 				if ( buf )
 					os_free( buf );
 				os_file_close ( fd );
-				result = IOT_STATUS_SUCCESS;
 			}
 
 			if ( result != IOT_STATUS_SUCCESS )
@@ -578,7 +375,7 @@ iot_status_t iot_base_configuration_parse(
 	const size_t len )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( lib && buf && len > 0 )
+	if ( lib && file_path && buf && len > 0 )
 	{
 		iot_json_decoder_t *json;
 		const iot_json_item_t *root;
@@ -595,15 +392,16 @@ iot_status_t iot_base_configuration_parse(
 			os_fprintf( OS_STDERR, "Current Configuration:\n" );
 			iot_base_configuration_parse_object(
 				lib, json, root, key_buff, 0u );
+			result = IOT_STATUS_SUCCESS;
 		}
 		else
 		{
 			IOT_LOG( lib, IOT_LOG_ERROR,
 				"Failed to parse configuration file: %s (%s)",
 					file_path, err_msg );
+			result = IOT_STATUS_PARSE_ERROR;
 		}
 		iot_json_decode_terminate( json );
-		result = IOT_STATUS_SUCCESS;
 	}
 	return result;
 }
@@ -634,9 +432,12 @@ iot_status_t iot_base_configuration_parse_object(
 		iot_json_decode_object_iterator_key( json,
 			obj, iter, &cur_key, &cur_key_len );
 
-		os_strncpy( &key[key_len], cur_key, cur_key_len );
-		cur_key_len += key_len;
-		key[cur_key_len] = '\0';
+		if ( cur_key )
+		{
+			os_strncpy( &key[key_len], cur_key, cur_key_len );
+			cur_key_len += key_len;
+			key[cur_key_len] = '\0';
+		}
 
 		iot_json_decode_object_iterator_value( json, obj,
 			iter, &item );
@@ -789,6 +590,256 @@ iot_status_t iot_base_device_id_set(
 				}
 			}
 		}
+	}
+	return result;
+}
+
+#ifdef IOT_THREAD_SUPPORT
+OS_THREAD_DECL iot_base_main_thread( void *user_data )
+{
+	struct iot *lib = (struct iot *)user_data;
+	iot_loop_forever( lib );
+	return (OS_THREAD_RETURN)0;
+}
+
+OS_THREAD_DECL iot_base_worker_thread_main( void *user_data )
+{
+	struct iot *lib = (struct iot *)user_data;
+	iot_status_t result = IOT_STATUS_SUCCESS;
+	while( lib && lib->to_quit == IOT_FALSE &&
+		result == IOT_STATUS_SUCCESS )
+		result = iot_action_process( lib, 0u );
+	return (OS_THREAD_RETURN)0;
+}
+#endif /* ifdef IOT_THREAD_SUPPORT */
+
+iot_status_t iot_config_get(
+	const iot_t *handle,
+	const char *name,
+	iot_bool_t convert,
+	iot_type_t type, ... )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( handle && name )
+	{
+		result = IOT_STATUS_NOT_FOUND;
+		if ( handle->options_config )
+		{
+			va_list args;
+			va_start( args, type );
+			result = iot_options_get_args(
+				handle->options_config, name, convert,
+				type, args );
+			va_end( args );
+		}
+	}
+	return result;
+}
+
+iot_status_t iot_config_get_raw(
+	const iot_t *handle,
+	const char *name,
+	iot_bool_t convert,
+	size_t *length,
+	const void **data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( data )
+	{
+		struct iot_data_raw raw_data;
+		os_memzero( &raw_data, sizeof( struct iot_data_raw ) );
+		result = iot_config_get( handle, name, convert,
+			IOT_TYPE_RAW, &raw_data );
+		if ( length )
+			*length = raw_data.length;
+		*data = raw_data.ptr;
+	}
+	return result;
+}
+
+iot_status_t iot_config_set(
+	iot_t *handle,
+	const char* name,
+	iot_type_t type, ... )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( handle && name && *name )
+	{
+		va_list args;
+		struct iot_data data;
+
+		os_memzero( &data, sizeof( struct iot_data ) );
+		va_start( args, type );
+		iot_common_arg_set( &data, IOT_TRUE, type, args );
+		va_end( args );
+		result = iot_config_set_data( handle, name, &data );
+		os_free_null( (void **)&data.heap_storage );
+	}
+	return result;
+}
+
+iot_status_t iot_config_set_data(
+	iot_t *handle,
+	const char *name,
+	const struct iot_data *data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( handle && data )
+	{
+		/* if first option, set global options list */
+		result = IOT_STATUS_NO_MEMORY;
+		if ( !handle->options_config )
+		{
+			handle->options_config =
+				iot_options_allocate( handle );
+		}
+
+		if ( handle->options_config )
+		{
+			result = iot_options_set_data(
+				handle->options_config, name, data );
+		}
+	}
+	return result;
+}
+
+iot_status_t iot_config_set_raw(
+	iot_t *handle,
+	const char* name,
+	size_t length,
+	const void *ptr )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( handle && name && *name )
+	{
+		struct iot_data data;
+		os_memzero( &data, sizeof( struct iot_data ) );
+		data.type = IOT_TYPE_RAW;
+		data.value.raw.ptr = ptr;
+		data.value.raw.length = length;
+		data.has_value = IOT_TRUE;
+		result = iot_config_set_data( handle, name, &data );
+	}
+	return result;
+}
+
+iot_status_t iot_configuration_file_set(
+	iot_t *lib, const char *file_path )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( lib && file_path )
+	{
+		const size_t len = os_strlen( file_path );
+		if ( len <= PATH_MAX )
+		{
+#ifdef IOT_STACK_ONLY
+			lib->cfg_file_path = lib->_cfg_file_path;
+#else
+			lib->cfg_file_path = os_realloc(
+				lib->cfg_file_path,
+				sizeof(char) * (len + 1u) );
+#endif
+			if ( lib->cfg_file_path )
+			{
+				os_strncpy( lib->cfg_file_path,
+					file_path, len );
+				lib->cfg_file_path[len] = '\0';
+				result = IOT_STATUS_SUCCESS;
+			}
+			else
+			{
+				IOT_LOG( lib, IOT_LOG_ERROR, "%s",
+					"not enough memory to store connect "
+					"configuration file path");
+				result = IOT_STATUS_NO_MEMORY;
+			}
+		}
+	}
+	return result;
+}
+
+iot_status_t iot_connect(
+	iot_t *lib,
+	iot_millisecond_t max_time_out )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( lib )
+	{
+		const char *log_level = NULL;
+
+		result = iot_base_configuration_load( lib, &max_time_out );
+		if ( result != IOT_STATUS_SUCCESS )
+			IOT_LOG( lib, IOT_LOG_ERROR, "%s",
+				"Failed getting connect configuration" );
+
+		/* set log level */
+		iot_config_get( lib, "log_level", IOT_FALSE,
+			IOT_TYPE_STRING, &log_level );
+		if ( log_level )
+			iot_log_level_set_string( lib, log_level );
+
+		if ( result == IOT_STATUS_SUCCESS )
+			result = iot_plugin_perform( lib,
+				NULL, &max_time_out,
+				IOT_OPERATION_CLIENT_CONNECT,
+				NULL, NULL, NULL );
+
+		if ( result == IOT_STATUS_SUCCESS )
+		{
+			IOT_LOG( lib, IOT_LOG_NOTICE, "%s",
+				"Connected successfully" );
+#ifdef IOT_THREAD_SUPPORT
+			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) &&
+				(result == IOT_STATUS_SUCCESS) )
+			{
+				result = iot_loop_start( lib );
+				if ( result != IOT_STATUS_SUCCESS )
+					IOT_LOG( lib,
+					IOT_LOG_ERROR, "%s",
+					"Failed to start main loop" );
+			}
+#endif /* ifdef IOT_THREAD_SUPPORT */
+		}
+		else
+		{
+			IOT_LOG( lib, IOT_LOG_ERROR, "%s",
+				"Failed to connect" );
+		}
+	}
+	return result;
+}
+
+size_t iot_directory_name_get(
+	iot_dir_type_t type,
+	char *buf,
+	size_t buf_len )
+{
+	size_t result = 0u;
+	const char *dir_fmt = NULL;
+	switch( type )
+	{
+		case IOT_DIR_CONFIG:
+			dir_fmt = IOT_DEFAULT_DIR_CONFIG;
+			break;
+		case IOT_DIR_RUNTIME:
+			dir_fmt = IOT_DEFAULT_DIR_RUNTIME;
+			break;
+		default:
+			break;
+	}
+
+	if ( dir_fmt )
+	{
+		result = os_strlen( dir_fmt );
+		if ( buf && buf_len > result )
+		{
+			os_strncpy( buf, dir_fmt, buf_len - 1u );
+			/** @todo expand environment variables in
+			 * path here */
+			buf[ buf_len - 1u ] = '\0';
+		}
+		else if ( buf )
+			result = 0u; /* buffer too small */
 	}
 	return result;
 }
@@ -1102,7 +1153,7 @@ iot_status_t iot_loop_start( iot_t *lib )
 			result = IOT_STATUS_FAILURE;
 			os_result = os_thread_create( &lib->main_thread,
 				iot_base_main_thread, lib );
-			for ( i = 0u; os_result == OS_STATUS_SUCCESS  &&
+			for ( i = 0u; os_result == OS_STATUS_SUCCESS &&
 				i < IOT_WORKER_THREADS; ++i )
 				os_result = os_thread_create(
 					&lib->worker_thread[i],
@@ -1173,41 +1224,6 @@ iot_status_t iot_loop_stop( iot_t *lib, iot_bool_t force )
 	return result;
 }
 
-iot_status_t iot_configuration_file_set(
-	iot_t *lib, const char *file_path )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( lib && file_path )
-	{
-		const size_t len = os_strlen( file_path );
-		if ( len <= PATH_MAX )
-		{
-#ifdef IOT_STACK_ONLY
-			lib->cfg_file_path = lib->_cfg_file_path;
-#else
-			lib->cfg_file_path = os_realloc(
-				lib->cfg_file_path,
-				sizeof(char) * (len + 1u) );
-#endif
-			if ( lib->cfg_file_path )
-			{
-				os_strncpy( lib->cfg_file_path,
-					file_path, len );
-				lib->cfg_file_path[len] = '\0';
-				result = IOT_STATUS_SUCCESS;
-			}
-			else
-			{
-				IOT_LOG( lib, IOT_LOG_ERROR, "%s",
-					"not enough memory to store connect "
-					"configuration file path");
-				result = IOT_STATUS_NO_MEMORY;
-			}
-		}
-	}
-	return result;
-}
-
 iot_status_t iot_terminate(
 	iot_t *lib,
 	iot_millisecond_t max_time_out )
@@ -1215,11 +1231,10 @@ iot_status_t iot_terminate(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( lib )
 	{
-		size_t idx;
 		iot_uint8_t i;
 #ifndef IOT_STACK_ONLY
-		/* free memory allocated for samples */
-		while ( lib->telemetry_count )
+		/* free memory allocated for telemetry */
+		while ( lib->telemetry_count > 0u )
 		{
 			struct iot_telemetry *const telemetry =
 				lib->telemetry_ptr[lib->telemetry_count - 1u];
@@ -1229,7 +1244,8 @@ iot_status_t iot_terminate(
 				--lib->telemetry_count;
 		}
 
-		while ( lib->action_count )
+		/* free memory allocated for actions */
+		while ( lib->action_count > 0u )
 		{
 			struct iot_action *const action =
 				lib->action_ptr[lib->action_count - 1u];
@@ -1238,7 +1254,8 @@ iot_status_t iot_terminate(
 				--lib->action_count;
 		}
 
-		while ( lib->alarm_count )
+		/* free memory allocated for alarms */
+		while ( lib->alarm_count > 0u )
 		{
 			struct iot_alarm *const alarm =
 				lib->alarm_ptr[lib->alarm_count - 1u];
@@ -1277,14 +1294,6 @@ iot_status_t iot_terminate(
 			iot_disconnect( lib, max_time_out );
 		/*os_socket_terminate();*/
 
-		/* set lib pointers to NULL */
-		for ( idx = 0u; idx < lib->action_count; ++idx )
-			lib->action_ptr[idx]->lib = NULL;
-		for ( idx = 0u; idx < lib->alarm_count; ++idx )
-			lib->alarm_ptr[idx]->lib = NULL;
-		for ( idx = 0u; idx < lib->telemetry_count; ++idx )
-			lib->telemetry_ptr[idx]->lib = NULL;
-
 		/* disable all plugins */
 		iot_plugin_disable_all( lib );
 
@@ -1304,8 +1313,10 @@ iot_status_t iot_terminate(
 #endif /* ifdef IOT_THREAD_SUPPORT */
 
 #ifndef IOT_STACK_ONLY
-		os_free_null( (void**)&lib->cfg_file_path );
-		os_free_null( (void**)&lib->device_id );
+		if ( lib->cfg_file_path )
+			os_free( lib->cfg_file_path );
+		if ( lib->device_id )
+			os_free( lib->device_id );
 		os_free( lib );
 #endif /* ifdef IOT_STACK_ONLY */
 	}
@@ -1319,7 +1330,6 @@ iot_timestamp_t iot_timestamp_now( void )
 	return time_stamp;
 }
 
-#if 0
 iot_bool_t iot_transaction_status(
 	const iot_transaction_t *txn,
 	iot_millisecond_t UNUSED(max_time_out) )
@@ -1327,20 +1337,11 @@ iot_bool_t iot_transaction_status(
 	iot_bool_t result = IOT_FALSE;
 	if ( txn )
 	{
-		size_t i;
-		result = IOT_TRUE;
-		for ( i = 0u; i < IOT_PROTOCOL_STACKS && result != IOT_FALSE;
-			++i )
-		{
-			iot_status_t txn_status = txn->status[i];
-			if ( txn_status != IOT_STATUS_SUCCESS &&
-				txn_status != IOT_STATUS_NOT_SUPPORTED )
-				result = IOT_FALSE;
-		}
+		if ( txn->status == IOT_STATUS_SUCCESS )
+			result = IOT_TRUE;
 	}
 	return result;
 }
-#endif
 
 iot_version_t iot_version( void )
 {

@@ -2,7 +2,7 @@
  * @file
  * @brief Source code for mocking the IoT client library
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <cmocka.h>
+#include <string.h> /* for strlen */
 /* clang-format on */
 
 /* mock definitions */
@@ -53,7 +54,8 @@ iot_status_t __wrap_iot_plugin_disable_all( iot_t *lib );
 iot_status_t __wrap_iot_plugin_enable( iot_t *lib, const char *name );
 void __wrap_iot_plugin_initialize( iot_plugin_t *p );
 void __wrap_iot_plugin_terminate( iot_plugin_t *p );
-iot_status_t __wrap_iot_telemetry_free( iot_telemetry_t *telemetry, iot_millisecond_t max_time_out );
+iot_status_t __wrap_iot_telemetry_free( iot_telemetry_t *telemetry,
+	iot_millisecond_t max_time_out );
 
 iot_status_t __wrap_iot_json_decode_bool(
 	const iot_json_decoder_t *json,
@@ -115,12 +117,12 @@ iot_status_t __wrap_iot_action_process( iot_t *lib_handle, iot_millisecond_t max
 
 iot_status_t __wrap_iot_action_free( iot_action_t *action, iot_millisecond_t max_time_out )
 {
-	return IOT_STATUS_SUCCESS;
+	return mock_type( iot_status_t );
 }
 
 iot_status_t __wrap_iot_alarm_deregister( iot_telemetry_t *alarm )
 {
-	return IOT_STATUS_SUCCESS;
+	return mock_type( iot_status_t );
 }
 
 size_t __wrap_iot_base64_encode( uint8_t *out, size_t out_len, const uint8_t *in, size_t in_len )
@@ -174,6 +176,7 @@ iot_status_t __wrap_iot_plugin_perform( iot_t *lib,
 
 unsigned int __wrap_iot_plugin_builtin_load( iot_t *lib, unsigned int max )
 {
+	lib->plugin_count = mock_type( unsigned int );
 	return 0u;
 }
 
@@ -203,7 +206,7 @@ void __wrap_iot_plugin_terminate( iot_plugin_t *p )
 iot_status_t __wrap_iot_telemetry_free( iot_telemetry_t *telemetry,
 	iot_millisecond_t max_time_out )
 {
-	return IOT_STATUS_SUCCESS;
+	return mock_type( iot_status_t );
 }
 
 iot_status_t __wrap_iot_json_decode_bool(
@@ -219,7 +222,7 @@ iot_json_decoder_t *__wrap_iot_json_decode_initialize(
 	size_t len,
 	unsigned int flags )
 {
-	return (iot_json_decoder_t*)0x1;
+	return mock_type( iot_json_decoder_t *);
 }
 
 iot_status_t __wrap_iot_json_decode_integer(
@@ -245,9 +248,17 @@ iot_status_t __wrap_iot_json_decode_object_iterator_key(
 	const char **key,
 	size_t *key_len )
 {
-	if ( key ) *key = NULL;
-	if ( key_len ) *key_len = 0u;
-	return IOT_STATUS_SUCCESS;
+	iot_status_t result = IOT_STATUS_FAILURE;
+	const char *str = mock_type( const char * );
+	size_t str_len = 0u;
+	if ( str )
+	{
+		result = IOT_STATUS_SUCCESS;
+		str_len = strlen( str );
+	}
+	if ( key ) *key = str;
+	if ( key_len ) *key_len = str_len;
+	return result;
 }
 
 iot_json_object_iterator_t *__wrap_iot_json_decode_object_iterator_next(
@@ -255,7 +266,7 @@ iot_json_object_iterator_t *__wrap_iot_json_decode_object_iterator_next(
 	iot_json_item_t *item,
 	iot_json_object_iterator_t *iter )
 {
-	return NULL;
+	return mock_type( iot_json_object_iterator_t * );
 }
 
 iot_status_t __wrap_iot_json_decode_object_iterator_value(
@@ -294,8 +305,12 @@ iot_status_t __wrap_iot_json_decode_string(
 	const char **value,
 	size_t *value_len )
 {
-	if ( value ) *value = NULL;
-	if ( value_len ) *value_len = 0u;
+	const char *str = mock_type( const char *);
+	size_t str_len = 0u;
+	if ( str )
+		str_len = strlen( str );
+	if ( value ) *value = str;
+	if ( value_len ) *value_len = str_len;
 	return IOT_STATUS_SUCCESS;
 }
 
@@ -308,6 +323,6 @@ iot_json_type_t __wrap_iot_json_decode_type(
 	const iot_json_decoder_t *json,
 	const iot_json_item_t *item )
 {
-	return IOT_JSON_TYPE_INTEGER;
+	return mock_type( iot_json_type_t );
 }
 
