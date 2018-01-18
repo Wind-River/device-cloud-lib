@@ -26,6 +26,10 @@
 #include <os.h>
 #include <curl/curl.h>
 
+#ifdef IOT_STACK_ONLY
+#define TR50_IN_BUFFER_SIZE                 1024u
+#endif /* ifdef IOT_STACK_ONLY */
+
 /** @brief Maximum length for a "thingkey" */
 #define TR50_THING_KEY_MAX_LEN               ( IOT_ID_MAX_LEN * 2 ) + 1u
 /** @brief number of seconds to show "Connection loss message" */
@@ -1834,7 +1838,9 @@ void tr50_on_message(
 	int UNUSED(qos),
 	iot_bool_t UNUSED(retain) )
 {
-	char buf[1024u];
+#ifdef IOT_STACK_ONLY
+	char buf[TR50_IN_BUFFER_SIZE];
+#endif
 	struct tr50_data *const data = (struct tr50_data *)(user_data);
 	iot_json_decoder_t *json;
 	const iot_json_item_t *root;
@@ -1848,7 +1854,11 @@ void tr50_on_message(
 	IOT_LOG( data->lib, IOT_LOG_TRACE,
 		"-->received: %.*s", (int)payload_len, (const char *)payload );
 
-	json = iot_json_decode_initialize( buf, 1024u, 0u );
+#ifdef IOT_STACK_ONLY
+	json = iot_json_decode_initialize( buf, TR50_IN_BUFFER_SIZE, 0u );
+#else
+	json = iot_json_decode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+#endif
 	if ( data && json &&
 		iot_json_decode_parse( json, payload, payload_len, &root,
 			NULL, 0u ) == IOT_STATUS_SUCCESS )
