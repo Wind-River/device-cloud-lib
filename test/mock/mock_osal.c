@@ -89,6 +89,7 @@ os_status_t __wrap_os_system_run_wait(
 	size_t out_len[2u],
 	os_millisecond_t max_time_out );
 os_bool_t __wrap_os_terminal_vt100_support( os_file_t stream );
+#ifdef IOT_THREAD_SUPPORT
 os_status_t __wrap_os_thread_condition_broadcast( os_thread_condition_t *cond );
 os_status_t __wrap_os_thread_condition_create( os_thread_condition_t *cond );
 os_status_t __wrap_os_thread_condition_destroy( os_thread_condition_t *cond );
@@ -112,6 +113,7 @@ os_status_t __wrap_os_thread_rwlock_read_unlock( os_thread_rwlock_t *lock );
 os_status_t __wrap_os_thread_rwlock_write_lock( os_thread_rwlock_t *lock );
 os_status_t __wrap_os_thread_rwlock_write_unlock( os_thread_rwlock_t *lock );
 os_status_t __wrap_os_thread_wait( os_thread_t *thread );
+#endif /* ifdef IOT_THREAD_SUPPORT */
 os_status_t __wrap_os_time( os_timestamp_t *time_stamp, os_bool_t *up_time );
 int __wrap_os_vfprintf( os_file_t stream, const char *format, va_list args )
 	__attribute__((format(printf,2,0)));
@@ -710,6 +712,7 @@ os_bool_t __wrap_os_terminal_vt100_support( os_file_t stream )
 	return mock_type( os_bool_t );
 }
 
+#ifdef IOT_THREAD_SUPPORT
 os_status_t __wrap_os_thread_condition_broadcast( os_thread_condition_t *cond )
 {
 	/* ensure this function is called meeting pre-requirements */
@@ -852,6 +855,7 @@ os_status_t __wrap_os_thread_wait( os_thread_t *thread )
 	assert_non_null( thread );
 	return OS_STATUS_FAILURE;
 }
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 int __wrap_os_printf( const char *format, ... )
 {

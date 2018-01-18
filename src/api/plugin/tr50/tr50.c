@@ -34,14 +34,6 @@
 #define TR50_MQTT_QOS                        1
 /** @brief Maximum concurrent file transfers */
 #define TR50_FILE_TRANSFER_MAX               10u
-/** @brief Default value for ssl verify host */
-#define TR50_DEFAULT_SSL_VERIFY_HOST         2u
-/** @brief Default value for ssl verify peer */
-#define TR50_DEFAULT_SSL_VERIFY_PEER         1u
-/** @brief File transfer progress interval in seconds */
-#define TR50_FILE_TRANSFER_PROGRESS_INTERVAL 5.0
-/** @brief Extension for temporary downloaded file */
-#define TR50_DOWNLOAD_EXTENSION              ".part"
 /** @brief Time interval in seconds to check file
  *         transfer queue */
 #define TR50_FILE_QUEUE_CHECK_INTERVAL       30 * IOT_MILLISECONDS_IN_SECOND /* 30 seconds */
@@ -50,6 +42,17 @@
 #define TR50_FILE_TRANSFER_EXPIRY_TIME       1 * IOT_MINUTES_IN_HOUR * \
                                              IOT_SECONDS_IN_MINUTE * \
                                              IOT_MILLISECONDS_IN_SECOND /* 1 hour */
+
+#ifdef IOT_THREAD_SUPPORT
+/** @brief File transfer progress interval in seconds */
+#define TR50_FILE_TRANSFER_PROGRESS_INTERVAL 5.0
+/** @brief Default value for ssl verify host */
+#define TR50_DEFAULT_SSL_VERIFY_HOST         2u
+/** @brief Default value for ssl verify peer */
+#define TR50_DEFAULT_SSL_VERIFY_PEER         1u
+/** @brief Extension for temporary downloaded file */
+#define TR50_DOWNLOAD_EXTENSION              ".part"
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 /** @brief structure containing informaiton about a file transfer */
 struct tr50_file_transfer
@@ -454,6 +457,7 @@ static IOT_SECTION iot_status_t tr50_file_request_send(
 	const iot_file_transfer_t* file_transfer,
 	const iot_options_t *options );
 
+#ifdef IOT_THREAD_SUPPORT
 /**
  * @brief a thread to perform file transfer
  *
@@ -499,6 +503,7 @@ static IOT_SECTION int tr50_file_progress_old(
 	void *user_data,
 	double down_total, double down_now,
 	double up_total, double up_now );
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 /**
  * @brief checks file transfer queue and execute those which need retrying
@@ -1348,6 +1353,7 @@ iot_status_t tr50_file_request_send(
 	return result;
 }
 
+#ifdef IOT_THREAD_SUPPORT
 OS_THREAD_DECL tr50_file_transfer(
 	void* arg )
 {
@@ -1763,6 +1769,7 @@ int tr50_file_progress_old(
 		(curl_off_t)down_total, (curl_off_t)down_now,
 		(curl_off_t)up_total, (curl_off_t)up_now );
 }
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 void tr50_file_queue_check(
 	struct tr50_data *data )
@@ -1774,6 +1781,7 @@ void tr50_file_queue_check(
 			now - data->file_queue_last_checked >=
 			TR50_FILE_QUEUE_CHECK_INTERVAL )
 		{
+#ifdef IOT_THREAD_SUPPORT
 			iot_uint8_t i = 0u;
 			for ( i= 0u;
 				i < data->file_transfer_count;
@@ -1792,6 +1800,7 @@ void tr50_file_queue_check(
 						transfer->retry_time = 0u;
 				}
 			}
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			data->file_queue_last_checked = now;
 		}
 	}
@@ -2119,6 +2128,7 @@ void tr50_on_message(
 										}
 									}
 
+#ifdef IOT_THREAD_SUPPORT
 									if ( found_transfer )
 									{
 										os_thread_t thread;
@@ -2129,6 +2139,7 @@ void tr50_on_message(
 												"Failed to create a thread to transfer "
 												"file for message #%u", msg_id );
 									}
+#endif /* ifdef IOT_THREAD_SUPPORT */
 								}
 							}
 						}

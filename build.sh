@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -x
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,9 +65,9 @@ cd ..
 rm -rf libwebsockets
 
 # operating system abstraction layer
-git clone ssh://git@github.com/Wind-River/device-cloud-osal.git device-cloud-osal
+git clone https://github.com/Wind-River/device-cloud-osal.git device-cloud-osal
 cd device-cloud-osal
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DSOAL_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DOSAL_WRAP:BOOL=ON .
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DOSAL_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DOSAL_WRAP:BOOL=ON .
 make
 make install
 cd ..

@@ -1,7 +1,7 @@
 /**
  * @brief Source file for the device-manager app.
  *
- * @copyright Copyright (C) 2016-2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1171,7 +1171,7 @@ iot_status_t device_manager_initialize( const char *app_path,
 
 #if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT )
 			if ( os_thread_mutex_create( file_transfer_lock ) != OS_STATUS_SUCCESS )
-				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s", "Failed to create file_transfer_mutex" );
+				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s", "Failed to create lock for file transfer" );
 #endif /* if defined( IOT_THREAD_SUPPORT ) && !defined( NO_FILEIO_SUPPORT ) */
 			if ( device_manager_actions_register( device_manager ) != IOT_STATUS_SUCCESS )
 				IOT_LOG( iot_lib, IOT_LOG_ERROR, "%s",	"Failed to register device-manager actions" );
