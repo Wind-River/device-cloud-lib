@@ -857,6 +857,7 @@ iot_status_t tr50_check_mailbox(
 		iot_json_encode_object_start( req_json, "cmd" );
 		iot_json_encode_string( req_json, "command", "mailbox.check" );
 		iot_json_encode_object_start( req_json, "params" );
+		iot_json_encode_integer( req_json, "limit", IOT_ACTION_QUEUE_MAX );
 		iot_json_encode_bool( req_json, "autoComplete", IOT_FALSE );
 		iot_json_encode_object_end( req_json );
 		iot_json_encode_object_end( req_json );
