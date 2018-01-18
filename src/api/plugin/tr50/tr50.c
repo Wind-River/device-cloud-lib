@@ -525,7 +525,7 @@ iot_status_t tr50_action_complete(
 		const char *source = iot_action_request_source( request );
 
 		result = IOT_STATUS_SUCCESS;
-		if ( os_strncmp( source, "tr50", 4 ) == 0 )
+		if ( source && os_strncmp( source, "tr50", 4 ) == 0 )
 		{
 			const char *req_id;
 			result = iot_action_request_option_get(
