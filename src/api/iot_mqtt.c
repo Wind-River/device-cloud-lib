@@ -506,6 +506,8 @@ int iot_mqtt_on_message(
 		(size_t)message->payloadlen, message->qos, message->retained );
 
 	/* message succesfully handled */
+	MQTTClient_freeMessage( &message );
+	MQTTClient_free( topic );
 	return (int)IOT_TRUE;
 }
 #endif /* else IOT_MQTT_MOSQUITTO */
