@@ -842,11 +842,10 @@ iot_status_t tr50_attribute_publish(
 
 			msg = iot_json_encode_dump( json );
 			IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", msg );
-			iot_mqtt_publish( data->mqtt, "api",
+			result = iot_mqtt_publish( data->mqtt, "api",
 				msg, os_strlen( msg ), TR50_MQTT_QOS,
 				IOT_FALSE, NULL );
 			iot_json_encode_terminate( json );
-			result = IOT_STATUS_SUCCESS;
 		}
 	}
 	return result;
@@ -1231,6 +1230,8 @@ iot_status_t tr50_execute(
 					options );
 				break;
 			case IOT_OPERATION_ITERATION:
+				if ( data )
+					iot_mqtt_loop( data->mqtt, max_time_out );
 				tr50_file_queue_check( data );
 				break;
 			case IOT_OPERATION_ACTION_COMPLETE:

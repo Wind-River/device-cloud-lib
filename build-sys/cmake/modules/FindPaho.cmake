@@ -9,12 +9,16 @@
 #
 # If found the following will be defined:
 # - PAHO_FOUND, If false, paho was not found on the system
-# - PAHO_INCLUDE_DIR, path to directory containing paho include files
 # - PAHO_SSL_SUPPORT, If true, SSL supported version of library found
-# - PAHO_LIBRARIES, the library to link against
+# - PAHO_INCLUDE_DIR, path to directory containing paho include files (based on PAHO_ASYNC)
+# - PAHO_LIBRARIES, the library to link against (based on PAHO_ASYNC)
 # - PAHO_VERSION, version of paho that was found
+# - PAHO_ASYNC_INCLUDE_DIR, path to directory containing paho async include files
+# - PAHO_ASYNC_LIBRARIES, path to directory containing paho async libraries
+# - PAHO_SYNC_INCLUDE_DIR, path to directory containing paho async include files
+# - PAHO_SYNC_LIBRARIES, path to directory containing paho async libraries
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,30 +33,38 @@
 
 include( FindPackageHandleStandardArgs )
 
-set( PAHO_TYPE     "MQTTClient" )
-set( PAHO_LIB_NAME "paho-mqtt3c" )
-if( PAHO_ASYNC )
-	set( PAHO_TYPE     "MQTTAsync" )
-	set( PAHO_LIB_NAME "paho-mqtt3a" )
-endif()
+# Define variables for paho synchronous & asynchronous version of the library
+set( PAHO_LIB_TYPES          "ASYNC" "SYNC" )
+set( PAHO_ASYNC_TYPE         "MQTTAsync" )
+set( PAHO_ASYNC_LIB_NAME     "paho-mqtt3a" )
+set( PAHO_SYNC_TYPE          "MQTTClient" )
+set( PAHO_SYNC_LIB_NAME      "paho-mqtt3c" )
 
-if( PAHO_USE_SSL )
-	set( PAHO_LIB_NAME "${PAHO_LIB_NAME}s" )
-endif( PAHO_USE_SSL )
+# Set the type of paho library the user would like to use
+set( PAHO_LIB "SYNC" )
+if ( PAHO_ASYNC )
+	set( PAHO_LIB "ASYNC" )
+endif( PAHO_ASYNC )
 
 # List of libraries to search for
 set( PAHO_LIBS )
-foreach( _NAME ${PAHO_LIB_NAME} )
-	set( PAHO_LIBS ${PAHO_LIBS}
-		"${CMAKE_SHARED_LIBRARY_PREFIX}${_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}"
-		"${CMAKE_STATIC_LIBRARY_PREFIX}${_NAME}-static${CMAKE_STATIC_LIBRARY_SUFFIX}"
-	)
-endforeach( _NAME )
+foreach( _LIB_TYPE ${PAHO_LIB_TYPES} )
+	# Support for SSL library
+	if( PAHO_USE_SSL )
+		set( PAHO_${_LIB_TYPE}_LIB_NAME "${PAHO_${_LIB_TYPE}_LIB_NAME}s" )
+	endif( PAHO_USE_SSL )
 
-# Reverse list if static libraries are preferred
-if ( PAHO_PREFER_STATIC )
-	list( REVERSE PAHO_LIBS )
-endif()
+	# List of SSL libraries to find
+	set( PAHO_${_LIB_TYPE}_LIBS
+		"${CMAKE_SHARED_LIBRARY_PREFIX}${PAHO_${_LIB_TYPE}_LIB_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}"
+		"${CMAKE_STATIC_LIBRARY_PREFIX}${PAHO_${_LIB_TYPE}_LIB_NAME}-static${CMAKE_STATIC_LIBRARY_SUFFIX}"
+	)
+
+	# Reverse list if static libraries are preferred
+	if ( PAHO_PREFER_STATIC )
+		list( REVERSE PAHO_${_LIB_TYPE}_LIBS )
+	endif()
+endforeach( _LIB_TYPE )
 
 # Try and find paths
 set( LIB_SUFFIX "" )
@@ -63,13 +75,26 @@ endif()
 
 # Allow the ability to specify a global dependency root directory
 if ( NOT PAHO_ROOT_DIR )
-	set( PAHO_ROOT_DIR ${DEPENDS_ROOT_DIR} )
+	set( PAHO_ROOT_DIR "${DEPENDS_ROOT_DIR}" )
 endif()
 
-find_path( PAHO_INCLUDE_DIR NAMES "${PAHO_TYPE}.h" DOC "paho include directory"
-	PATHS "${PAHO_ROOT_DIR}/include" )
-find_library( PAHO_LIBRARIES NAMES ${PAHO_LIBS} DOC "Required paho libraries"
-	PATHS "${PAHO_ROOT_DIR}/lib${LIB_SUFFIX}" )
+foreach( _LIB_TYPE ${PAHO_LIB_TYPES} )
+	string( TOLOWER "${_LIB_TYPE}" _LIB_TYPE_LC )
+	find_path( PAHO_${_LIB_TYPE}_INCLUDE_DIR NAMES
+		"${PAHO_${_LIB_TYPE}_TYPE}.h"
+		DOC "paho ${_LIB_TYPE_LC} include directory"
+		PATHS "${PAHO_ROOT_DIR}/include" )
+	find_library( PAHO_${_LIB_TYPE}_LIBRARIES NAMES
+		${PAHO_${_LIB_TYPE}_LIBS}
+		DOC "Required paho ${_LIB_TYPE_LC} libraries"
+		PATHS "${PAHO_ROOT_DIR}/lib${LIB_SUFFIX}" )
+endforeach( _LIB_TYPE )
+
+set( PAHO_TYPE "${PAHO_${PAHO_LIB}_TYPE}" )
+set( PAHO_INCLUDE_DIR "${PAHO_${PAHO_LIB}_INCLUDE_DIR}" CACHE
+	PATH "paho include directory" FORCE )
+set( PAHO_LIBRARIES "${PAHO_${PAHO_LIB}_LIBRARIES}" CACHE
+	FILEPATH "Required paho libraries" FORCE )
 
 # If SSL version of paho then set applicable variable
 if ( PAHO_LIBRARIES AND PAHO_USE_SSL )

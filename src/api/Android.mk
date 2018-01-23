@@ -45,7 +45,7 @@ LOCAL_C_INCLUDES := $(iot_c_includes) external/hdc/libarchive/contrib/android/in
 LOCAL_CFLAGS += -DIOT_PLUGIN_BUILTIN -DOPENSSL -DJSMN_PARENT_LINKS -DJSMN_STRICT
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/public
 LOCAL_SHARED_LIBRARIES := libcutils libdl libjansson libmosquitto libext2_uuid libcrypto libssl libcurl
-LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs libtr50 libpaho-mqtt3cs libiotjsmn libarchive
+LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs libtr50 libpaho-mqtt3as libiotjsmn libarchive
 
 LOCAL_MODULE := libiot
 LOCAL_SRC_FILES := \

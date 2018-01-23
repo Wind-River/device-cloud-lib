@@ -2,7 +2,7 @@
  * @file
  * @brief header file declaring common mqtt function implementations
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,8 @@ typedef void (*iot_mqtt_message_callback_t)(
  *
  * @retval         NULL                failed to connect
  * @retval         !NULL               successful connection established
+ *
+ * @see iot_mqtt_disconnect
  */
 IOT_API IOT_SECTION iot_mqtt_t* iot_mqtt_connect(
 	const char *client_id,
@@ -131,6 +133,8 @@ IOT_API IOT_SECTION iot_mqtt_t* iot_mqtt_connect(
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_FAILURE          operation failed
  * @retval IOT_STATUS_SUCCESS          operation successful
+ *
+ * @see iot_mqtt_connect
  */
 IOT_API IOT_SECTION iot_status_t iot_mqtt_disconnect(
 	iot_mqtt_t* mqtt
@@ -162,6 +166,16 @@ IOT_API IOT_SECTION iot_status_t iot_mqtt_get_connection_status(
  * @retval IOT_STATUS_SUCCESS                    always
  */
 IOT_API IOT_SECTION iot_status_t iot_mqtt_initialize( void );
+
+/**
+ * @brief Called every loop iteration
+ *
+ * @param[in]      mqtt                MQTT object to subscribe to
+ * @param[in]      max_time_out        maximum time to wait
+ *                                     (0 = wait indefinitely)
+ */
+IOT_API IOT_SECTION iot_status_t iot_mqtt_loop( iot_mqtt_t *mqtt,
+	iot_millisecond_t max_time_out );
 
 /**
  * @brief publishes a message to the mqtt connection to a specified topic
