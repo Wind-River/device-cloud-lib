@@ -3,8 +3,7 @@
 #
 # Common spot to define compiler flags for various compilers
 #
-#
-# Copyright (C) 2016 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +17,21 @@
 #
 
 include( CheckCCompilerFlag )
+
+### SET_COMPILER_FLAG_IF_SUPPORTED
+# checks to see if a particular compiler supports the given flag and
+# added the definition to the compile if it is supported
+# Arguments:
+# - flag           name of first compiler flag to test
+# - ...            additional compiler flags to test
+macro( SET_COMPILER_FLAG_IF_SUPPORTED FLAG )
+	foreach( _flag ${FLAG} ${ARGN} )
+		check_c_compiler_flag( "${_flag}" _flag_exists )
+		if ( _flag_exists )
+			add_definitions( "${_flag}" )
+		endif( _flag_exists )
+	endforeach( _flag )
+endmacro( SET_COMPILER_FLAG_IF_SUPPORTED )
 
 if ( CMAKE_C_COMPILER_ID MATCHES "(Clang|GNU)" )
 	set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic" )

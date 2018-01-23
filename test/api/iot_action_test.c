@@ -6809,8 +6809,8 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_action_time_limit_bad_action ),
 		cmocka_unit_test( test_iot_action_time_limit_set_valid )
 	};
-	MOCK_SYSTEM_ENABLED = 1;
+	test_initialize( argc, argv );
 	result = cmocka_run_group_tests( tests, NULL, NULL );
-	MOCK_SYSTEM_ENABLED = 0;
+	test_finalize( argc, argv );
 	return result;
 }

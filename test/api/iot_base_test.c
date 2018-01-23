@@ -2662,8 +2662,8 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_version ),
 		cmocka_unit_test( test_iot_version_str )
 	};
-	MOCK_SYSTEM_ENABLED = 1;
+	test_initialize( argc, argv );
 	result = cmocka_run_group_tests( tests, NULL, NULL );
-	MOCK_SYSTEM_ENABLED = 0;
+	test_finalize( argc, argv );
 	return result;
 }

@@ -15,8 +15,8 @@
  * OR CONDITIONS OF ANY KIND, either express or implied."
  */
 
-#ifndef UNIT_TEST_H
-#define UNIT_TEST_H
+#ifndef TEST_SUPPORT_H
+#define TEST_SUPPORT_H
 
 /* header files to include before cmocka */
 /* clang-format off */
@@ -43,6 +43,14 @@ extern "C" {
 
 /* functions */
 /**
+ * @brief Called to destory test support system
+ *
+ * @param[in]      argc                number of command-line arguments
+ * @param[in]      argv                array of command-line arguments
+ */
+void test_finalize( int argc, char **argv );
+
+/**
  * @brief Generates a random string for testing
  *
  * @note The returned string is null terminated
@@ -52,6 +60,38 @@ extern "C" {
  *                        null-terminated (thus random characters are: len - 1u)
  */
 void test_generate_random_string( char *dest, size_t len );
+
+/**
+ * @brief Called to initialize test support system
+ *
+ * @param[in]      argc                number of command-line arguments
+ * @param[in]      argv                array of command-line arguments
+ */
+void test_initialize( int argc, char **argv );
+
+/**
+ * @brief Checks to see if an argument was passed on the command line
+ *
+ * @param[in]      argc                number of command-line arguments
+ * @param[in]      argv                array of command-line arguments
+ * @param[in]      name                name of argument (NULL if none)
+ * @param[in]      abbrev              abbreviation character ('\0' if none)
+ * @param[in]      idx                 matching index if argument specified
+ *                                     multiple times (0 for first match)
+ * @param[out]     value               value set (NULL if no output value)
+ *
+ *
+ * @retval 0  argument found
+ * @retval -1 argument not found
+ * @retval -2 argument found, but no value found
+ */
+int test_parse_arg(
+	int argc,
+	char **argv,
+	const char *name,
+	const char abbrev,
+	unsigned int idx,
+	const char **value );
 
 /* macros */
 /**
@@ -91,4 +131,4 @@ void test_generate_random_string( char *dest, size_t len );
  */
 extern int MOCK_SYSTEM_ENABLED;
 
-#endif /* ifndef UNIT_TEST_H */
+#endif /* ifndef TEST_SUPPORT_H */

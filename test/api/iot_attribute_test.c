@@ -122,8 +122,8 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_attribute_publish_string_transmit_fail ),
 		cmocka_unit_test( test_iot_attribute_publish_string_valid )
 	};
-	MOCK_SYSTEM_ENABLED = 1;
+	test_initialize( argc, argv );
 	result = cmocka_run_group_tests( tests, NULL, NULL );
-	MOCK_SYSTEM_ENABLED = 0;
+	test_finalize( argc, argv );
 	return result;
 }

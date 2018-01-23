@@ -2,7 +2,7 @@
  * @file
  * @brief unit testing for IoT library (alarm source file)
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -450,8 +450,8 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_alarm_publish_string_null_message ),
 		cmocka_unit_test( test_iot_alarm_publish_string_empty_message )
 	};
-	MOCK_SYSTEM_ENABLED = 1;
+	test_initialize( argc, argv );
 	result = cmocka_run_group_tests( tests, NULL, NULL );
-	MOCK_SYSTEM_ENABLED = 0;
+	test_finalize( argc, argv );
 	return result;
 }
