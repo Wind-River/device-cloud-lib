@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2015-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,12 @@
 
 include( CMakeParseArguments )
 
+# Creates a drop-down list of options for a user to select in the cmake-gui
+# Arguments:
+#   OUTPUT_VAR - name of the output variable
+#   DESCRIPTION ... - description for the option (OPTIONAL)
+#   DEAFULT ... - default value for the list
+#   ... - list of options to put in the drop down list
 function( OPTION_SELECT OUTPUT_VAR )
 	cmake_parse_arguments( DROPDOWN "" "DESCRIPTION;DEFAULT" "" ${ARGN} )
 	set( DROPDOWN_OPTIONS ${DROPDOWN_UNPARSED_ARGUMENTS} )
@@ -41,3 +47,15 @@ function( OPTION_SELECT OUTPUT_VAR )
 	endif ( NOT ";${DROPDOWN_OPTIONS_UPPER};" MATCHES ";${CURRENT_OPTION_UPPER};" )
 endfunction( OPTION_SELECT )
 
+# Similiar to the cmake "option" command, except that it ensures that the
+# given variable has a value defined and is not defined to "blank"
+# Arguments:
+#   VAR_NAME - name of the variable
+#   VAR_DESCRIPTION - description of the variable
+#   ... - initial value for th eoption (ON or OFF)
+function( OPTION_ENSURE_SET VAR_NAME VAR_DESCRIPTION )
+	if ( DEFINED ${VAR_NAME} AND "x${${VAR_NAME}}" STREQUAL "x" )
+		unset( ${VAR_NAME} CACHE )
+	endif ( DEFINED ${VAR_NAME} AND "x${${VAR_NAME}}" STREQUAL "x" )
+	option( ${ARGV} )
+endfunction( OPTION_ENSURE_SET )

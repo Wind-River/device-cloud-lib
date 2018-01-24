@@ -55,8 +55,8 @@ option_select( IOT_MQTT_LIBRARY
 	DESCRIPTION "MQTT Library to use"
 	DEFAULT "paho" "mosquitto" "paho"
 )
-option( IOT_THREAD_SUPPORT   "support the use of threads" ON )
-option( IOT_STACK_ONLY       "build library without the use of the heap" OFF )
+option_ensure_set( IOT_THREAD_SUPPORT   "support the use of threads" ON )
+option_ensure_set( IOT_STACK_ONLY       "build library without the use of the heap" OFF )
 
 # Enforce Build Type
 # set a default build type if none was specified
