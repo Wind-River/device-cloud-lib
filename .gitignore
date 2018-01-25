@@ -9,6 +9,7 @@ CPackConfig.cmake
 CPackOptions.cmake
 CPackSourceConfig.cmake
 CTestTestfile.cmake
+deps/
 Doxyfile-api
 Doxyfile-dev
 footer.html
@@ -19,6 +20,7 @@ hdc-*.tar.gz
 hdc-*.tar.Z
 install_manifest.txt
 iot_build.h
+iot-connect.schema.json.*
 iot_plugin_builtin.c
 iot.make
 lib/
