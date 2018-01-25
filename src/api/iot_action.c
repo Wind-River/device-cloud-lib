@@ -1322,25 +1322,6 @@ iot_status_t iot_action_process(
 			/* free memory associated with the request */
 			iot_action_request_free( request );
 
-			/* mark request spot as clear */
-#ifdef IOT_THREAD_SUPPORT
-			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
-			{
-				os_thread_mutex_lock(
-					&lib->worker_mutex );
-			}
-#endif /* ifdef IOT_THREAD_SUPPORT */
-			os_memzero( request,
-				sizeof( struct iot_action_request ) );
-			--lib->request_queue_free_count;
-
-			/* add request space to last free spot */
-			lib->request_queue_free[lib->request_queue_free_count] = request;
-#ifdef  IOT_THREAD_SUPPORT
-			if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
-				os_thread_mutex_unlock(
-					&lib->worker_mutex );
-#endif /* ifdef IOT_THREAD_SUPPORT */
 			result = IOT_STATUS_SUCCESS;
 		}
 	}
@@ -1824,8 +1805,9 @@ iot_status_t iot_action_request_free(
 	iot_action_request_t *request )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( request )
+	if ( request && request->lib )
 	{
+		iot_t *const lib = request->lib;
 #ifndef IOT_STACK_ONLY
 		size_t i;
 
@@ -1848,6 +1830,26 @@ iot_status_t iot_action_request_free(
 		os_free_null( (void**)&request->error );
 		os_free_null( (void**)&request->name );
 #endif /* ifndef IOT_STACK_ONLY */
+
+		os_memzero( request, sizeof( struct iot_action_request ) );
+
+		/* mark request spot as clear */
+#ifdef IOT_THREAD_SUPPORT
+		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
+		{
+			os_thread_mutex_lock( &lib->worker_mutex );
+		}
+#endif /* ifdef IOT_THREAD_SUPPORT */
+
+		/* add request space to last free spot */
+		--lib->request_queue_free_count;
+		lib->request_queue_free[lib->request_queue_free_count] = request;
+
+#ifdef  IOT_THREAD_SUPPORT
+		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
+			os_thread_mutex_unlock( &lib->worker_mutex );
+#endif /* ifdef IOT_THREAD_SUPPORT */
+
 		result = IOT_STATUS_SUCCESS;
 	}
 	return result;

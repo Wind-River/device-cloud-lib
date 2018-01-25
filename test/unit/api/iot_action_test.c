@@ -2322,9 +2322,13 @@ static void test_iot_action_process_actions_empty( void **state )
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 0u;
+	lib.request_queue[0].lib = &lib;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -2367,6 +2371,7 @@ static void test_iot_action_process_actions_full( void **state )
 		lib.action_ptr[i]->callback = &test_callback_func;
 	}
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
 		lib.request_queue_free[i] = &lib.request_queue[i];
 	lib.request_queue_wait_count = 1u;
@@ -2420,6 +2425,7 @@ static void test_iot_action_process_actions_not_found( void **state )
 		lib.action_ptr[i]->callback = &test_callback_func;
 	}
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
 		lib.request_queue_free[i] = &lib.request_queue[i];
 	lib.request_queue_wait_count = 1u;
@@ -2472,6 +2478,7 @@ static void test_iot_action_process_command_no_return( void **state )
 	strncpy( lib.action_ptr[0]->command, "script_path", IOT_NAME_MAX_LEN );
 	lib.action_ptr[0]->flags = IOT_ACTION_NO_RETURN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
 		lib.request_queue_free[i] = &lib.request_queue[i];
 	lib.request_queue_wait_count = 1u;
@@ -2549,6 +2556,7 @@ static void test_iot_action_process_command_parameter_bool( void **state )
 	lib.action_ptr[0]->parameter[0].data.type = IOT_TYPE_BOOL;
 	lib.action_ptr[0]->parameter[0].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
 		lib.request_queue_free[i] = &lib.request_queue[i];
 	lib.request_queue_wait_count = 1u;
@@ -2659,6 +2667,7 @@ static void test_iot_action_process_command_parameter_float( void **state )
 	lib.action_ptr[0]->parameter[1].data.type = IOT_TYPE_FLOAT64;
 	lib.action_ptr[0]->parameter[1].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
 		lib.request_queue_free[i] = &lib.request_queue[i];
 	lib.request_queue_wait_count = 1u;
@@ -2784,6 +2793,7 @@ static void test_iot_action_process_command_parameter_int( void **state )
 	lib.action_ptr[0]->parameter[3].data.type = IOT_TYPE_INT64;
 	lib.action_ptr[0]->parameter[3].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
 		lib.request_queue_free[i] = &lib.request_queue[i];
 	lib.request_queue_wait_count = 1u;
@@ -2912,8 +2922,12 @@ static void test_iot_action_process_command_parameter_location( void **state )
 	lib.action_ptr[0]->parameter[0].data.type = IOT_TYPE_LOCATION;
 	lib.action_ptr[0]->parameter[0].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3034,8 +3048,12 @@ static void test_iot_action_process_command_parameter_null( void **state )
 	lib.action_ptr[0]->parameter[0].data.type = IOT_TYPE_NULL;
 	lib.action_ptr[0]->parameter[0].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3144,8 +3162,12 @@ static void test_iot_action_process_command_parameter_raw( void **state )
 	lib.action_ptr[0]->parameter[0].data.type = IOT_TYPE_RAW;
 	lib.action_ptr[0]->parameter[0].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3279,8 +3301,12 @@ static void test_iot_action_process_command_parameter_string( void **state )
 	lib.action_ptr[0]->parameter[0].data.type = IOT_TYPE_STRING;
 	lib.action_ptr[0]->parameter[0].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3413,8 +3439,12 @@ static void test_iot_action_process_command_parameter_string_max_len( void **sta
 	lib.action_ptr[0]->parameter[0].data.type = IOT_TYPE_STRING;
 	lib.action_ptr[0]->parameter[0].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3553,8 +3583,12 @@ static void test_iot_action_process_command_parameter_uint( void **state )
 	lib.action_ptr[0]->parameter[3].data.type = IOT_TYPE_UINT64;
 	lib.action_ptr[0]->parameter[3].type = IOT_PARAMETER_IN;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3657,8 +3691,12 @@ static void test_iot_action_process_command_script_return_fail( void **state )
 	lib.action_ptr[0]->callback = NULL;
 	strncpy( lib.action_ptr[0]->command, "script_path", IOT_NAME_MAX_LEN );
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3728,8 +3766,12 @@ static void test_iot_action_process_command_system_run_fail( void **state )
 	lib.action_ptr[0]->callback = NULL;
 	strncpy( lib.action_ptr[0]->command, "script_path", IOT_NAME_MAX_LEN );
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[0].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3786,8 +3828,12 @@ static void test_iot_action_process_command_valid( void **state )
 	lib.action_ptr[0]->callback = NULL;
 	strncpy( lib.action_ptr[0]->command, "script_path", PATH_MAX );
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3854,8 +3900,12 @@ static void test_iot_action_process_exclusive( void **state )
 	lib.action_ptr[0]->callback = &test_callback_func;
 	lib.action_ptr[0]->flags = IOT_ACTION_EXCLUSIVE_APP;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[0].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3902,8 +3952,12 @@ static void test_iot_action_process_lib_to_quit( void **state )
 	lib.action_ptr[0]->lib = &lib;
 	lib.action_ptr[0]->callback = &test_callback_func;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -3949,8 +4003,12 @@ static void test_iot_action_process_no_handler( void **state )
 	lib.action_ptr[0]->callback = NULL;
 	lib.action_ptr[0]->command = NULL;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4011,8 +4069,12 @@ static void test_iot_action_process_options( void **state )
 		lib.action_ptr[i]->callback = &test_callback_func;
 	}
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4102,8 +4164,12 @@ static void test_iot_action_process_parameters_bad_type( void **state )
 	lib.action_ptr[1]->parameter[0].data.type = IOT_TYPE_INT32;
 	lib.action_ptr[1]->parameter[0].data.has_value = IOT_FALSE;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4204,8 +4270,12 @@ static void test_iot_action_process_parameters_missing_required( void **state )
 	lib.action_ptr[1]->parameter[0].data.type = IOT_TYPE_STRING;
 	lib.action_ptr[1]->parameter[0].data.has_value = IOT_FALSE;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4268,8 +4338,12 @@ static void test_iot_action_process_parameters_undeclared( void **state )
 		lib.action_ptr[i]->callback = &test_callback_func;
 	}
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4348,8 +4422,12 @@ static void test_iot_action_process_parameters_unknown_out( void **state )
 		lib.action_ptr[i]->callback = &test_callback_func;
 	}
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4443,8 +4521,12 @@ static void test_iot_action_process_parameters_required_out( void **state )
 		++lib.action_ptr[i]->parameter_count;
 	}
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4535,8 +4617,12 @@ static void test_iot_action_process_parameters_valid( void **state )
 	lib.action_ptr[1]->parameter[0].data.type = IOT_TYPE_STRING;
 	lib.action_ptr[1]->parameter[0].data.has_value = IOT_FALSE;
 	lib.request_queue_wait[0] = &lib.request_queue[0];
+	lib.request_queue[0].lib = &lib;
 	for ( i = 1u; i < IOT_ACTION_QUEUE_MAX; ++i )
+	{
+		lib.request_queue[i].lib = &lib;
 		lib.request_queue_free[i] = &lib.request_queue[i];
+	}
 	lib.request_queue_wait_count = 1u;
 	lib.request_queue_free_count = 1u;
 #ifdef IOT_STACK_ONLY
@@ -4620,6 +4706,7 @@ static void test_iot_action_process_valid( void **state )
 	lib.request_queue_free_count = 1u;
 	for ( i = 0u; i < lib.request_queue_wait_count; ++i )
 	{
+		lib.request_queue[i].lib = &lib;
 #ifdef IOT_STACK_ONLY
 		lib.request_queue[i].name = lib.request_queue[i]._name;
 #else
@@ -4710,6 +4797,7 @@ static void test_iot_action_process_wait_queue_full( void **state )
 	lib.request_queue_free_count = IOT_ACTION_QUEUE_MAX;
 	for ( i = 0u; i < IOT_ACTION_QUEUE_MAX; ++i )
 	{
+		lib.request_queue[i].lib = &lib;
 #ifdef IOT_STACK_ONLY
 		lib.request_queue[i].name = lib.request_queue[i]._name;
 #else
@@ -4967,14 +5055,15 @@ static void test_iot_action_request_allocate_long_name_and_source( void **state 
 	char action_name[IOT_NAME_MAX_LEN + 2u];
 	char source_name[IOT_ID_MAX_LEN + 2u];
 	bzero( &iot_lib, sizeof( struct iot ) );
-#ifndef IOT_STACK_ONLY
-	will_return( __wrap_os_malloc, 1 ); /* for names */
-#endif
 	iot_lib.request_queue_free[0u] = &req;
 	test_generate_random_string( action_name, IOT_NAME_MAX_LEN + 2u );
 	test_generate_random_string( source_name, IOT_ID_MAX_LEN + 2u);
+#ifndef IOT_STACK_ONLY
+	will_return( __wrap_os_malloc, 1 ); /* for names */
+#endif
 	result = iot_action_request_allocate( &iot_lib, action_name, source_name );
 	assert_non_null( result );
+	assert_ptr_equal( result, &req );
 
 #ifndef IOT_STACK_ONLY
 	os_free( result->name );
@@ -4999,14 +5088,15 @@ static void test_iot_action_request_allocate_no_memory( void **state )
 	struct iot_action_request *result;
 	struct iot_action_request req;
 	bzero( &iot_lib, sizeof( struct iot ) );
+	iot_lib.request_queue_free[0u] = &req;
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 0 ); /* for names */
 #endif
-	iot_lib.request_queue_free[0u] = &req;
 	result = iot_action_request_allocate( &iot_lib, "my_action", "fake_source" );
 
 #ifdef IOT_STACK_ONLY
 	assert_non_null( result );
+	assert_ptr_equal( result, &req );
 #else
 	assert_null( result );
 #endif
@@ -5018,13 +5108,14 @@ static void test_iot_action_request_allocate_valid( void **state )
 	struct iot_action_request *result;
 	struct iot_action_request req;
 	bzero( &iot_lib, sizeof( struct iot ) );
+	iot_lib.request_queue_free[0u] = &req;
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* for names */
 #endif
-	iot_lib.request_queue_free[0u] = &req;
 	result = iot_action_request_allocate( &iot_lib, "my_action", NULL );
 
 	assert_non_null( result );
+	assert_ptr_equal( result, &req );
 #ifndef IOT_STACK_ONLY
 	assert_null( result->source );
 	os_free( result->name );
@@ -5950,8 +6041,11 @@ static void test_iot_action_request_free_valid_req( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
+	struct iot iot_lib;
 	size_t i;
 	bzero( &req, sizeof( struct iot_action_request ) );
+	bzero( &iot_lib, sizeof( struct iot ) );
+	req.lib = &iot_lib;
 #ifdef IOT_STACK_ONLY
 	req.option = &req._option[0u];
 	bzero( req.option, sizeof( struct iot_option ) * IOT_OPTION_MAX );
