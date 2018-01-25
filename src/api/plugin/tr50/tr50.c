@@ -856,7 +856,8 @@ iot_status_t tr50_check_mailbox(
 {
 	/* check for any outstanding messages on the cloud, when enabling plug-in */
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( data )
+	if ( data && data->lib &&
+		data->lib->request_queue_free_count < IOT_ACTION_QUEUE_MAX )
 	{
 		char id[6u];
 		const char *msg;
@@ -871,7 +872,8 @@ iot_status_t tr50_check_mailbox(
 		iot_json_encode_object_start( req_json, "cmd" );
 		iot_json_encode_string( req_json, "command", "mailbox.check" );
 		iot_json_encode_object_start( req_json, "params" );
-		iot_json_encode_integer( req_json, "limit", IOT_ACTION_QUEUE_MAX );
+		iot_json_encode_integer( req_json, "limit",
+			IOT_ACTION_QUEUE_MAX - data->lib->request_queue_free_count );
 		iot_json_encode_bool( req_json, "autoComplete", IOT_FALSE );
 		iot_json_encode_object_end( req_json );
 		iot_json_encode_object_end( req_json );
