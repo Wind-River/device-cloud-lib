@@ -24,6 +24,7 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../ \
 
+LOCAL_CFLAGS += ${EXTRA_CFLAGS}
 LOCAL_SHARED_LIBRARIES := libiot libdl libext2_uuid libcurl
 LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs
 

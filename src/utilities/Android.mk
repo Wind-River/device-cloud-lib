@@ -27,6 +27,7 @@ iotutils_src_files := \
 
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iotutils_c_includes)
+LOCAL_CFLAGS += ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)
 LOCAL_SHARED_LIBRARIES := libdl libext2_uuid
 LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs
@@ -36,6 +37,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iotutils_c_includes)
+LOCAL_CFLAGS += ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)
 LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs
 LOCAL_MODULE := libiotutils

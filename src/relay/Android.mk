@@ -25,6 +25,7 @@ LOCAL_C_INCLUDES := \
 	external/hdc/curl/include \
 	external/openssl/include \
 
+LOCAL_CFLAGS += ${EXTRA_CFLAGS}
 LOCAL_SHARED_LIBRARIES := libiot libcrypto libssl libz libdl libext2_uuid
 LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs libwebsockets
 

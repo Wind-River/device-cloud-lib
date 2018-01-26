@@ -23,7 +23,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../../ \
     external/hdc/libarchive/contrib/android/include \
 
-
+LOCAL_CFLAGS += ${EXTRA_CFLAGS}
 LOCAL_SHARED_LIBRARIES := libdl libiot libjansson libext2_uuid libcurl libz
 LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs libtr50 libpaho-mqtt3cs libiotjsmn libarchive
 
