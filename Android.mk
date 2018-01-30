@@ -16,7 +16,7 @@
 
 LOCAL_PATH := $(call my-dir)
 # generated iot_build.h and iot_plugin_builtin.c
-$( info ($(shell ( cd ${LOCAL_PATH}; ./build-sys/generate_header.sh && sed -E "s:etc/([a-zA-Z0-9_-]+):data/\1/etc:g" -i iot_build.h && sed -E "s:var/lib/([a-zA-Z0-9_-]+):data/\1/etc:g" -i iot_build.h && sed -e "s:etc/ssl/certs:system/etc/security/cacerts:g" -i iot_build.h ))))
+$( info ($(shell ( cd ${LOCAL_PATH}; ./build-sys/generate_header.sh && sed -e "s:ssl/certs:security/cacerts:" -i iot_build.h && sed -E "s:etc/([a-zA-Z0-9_-]+)\":data/\1/etc\":" -i iot_build.h && sed -E "s:var/lib/([a-zA-Z0-9_-]+)\":data/\1/etc\":" -i iot_build.h ))))
 # generate build_info
 $( info ($(shell ${LOCAL_PATH}/build-sys/android/generate_android_buildinfo.sh )))
 
