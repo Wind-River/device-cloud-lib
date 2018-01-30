@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ if [ -n "${GIT_PATH}" ]; then
 fi
 
 export ${PREFIX}_VERSION=`echo ${IOT_COMMIT_DATE} | sed -e "s|20\([0-9][0-9]\)|\\1|g" -e "s|-|.|g"`
-export ${PREFIX}_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
-export ${PREFIX}_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
-export ${PREFIX}_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
-export ${PREFIX}_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^1-9]+/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
+export ${PREFIX}_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $1); gsub(/^0*/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
+export ${PREFIX}_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $2); gsub(/^0*/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
+export ${PREFIX}_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $3); gsub(/^0*/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
+export ${PREFIX}_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $4); gsub(/^0*/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
 
 # read yaml file
 # derived from https://gist.github.com/epiloque/8cf512c6d64641bde388
