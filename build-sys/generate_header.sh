@@ -29,11 +29,13 @@ if [ -n "${GIT_PATH}" ]; then
 	export ${PREFIX}_COMMIT_DATE=`${GIT_PATH} -C "${SRC_DIR}" ${GIT_DATE_CMD} 2>/dev/null`
 fi
 
-export ${PREFIX}_VERSION=`echo ${IOT_COMMIT_DATE} | sed -e "s|20\([0-9][0-9]\)|\\1|g" -e "s|-|.|g"`
-export ${PREFIX}_VERSION_MAJOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $1); gsub(/^0*/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
-export ${PREFIX}_VERSION_MINOR=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $2); gsub(/^0*/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
-export ${PREFIX}_VERSION_PATCH=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $3); gsub(/^0*/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
-export ${PREFIX}_VERSION_TWEAK=`echo ${IOT_VERSION} | awk -F'.' '{gsub(/[^0-9]+/, "", $4); gsub(/^0*/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
+COMMIT_DATE_VAR=${PREFIX}_COMMIT_DATE
+VERSION_VAR=${PREFIX}_VERSION
+export ${PREFIX}_VERSION=`echo ${!COMMIT_DATE_VAR} | sed -e "s|20\([0-9][0-9]\)|\\1|g" -e "s|-|.|g"`
+export ${PREFIX}_VERSION_MAJOR=`echo ${!VERSION_VAR} | awk -F'.' '{gsub(/[^0-9]+/, "", $1); gsub(/^0*/, "", $1); print match($1, /[^ ]/) ? $1 : "0"}'`
+export ${PREFIX}_VERSION_MINOR=`echo ${!VERSION_VAR} | awk -F'.' '{gsub(/[^0-9]+/, "", $2); gsub(/^0*/, "", $2); print match($2, /[^ ]/) ? $2 : "0"}'`
+export ${PREFIX}_VERSION_PATCH=`echo ${!VERSION_VAR} | awk -F'.' '{gsub(/[^0-9]+/, "", $3); gsub(/^0*/, "", $3); print match($3, /[^ ]/) ? $3 : "0"}'`
+export ${PREFIX}_VERSION_TWEAK=`echo ${!VERSION_VAR} | awk -F'.' '{gsub(/[^0-9]+/, "", $4); gsub(/^0*/, "", $4); print match($4, /[^ ]/) ? $4 : "0"}'`
 
 # read yaml file
 # derived from https://gist.github.com/epiloque/8cf512c6d64641bde388
@@ -78,8 +80,8 @@ for i in ${!IOT_PLUGIN_BUILTIN[@]}; do
 /**
  * @brief internal function to load the ${PLUGIN_BUILTIN_NAME} plug-in
  * @param[out]       p                   location to load plug-in to
- * @retval           IOT_TRUE            successfully loaded plug-in
- * @retval           IOT_FALSE           failed to load plug-in
+ * @retval           ${PREFIX}_TRUE            successfully loaded plug-in
+ * @retval           ${PREFIX}_FALSE           failed to load plug-in
  */
 iot_bool_t ${PLUGIN_BUILTIN_NAME}_load( iot_plugin_t *p );"
 
@@ -90,7 +92,7 @@ iot_bool_t ${PLUGIN_BUILTIN_NAME}_load( iot_plugin_t *p );"
 	if [ "${PLUGIN_BUILTIN_ENABLE}" = true ]; then
 		IOT_PLUGIN_BUILTIN_ENABLE="${IOT_PLUGIN_BUILTIN_ENABLE}
 		/* ${PLUGIN_BUILTIN_NAME} */
-		if ( iot_plugin_enable( lib, \"${PLUGIN_BUILTIN_NAME}\" ) != IOT_STATUS_SUCCESS ) result = IOT_FALSE;"
+		if ( iot_plugin_enable( lib, \"${PLUGIN_BUILTIN_NAME}\" ) != ${PREFIX}_STATUS_SUCCESS ) result = ${PREFIX}_FALSE;"
 	fi
 done
 
