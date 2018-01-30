@@ -22,6 +22,24 @@
 #include <time.h>   /* for time() */
 
 /**
+ * @brief Helper function for generating a random string for testing
+ *
+ * @note This function uses a pseudo-random generator to provide
+ *       reproductability between test runs, if given the same seed
+ *
+ * @note The returned string is null terminated
+ *
+ * @param[out]     dest                destination to put the generated string
+ * @param[in]      len                 size of the destination buffer, returned
+ *                                     string is null-terminated (thus random
+ *                                     characters are: len - 1u)
+ * @param[in]      random_chars        string of input characters that can be
+ *                                     used to generate the output
+ */
+static void test_generate_random_string_internal( char *dest, size_t len,
+	const char *random_chars );
+
+/**
  * @brief Global variable whether mock low-level system functionality is enabled
  */
 int MOCK_SYSTEM_ENABLED = 0;
@@ -40,6 +58,12 @@ void test_generate_random_string( char *dest, size_t len )
 	    "abcdefghijklmnopqrstuvwxyz"
 	    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	    "0123456789,.-#'?!";
+	test_generate_random_string_internal( dest, len, random_chars );
+}
+
+static void test_generate_random_string_internal( char *dest, size_t len,
+	const char *random_chars )
+{
 	if ( dest && len > 1u )
 	{
 		char *cur_pos;
@@ -63,6 +87,35 @@ void test_generate_random_string( char *dest, size_t len )
 			++cur_pos;
 		}
 		dest[len - 1u] = '\0'; /* ensure null-terminated */
+	}
+}
+
+void test_generate_random_uuid( char *dest, size_t len, int to_upper )
+{
+	static const char *random_chars = "abcdef0123456789";
+	test_generate_random_string_internal( dest, len, random_chars );
+	if ( len > 8u )
+		dest[ 8u ] = '-';
+	if ( len > 13u )
+		dest[ 13u ] = '-';
+	if ( len > 18u )
+		dest[ 18u ] = '-';
+	if ( len > 23u )
+		dest[ 23u ] = '-';
+
+	/* uuid have max length */
+	if ( len > 36u )
+		dest[ 36u ] = '\0';
+
+	/* support generating upper characters */
+	if ( to_upper && len > 0u )
+	{
+		while ( *dest )
+		{
+			if ( *dest >= 'a' && *dest <= 'z' )
+				*dest = (*dest - 'a' + 'A');
+			++dest;
+		}
 	}
 }
 

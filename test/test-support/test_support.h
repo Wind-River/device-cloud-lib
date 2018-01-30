@@ -53,13 +53,36 @@ void test_finalize( int argc, char **argv );
 /**
  * @brief Generates a random string for testing
  *
+ * @note This function uses a pseudo-random generator to provide
+ *       reproductability between test runs, if given the same seed
+ *
  * @note The returned string is null terminated
  *
- * @param[out] dest       destination to put the generated string
- * @param[in]  len        size of the destination buffer, returned string is
- *                        null-terminated (thus random characters are: len - 1u)
+ * @param[out]     dest                destination to put the generated string
+ * @param[in]      len                 size of the destination buffer, returned
+ *                                     string is null-terminated (thus random
+ *                                     characters are: len - 1u)
  */
 void test_generate_random_string( char *dest, size_t len );
+
+/**
+ * @brief Generates a random universally unique identifer (UUID) for testing
+ *
+ * @note This function uses a pseudo-random generator to provide
+ *       reproductability between test runs, if given the same seed
+ *
+ * @note The returned string is null terminated
+ *
+ * @param[out]     dest                destination to put the generated string
+ * @param[in]      len                 size of the destination buffer, returned
+ *                                     string is null-terminated (thus random
+ *                                     characters are: len - 1u).  Note that
+ *                                     only the first 36 character (37 +
+ *                                     null-terminator) are encoded
+ * @param[in]      to_upper            convert the hexidecimal characters to
+ *                                     upper-case
+ */
+void test_generate_random_uuid( char *dest, size_t len, int to_upper );
 
 /**
  * @brief Called to initialize test support system
