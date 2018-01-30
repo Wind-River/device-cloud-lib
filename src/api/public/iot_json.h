@@ -2,7 +2,7 @@
  * @file
  * @brief Header file for json operations within the IoT library
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -566,7 +566,6 @@ typedef struct iot_json_encoder iot_json_encoder_t;
  * @retval IOT_STATUS_BAD_REQUEST      not inside an JSON array object
  * @retval IOS_STATUS_SUCCESS          on success
  *
- * @see iot_json_decode_array_iterator
  * @see iot_json_encode_array_start
  */
 IOT_API IOT_SECTION iot_status_t iot_json_encode_array_end(
@@ -591,7 +590,6 @@ IOT_API IOT_SECTION iot_status_t iot_json_encode_array_end(
  * @retval IOT_STATUS_NO_MEMORY        no more memory available
  * @retval IOS_STATUS_SUCCESS          on success
  *
- * @see iot_json_decode_array_iterator
  * @see iot_json_encode_array_end
  */
 IOT_API IOT_SECTION iot_status_t iot_json_encode_array_start(
@@ -692,7 +690,7 @@ IOT_API IOT_SECTION iot_status_t iot_json_encode_integer(
  * @retval IOT_STATUS_BAD_REQUEST      not inside an JSON array object
  * @retval IOS_STATUS_SUCCESS          on success
  *
- * @see iot_json_decode_object_end
+ * @see iot_json_encode_object_end
  * @see iot_json_encode_object_start
  */
 IOT_API IOT_SECTION iot_status_t iot_json_encode_object_cancel(
@@ -707,7 +705,7 @@ IOT_API IOT_SECTION iot_status_t iot_json_encode_object_cancel(
  * @retval IOT_STATUS_BAD_REQUEST      not inside an JSON array object
  * @retval IOS_STATUS_SUCCESS          on success
  *
- * @see iot_json_decode_object_end
+ * @see iot_json_encode_object_end
  * @see iot_json_encode_object_start
  */
 IOT_API IOT_SECTION iot_status_t iot_json_encode_object_clear(
@@ -722,8 +720,7 @@ IOT_API IOT_SECTION iot_status_t iot_json_encode_object_clear(
  * @retval IOT_STATUS_BAD_REQUEST      not inside an JSON array object
  * @retval IOS_STATUS_SUCCESS          on success
  *
- * @see iot_json_decode_object_cancel
- * @see iot_json_decode_object_iterator
+ * @see iot_json_encode_object_cancel
  * @see iot_json_encode_object_start
  */
 IOT_API IOT_SECTION iot_status_t iot_json_encode_object_end(
@@ -748,9 +745,8 @@ IOT_API IOT_SECTION iot_status_t iot_json_encode_object_end(
  * @retval IOT_STATUS_NO_MEMORY        no more memory available
  * @retval IOS_STATUS_SUCCESS          on success
  *
- * @see iot_json_decode_object_cancel
+ * @see iot_json_encode_object_cancel
  * @see iot_json_encode_object_end
- * @see iot_json_decode_object_iterator
  */
 IOT_API IOT_SECTION iot_status_t iot_json_encode_object_start(
 	iot_json_encoder_t *encoder,

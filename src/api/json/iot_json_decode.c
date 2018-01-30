@@ -2,7 +2,7 @@
  * @file
  * @brief source file for IoT library json decoding functionality
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,7 +391,7 @@ iot_status_t iot_json_decode_bool(
 				v = IOT_TRUE; /* true */
 				result = IOT_STATUS_SUCCESS;
 			}
-			if ( c == 'f' )
+			else if ( c == 'f' )
 				result = IOT_STATUS_SUCCESS;
 		}
 #endif /* defined( IOT_JSON_JSMN ) */
@@ -632,7 +632,7 @@ const iot_json_item_t *iot_json_decode_object_find_len(
 		const jsmntok_t *cur = object;
 		if ( cur && cur->type == JSMN_OBJECT )
 		{
-			unsigned int idx = 0;
+			unsigned int idx = 0u;
 			unsigned int p_idx = 0u;
 			p_idx = (unsigned int)(cur - decoder->tokens);
 			idx = p_idx;
@@ -650,16 +650,16 @@ const iot_json_item_t *iot_json_decode_object_find_len(
 					/* compare key */
 					size_t k = 0u;
 					const size_t k_len = (size_t)(cur->end - cur->start);
-					if ( key_len == 0u )
-						key_len = k_len;
-					else if ( key_len > k_len )
-						key_len = k_len;
-					while ( k < key_len &&
+
+					while ( (key_len == 0u || k < k_len) &&
 						decoder->buf[(size_t)(cur->start) + k] == key[k] )
+					{
 						++k;
+					}
 
 					/* match found */
-					if ( k == key_len )
+					if ( (key_len == 0u && key[k] == '\0')
+						|| (key_len > 0u && k == key_len) )
 						result = cur + 1;
 				}
 				++cur;
