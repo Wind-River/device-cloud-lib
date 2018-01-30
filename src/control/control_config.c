@@ -2,7 +2,7 @@
  * @file
  * @brief Main source file for the Wind River IoT control configuration files
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -680,17 +680,17 @@ void control_config_user_prompt(
 			va_start( args, prompt );
 			os_vfprintf( OS_STDOUT, prompt, args );
 			va_end( args );
-			os_flush( OS_STDIN );
+			os_flush( OS_STDOUT );
 		}
 		if ( show_user_input == IOT_FALSE )
-			os_stream_echo_set( OS_STDIN, IOT_FALSE );
+			os_stream_echo_set( OS_STDIN, OS_FALSE );
 
 		os_file_gets( temp, PATH_MAX, OS_STDIN );
 
 		if ( show_user_input == IOT_FALSE )
 		{
 			os_fprintf( OS_STDOUT, "\n" );
-			os_stream_echo_set( OS_STDIN, IOT_TRUE );
+			os_stream_echo_set( OS_STDIN, OS_TRUE );
 		}
 
 		while ( temp[i] != '\n' && temp[i] != '\r' &&
