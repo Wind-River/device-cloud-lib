@@ -832,7 +832,7 @@ iot_status_t device_manager_config_read(
 		iot_directory_name_get( IOT_DIR_RUNTIME,
 			device_manager_info->runtime_dir,
 			PATH_MAX );
-		os_env_expand( device_manager_info->runtime_dir, PATH_MAX );
+		os_env_expand( device_manager_info->runtime_dir, 0u, PATH_MAX );
 		device_manager_info->runtime_dir[PATH_MAX] = '\0';
 		IOT_LOG( NULL, IOT_LOG_INFO,
 			"  * Setting default runtime dir to %s",
@@ -950,7 +950,7 @@ iot_status_t device_manager_config_read(
 						os_strncpy(device_manager_info->runtime_dir,
 							temp, temp_len );
 
-						os_env_expand( device_manager_info->runtime_dir, PATH_MAX );
+						os_env_expand( device_manager_info->runtime_dir, 0u, PATH_MAX );
 						device_manager_info->runtime_dir[ temp_len ] = '\0';
 						IOT_LOG( NULL, IOT_LOG_INFO,
 							"  * runtime dir = %s", device_manager_info->runtime_dir );
