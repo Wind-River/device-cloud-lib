@@ -1300,8 +1300,7 @@ int device_manager_main( int argc, char *argv[] )
 
 				iot_attribute_publish_string(
 					APP_DATA.iot_lib, NULL, NULL,
-					IOT_PRODUCT_SHORT "_version",
-					iot_version_str() );
+					"api_version", iot_version_str() );
 
 				os_memzero( &os, sizeof( os_system_info_t ) );
 				if ( os_system_info( &os ) == OS_STATUS_SUCCESS )
