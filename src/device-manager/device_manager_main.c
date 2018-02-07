@@ -96,7 +96,7 @@ struct remote_login_protocol
  * @param[in]      default_enabled     whether action is enabled by default
  */
 static void device_manager_action_initialize( struct device_manager_info *s,
-	enum device_maanger_config_idx idx, const char *action_name,
+	enum device_manager_config_idx idx, const char *action_name,
 	const char *config_id, iot_bool_t default_enabled );
 
 /* function definitions */
@@ -304,6 +304,19 @@ static iot_status_t on_action_agent_quit(
 	iot_action_request_t* request,
 	void *user_data );
 
+/**
+ * @brief Callback function diagnostic action to respond with timestamp
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in,out]  user_data           pointer to a struct device_manager_info
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static iot_status_t on_action_ping(
+	iot_action_request_t* request,
+	void *user_data );
+
 #if defined( __ANDROID__ )
 /**
  * @brief Callback function to return the agent shutdown
@@ -336,7 +349,7 @@ static iot_status_t on_action_remote_login(
 
 /* function implementations */
 void device_manager_action_initialize( struct device_manager_info *s,
-	enum device_maanger_config_idx idx, const char *action_name,
+	enum device_manager_config_idx idx, const char *action_name,
 	const char *config_id, iot_bool_t default_enabled )
 {
 	if ( s )
@@ -554,6 +567,28 @@ iot_status_t device_manager_actions_register(
 
 			result = iot_action_register_callback(
 				action->ptr, &on_action_agent_quit,
+				(void*)device_manager, NULL, 0u );
+
+			if ( result != IOT_STATUS_SUCCESS )
+			{
+				IOT_LOG( iot_lib, IOT_LOG_ERROR,
+					"Failed to register %s action. Reason: %s",
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
+		}
+
+		/* ping */
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_PING];
+		if ( action->enabled != IOT_FALSE )
+		{
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+
+			result = iot_action_register_callback(
+				action->ptr, &on_action_ping,
 				(void*)device_manager, NULL, 0u );
 
 			if ( result != IOT_STATUS_SUCCESS )
@@ -864,7 +899,7 @@ iot_status_t device_manager_config_read(
 							json_size, &json_root,
 						err_msg, 1024u ) == IOT_STATUS_SUCCESS )
 				{
-					enum device_maanger_config_idx idx;
+					enum device_manager_config_idx idx;
 					const iot_json_item_t *j_action_top;
 					const iot_json_item_t *const j_actions_enabled =
 						iot_json_decode_object_find(
@@ -1222,7 +1257,7 @@ int device_manager_main( int argc, char *argv[] )
 		IOT_DEVICE_MANAGER_TARGET, NULL, NULL);
 	else if (result == EXIT_SUCCESS)
 	{
-		enum device_maanger_config_idx idx = DEVICE_MANAGER_IDX_FIRST;
+		enum device_manager_config_idx idx = DEVICE_MANAGER_IDX_FIRST;
 		os_memzero( &APP_DATA, sizeof(struct device_manager_info) );
 		device_manager_action_initialize( &APP_DATA, idx++,
 			"reset_agent", "reset_agent",
@@ -1248,6 +1283,9 @@ int device_manager_main( int argc, char *argv[] )
 		device_manager_action_initialize( &APP_DATA, idx++,
 			"file_upload", "file_transfers",
 			IOT_DEFAULT_ENABLE_FILE_TRANSFERS );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"ping", "ping",
+			IOT_DEFAULT_ENABLE_PING);
 		device_manager_action_initialize( &APP_DATA, idx++,
 			"remote-access", "remote_login",
 			IOT_DEFAULT_ENABLE_REMOTE_LOGIN );
@@ -1640,6 +1678,43 @@ iot_status_t on_action_agent_quit(
 		if ( iot_lib )
 		{
 			iot_lib->to_quit = IOT_TRUE;
+			result = IOT_STATUS_SUCCESS;
+		}
+	}
+	return result;
+}
+
+iot_status_t on_action_ping(
+	iot_action_request_t* request,
+	void *user_data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	struct device_manager_info * const device_manager =
+		(struct device_manager_info *) user_data;
+#	define DM_TIMESTAMP_LEN    25u
+
+	if ( device_manager && request )
+	{
+		iot_t *const iot_lib = device_manager->iot_lib;
+		if ( iot_lib )
+		{
+			size_t out_len;
+			iot_timestamp_t ts;
+			char ts_str[ DM_TIMESTAMP_LEN +1 ];
+			const char *response = "acknowledged";
+			ts = iot_timestamp_now();
+
+			/* TR50 format: "YYYY-MM-DDTHH:MM:SSZ" */
+			out_len = os_time_format( ts_str, DM_TIMESTAMP_LEN,
+				"%Y-%m-%dT%H:%M:%SZ", ts, OS_FALSE );
+			ts_str[ out_len ] = '\0';
+
+			IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+				"Responding to ping request with %s %s",response, ts_str);
+
+			/* now set the out parameters */
+			iot_action_parameter_set( request, "response", IOT_TYPE_STRING, response);
+			iot_action_parameter_set( request, "time_stamp", IOT_TYPE_STRING, ts_str);
 			result = IOT_STATUS_SUCCESS;
 		}
 	}

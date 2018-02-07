@@ -53,7 +53,7 @@
  * @brief Index of various default device manager functions in the global
  *        structure
  */
-enum device_maanger_config_idx
+enum device_manager_config_idx
 {
 	DEVICE_MANAGER_IDX_FIRST = 0,
 	DEVICE_MANAGER_IDX_AGENT_RESET = 0,
@@ -64,6 +64,7 @@ enum device_maanger_config_idx
 	DEVICE_MANAGER_IDX_DUMP_LOG_FILES,
 	DEVICE_MANAGER_IDX_FILE_DOWNLOAD,
 	DEVICE_MANAGER_IDX_FILE_UPLOAD,
+	DEVICE_MANAGER_IDX_PING,
 	DEVICE_MANAGER_IDX_REMOTE_LOGIN,
 	DEVICE_MANAGER_IDX_REMOTE_LOGIN_PROTOCOL,
 	DEVICE_MANAGER_IDX_RESTORE_FACTORY_IMAGES,

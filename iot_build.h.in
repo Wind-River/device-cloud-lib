@@ -141,6 +141,9 @@
 /** @brief Default state of file transfer related actions */
 #define IOT_DEFAULT_ENABLE_FILE_TRANSFERS                 @IOT_DEFAULT_ENABLE_FILE_TRANSFERS@
 
+/** @brief Default state of action ping*/
+#define IOT_DEFAULT_ENABLE_PING                           @IOT_DEFAULT_ENABLE_PING@
+
 /** @brief Default state of remote login related action */
 #define IOT_DEFAULT_ENABLE_REMOTE_LOGIN                   @IOT_DEFAULT_ENABLE_REMOTE_LOGIN@
 
