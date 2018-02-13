@@ -72,7 +72,7 @@ size_t app_path_make_absolute( char *path, size_t path_max,
 	if ( path && *path != '\0' )
 	{
 		/* convert any environment variables in the path */
-		result = os_env_expand( path, path_max );
+		result = os_env_expand( path, 0u, path_max );
 		if ( result < path_max )
 		{
 			result = os_strlen( path );
