@@ -392,15 +392,6 @@ struct iot_file_progress
 	iot_status_t status;
 };
 
-/**
- * @brief information about a transaction status for later querying
- */
-struct iot_transaction
-{
-	/** @brief indicates status */
-	iot_status_t status;
-};
-
 #if 0
 /**
  * @brief information for passing data between two (or more) clients
@@ -493,6 +484,9 @@ struct iot
 	 *       if the index is >= telemetry_count are available for use.
 	 */
 	struct iot_telemetry        *telemetry_ptr[ IOT_TELEMETRY_MAX ];
+
+	/** @brief number of the lastest transaction */
+	iot_transaction_t           transaction_count;
 
 	/** @brief about to disconnect & quit */
 	iot_bool_t                  to_quit;
@@ -1009,21 +1003,6 @@ IOT_SECTION iot_status_t iot_state_callback_set(
 	iot_state_callback_t *state_callback,
 	void *user_data );
 #endif
-
-/* transaction */
-/**
- * @brief Determine the status of a transaction
- *
- * @param[in,out]  txn                 transaction to query
- * @param[in]      max_time_out        maximum time to wait for query to be
- *                                     performed
- *
- * @retval IOT_TRUE                    entire transaction was successful
- * @retval IOT_FALSE                   transaction did not succeed
- */
-IOT_SECTION iot_bool_t iot_transaction_status(
-	const iot_transaction_t *txn,
-	iot_millisecond_t max_time_out );
 
 /* loop */
 /**

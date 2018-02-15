@@ -46,6 +46,8 @@
 #define TR50_FILE_TRANSFER_EXPIRY_TIME       1 * IOT_MINUTES_IN_HOUR * \
                                              IOT_SECONDS_IN_MINUTE * \
                                              IOT_MILLISECONDS_IN_SECOND /* 1 hour */
+/** @brief Amount to offset the request id by */
+#define TR50_FILE_REQUEST_ID_OFFSET          256u
 
 #ifdef IOT_THREAD_SUPPORT
 /** @brief File transfer progress interval in seconds */
@@ -73,8 +75,6 @@ struct tr50_file_transfer
 	double last_update_time;
 	/** @brief curl handle */
 	CURL *lib_curl;
-	/** @brief message id */
-	unsigned int msg_id;
 	/** @brief cloud's file name */
 	char name[ PATH_MAX + 1u ];
 	/** @brief file operation (get/put) */
@@ -110,8 +110,6 @@ struct tr50_data
 	iot_timestamp_t file_queue_last_checked;
 	/** @brief library handle */
 	iot_t *lib;
-	/** @brief sequential message id */
-	unsigned int msg_id;
 	/** @brief pointer to the mqtt connection to the cloud */
 	iot_mqtt_t *mqtt;
 	/** @brief proxy details */
@@ -120,7 +118,19 @@ struct tr50_data
 	char thing_key[ TR50_THING_KEY_MAX_LEN + 1u ];
 	/** @brief time_stamp of when connection loss is reported */
 	iot_timestamp_t time_stamp_connetion_loss_reported;
+	/** @brief transaction status based on id */
+	iot_uint32_t transactions[16u];
 };
+
+/** @brief transaction status values */
+enum tr50_transaction_status
+{
+	TR50_TRANSACTION_UNKNOWN = 0x0, /**< @brief unknown transaction */
+	TR50_TRANSACTION_INVOKED = 0x1, /**< @brief transaction sent */
+	TR50_TRANSACTION_FAILURE = 0x2, /**< @brief failure received */
+	TR50_TRANSACTION_SUCCESS = 0x3, /**< @brief success received */
+};
+
 
 /**
  * @brief function called to respond to the cloud on an action complete
@@ -128,6 +138,7 @@ struct tr50_data
  * @param[in]      data                plug-in specific data
  * @param[in]      action              action being executed
  * @param[in]      request             action request
+ * @param[in]      txn                 transaction status information
  * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
@@ -137,6 +148,7 @@ static IOT_SECTION iot_status_t tr50_action_complete(
 	struct tr50_data *data,
 	const iot_action_t *action,
 	const iot_action_request_t *request,
+	const iot_transaction_t *txn,
 	const iot_options_t *options );
 
 /**
@@ -145,6 +157,7 @@ static IOT_SECTION iot_status_t tr50_action_complete(
  * @param[in]      data                plug-in specific data
  * @param[in]      alarm               alarm object to publish
  * @param[in]      payload             alarm payload to publish
+ * @param[in]      txn                 transaction status information
  * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
@@ -157,6 +170,7 @@ static IOT_SECTION iot_status_t tr50_alarm_publish(
 	struct tr50_data *data,
 	const iot_alarm_t *alarm,
 	const iot_alarm_data_t *payload,
+	const iot_transaction_t *txn,
 	const iot_options_t *options );
 
 /**
@@ -191,6 +205,7 @@ static IOT_SECTION void tr50_append_value_raw(
  * @param[in]      data                plug-in specific data
  * @param[in]      key                 attribute key
  * @param[in]      value               attribute value
+ * @param[in]      txn                 transaction status information
  * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
@@ -203,33 +218,40 @@ static IOT_SECTION iot_status_t tr50_attribute_publish(
 	struct tr50_data *data,
 	const char *key,
 	const char *value,
+	const iot_transaction_t *txn,
 	const iot_options_t *options );
 
 /**
  * @brief Sends the message to check the mailbox for any cloud requests
  *
  * @param[in]      data                plug-in specific data
+ * @param[in]      txn                 transaction status information
  *
  * @retval IOT_STATUS_BAD_PARAMETER    bad parameter passed to the function
  * @retval IOT_STATUS_SUCCESS          on success
  */
 static IOT_SECTION iot_status_t tr50_check_mailbox(
-	struct tr50_data *data );
+	struct tr50_data *data,
+	const iot_transaction_t *txn );
 
 /**
  * @brief helper function for tr50 to connect to the cloud
  *
  * @param[in]      lib                 loaded iot library
  * @param[in]      data                plug-in specific data
+ * @param[in]      txn                 transaction status information
  * @param[in]      max_time_out        maximum time to wait
  *                                     (0 = wait indefinitely)
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see tr50_disconnect
  */
 static IOT_SECTION iot_status_t tr50_connect(
 	iot_t *lib,
 	struct tr50_data *data,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out );
 
 /**
@@ -237,16 +259,20 @@ static IOT_SECTION iot_status_t tr50_connect(
  *
  * @param[in]      lib                 loaded iot library
  * @param[in]      data                plug-in specific data
+ * @param[in]      txn                 transaction status information
  * @param[in]      max_time_out        maximum time to wait
  *                                     (0 = wait indefinitely)
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see tr50_connect
  */
 static IOT_SECTION iot_status_t tr50_connect_check(
 	iot_t *lib,
 	struct tr50_data *data,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out );
 
 /**
@@ -275,6 +301,8 @@ iot_status_t tr50_disable(
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
+ *
+ * @see tr50_connect
  */
 static IOT_SECTION iot_status_t tr50_disconnect(
 	iot_t *lib,
@@ -302,6 +330,7 @@ iot_status_t tr50_enable(
  *
  * @param[in]      data                plug-in specific data
  * @param[in]      message             message to publish
+ * @param[in]      txn                 transaction status information
  * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
@@ -313,6 +342,7 @@ iot_status_t tr50_enable(
 static IOT_SECTION iot_status_t tr50_event_publish(
 	struct tr50_data *data,
 	const char *message,
+	const iot_transaction_t *txn,
 	const iot_options_t *options );
 
 /**
@@ -321,6 +351,7 @@ static IOT_SECTION iot_status_t tr50_event_publish(
  * @param[in]      lib                 loaded iot library
  * @param[in]      plugin_data         plugin specific data
  * @param[in]      op                  operation to perform
+ * @param[in]      txn                 transaction status information
  * @param[in]      max_time_out        maximum time to perform operation
  *                                     (0 = indefinite)
  * @param[in]      step                pointer to the operation step
@@ -333,17 +364,94 @@ static IOT_SECTION iot_status_t tr50_event_publish(
  *
  * @see tr50_disable
  * @see tr50_enable
- * @see tr50_execute
+ * @see tr50_initialize
  */
 iot_status_t tr50_execute(
 	iot_t *lib,
 	void* plugin_data,
 	iot_operation_t op,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out,
 	iot_step_t *step,
 	const void *item,
 	const void *value,
 	const iot_options_t *options );
+
+
+/**
+ * @brief sends file.get or file.put rest api to tr50 requesting
+ *        for file id, file size and crc
+ *
+ * @param[in]      data                plug-in specific data
+ * @param[in]      file_transfer       info required to transfer file
+ * @param[in]      options             map containing an optional options set
+ * @param[in]      txn                 transaction status information
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    bad params
+ * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static IOT_SECTION iot_status_t tr50_file_request_send(
+	struct tr50_data *data, iot_operation_t op,
+	const iot_file_transfer_t *file_transfer,
+	const iot_transaction_t *txn,
+	const iot_options_t *options );
+
+#ifdef IOT_THREAD_SUPPORT
+/**
+ * @brief a thread to perform file transfer
+ *
+ * @param[in]      arg                 info required to transfer file
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    bad params
+ * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static IOT_SECTION OS_THREAD_DECL tr50_file_transfer(
+	void* arg );
+
+/**
+ * @brief Callback called for progress updates (and to cancel transfers)
+ *
+ * @param[in]      user_data           pointer to information about the transfer
+ * @param[in]      down_total          total number of bytes to download
+ * @param[in]      down_now            current number of bytes downloaded
+ * @param[in]      up_total            total number of bytes to upload
+ * @param[in]      up_now              current number of bytes uploaded
+ *
+ * @retval 0 continue the transfer
+ * @retval 1 cancel the transfer
+ */
+static IOT_SECTION int tr50_file_progress( void *user_data,
+	curl_off_t down_total, curl_off_t down_now,
+	curl_off_t up_total, curl_off_t up_now );
+
+/**
+ * @brief Callback called for progress updates (and to cancel transfers)
+ *        for older versions of libcurl
+ *
+ * @param[in]      user_data           pointer to information about the transfer
+ * @param[in]      down_total          total number of bytes to download
+ * @param[in]      down_now            current number of bytes downloaded
+ * @param[in]      up_total            total number of bytes to upload
+ * @param[in]      up_now              current number of bytes uploaded
+ *
+ * @retval 0 continue the transfer
+ * @retval 1 cancel the transfer
+ */
+static IOT_SECTION int tr50_file_progress_old(
+	void *user_data,
+	double down_total, double down_now,
+	double up_total, double up_now );
+#endif /* ifdef IOT_THREAD_SUPPORT */
+
+/**
+ * @brief checks file transfer queue and execute those which need retrying
+ *
+ * @param[in]      data                plug-in specific data
+ */
+static IOT_SECTION void tr50_file_queue_check(
+	struct tr50_data *data );
 
 /**
  * @brief plug-in function called to initialize the plug-in
@@ -364,10 +472,11 @@ iot_status_t tr50_initialize(
 /**
  * @brief helper fuction to publish data using MQTT
  *
- * @param[in]      data                plug-in specific data
+ * @param[in,out]  data                plug-in specific data
  * @param[in]      topic               mqtt topic to send data on
  * @param[in]      payload             pointer to data to send
  * @param[in]      payload_len         size of the data to send
+ * @param[in]      txn                 transaction status information
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_SUCCESS          on success
@@ -376,7 +485,8 @@ static IOT_SECTION iot_status_t tr50_mqtt_publish(
 	struct tr50_data *data,
 	const char *topic,
 	const void *payload,
-	size_t payload_len );
+	size_t payload_len,
+	const iot_transaction_t *txn );
 
 /**
  * @brief callback function that is called when tr50 receives a message from the
@@ -434,6 +544,7 @@ static IOT_SECTION char *tr50_strtime(
  * @param[in]      data                plug-in specific data
  * @param[in]      t                   telemetry object to publish
  * @param[in]      d                   data for telemetry object to publish
+ * @param[in]      txn                 transaction status information
  * @param[in]      options             map containing an optional options set
  *
  * @retval IOT_STATUS_FAILURE          on failure
@@ -443,6 +554,7 @@ static IOT_SECTION iot_status_t tr50_telemetry_publish(
 	struct tr50_data *data,
 	const iot_telemetry_t *t,
 	const struct iot_data *d,
+	const iot_transaction_t *txn,
 	const iot_options_t *options );
 
 /**
@@ -462,82 +574,45 @@ iot_status_t tr50_terminate(
 	void *plugin_data );
 
 /**
- * @brief sends file.get or file.put rest api to tr50 requesting
- *        for file id, file size and crc
+ * @brief function called to determine the status of a transaction
  *
  * @param[in]      data                plug-in specific data
- * @param[in]      file_transfer       info required to transfer file
- * @param[in]      options             map containing an optional options set
+ * @param[in]      txn                 transaction
+ * @param[in]      options             optional parameters set for request
  *
- * @retval IOT_STATUS_BAD_PARAMETER    bad params
- * @retval IOT_STATUS_FAILURE          on failure
- * @retval IOT_STATUS_SUCCESS          on success
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_INVOKED          message has been sent/queue no response
+ * @retval IOT_STATUS_FAILURE          failure status returned from cloud
+ * @retval IOT_STATUS_NOT_FOUND        transaction is unknown
+ * @retval IOT_STATUS_SUCCESS          success status returned from cloud
+ * @retval IOT_STATUS_TIMED_OUT        function timed out before status returned
+ *
+ * @see tr50_disable
+ * @see tr50_initialize
  */
-static IOT_SECTION iot_status_t tr50_file_request_send(
-	struct tr50_data *data, iot_operation_t op,
-	const iot_file_transfer_t* file_transfer,
+static iot_status_t tr50_transaction_status(
+	const struct tr50_data *data,
+	const iot_transaction_t *txn,
 	const iot_options_t *options );
 
-#ifdef IOT_THREAD_SUPPORT
 /**
- * @brief a thread to perform file transfer
+ * @brief sets the transaction status for an incoming transaction
  *
- * @param[in]      arg                 info required to transfer file
- *
- * @retval IOT_STATUS_BAD_PARAMETER    bad params
- * @retval IOT_STATUS_FAILURE          on failure
- * @retval IOT_STATUS_SUCCESS          on success
+ * @param[in,out]  data                plug-in specific data
+ * @param[in]      txn_id              transaction identifier
+ * @param[in]      tx_status           status to set
  */
-static IOT_SECTION OS_THREAD_DECL tr50_file_transfer(
-	void* arg );
+static void tr50_transaction_status_set(
+	struct tr50_data *data,
+	iot_uint8_t txn_id,
+	enum tr50_transaction_status tx_status );
 
-/**
- * @brief Callback called for progress updates (and to cancel transfers)
- *
- * @param[in]      user_data           pointer to information about the transfer
- * @param[in]      down_total          total number of bytes to download
- * @param[in]      down_now            current number of bytes downloaded
- * @param[in]      up_total            total number of bytes to upload
- * @param[in]      up_now              current number of bytes uploaded
- *
- * @retval 0 continue the transfer
- * @retval 1 cancel the transfer
- */
-static IOT_SECTION int tr50_file_progress( void *user_data,
-	curl_off_t down_total, curl_off_t down_now,
-	curl_off_t up_total, curl_off_t up_now );
-
-/**
- * @brief Callback called for progress updates (and to cancel transfers)
- *        for older versions of libcurl
- *
- * @param[in]      user_data           pointer to information about the transfer
- * @param[in]      down_total          total number of bytes to download
- * @param[in]      down_now            current number of bytes downloaded
- * @param[in]      up_total            total number of bytes to upload
- * @param[in]      up_now              current number of bytes uploaded
- *
- * @retval 0 continue the transfer
- * @retval 1 cancel the transfer
- */
-static IOT_SECTION int tr50_file_progress_old(
-	void *user_data,
-	double down_total, double down_now,
-	double up_total, double up_now );
-#endif /* ifdef IOT_THREAD_SUPPORT */
-
-/**
- * @brief checks file transfer queue and execute those which need retrying
- *
- * @param[in]      data                plug-in specific data
- */
-static void tr50_file_queue_check(
-	struct tr50_data *data );
 
 iot_status_t tr50_action_complete(
 	struct tr50_data *data,
 	const iot_action_t *UNUSED(action),
 	const iot_action_request_t *request,
+	const iot_transaction_t *txn,
 	const iot_options_t *UNUSED(options) )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
@@ -559,13 +634,15 @@ iot_status_t tr50_action_complete(
 				result = IOT_STATUS_NO_MEMORY;
 				if ( json )
 				{
-					char id[6u];
+					char id[11u];
 					const char *msg = NULL;
 					iot_status_t status;
 					iot_action_request_parameter_iterator_t  iter;
 
-					os_snprintf( id, 5u, "%d", data->msg_id );
-					id[5u] = '\0';
+					if ( txn )
+						os_snprintf( id, sizeof(id), "%u", (unsigned int)(*txn) );
+					else
+						os_snprintf( id, sizeof(id), "cmd" );
 
 					status = iot_action_request_status( request, &msg );
 
@@ -681,7 +758,8 @@ iot_status_t tr50_action_complete(
 						data,
 						"api",
 						msg,
-						os_strlen( msg ) );
+						os_strlen( msg ),
+						txn );
 					iot_json_encode_terminate( json );
 				}
 			}
@@ -694,10 +772,11 @@ iot_status_t tr50_alarm_publish(
 	struct tr50_data *data,
 	const iot_alarm_t *alarm,
 	const iot_alarm_data_t *payload,
+	const iot_transaction_t *txn,
 	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_FAILURE;
-	char id[6u];
+	char id[11u];
 	const char *out_msg;
 
 #ifdef IOT_STACK_ONLY
@@ -709,9 +788,10 @@ iot_status_t tr50_alarm_publish(
 		iot_json_encode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
 #endif
 
-	/* convert id to string */
-	os_snprintf( id, 5u, "%d", data->msg_id );
-	id[5u] = '\0';
+	if ( txn )
+		os_snprintf( id, sizeof(id), "%u", (unsigned int)(*txn) );
+	else
+		os_snprintf( id, sizeof(id), "cmd" );
 	iot_json_encode_object_start( json, id );
 	iot_json_encode_string( json, "command", "alarm.publish" );
 	iot_json_encode_object_start( json, "params" );
@@ -733,10 +813,7 @@ iot_status_t tr50_alarm_publish(
 
 	out_msg = iot_json_encode_dump( json );
 	result = tr50_mqtt_publish(
-		data,
-		"api",
-		out_msg,
-		os_strlen( out_msg ) );
+		data, "api", out_msg, os_strlen( out_msg ), txn );
 	iot_json_encode_terminate( json );
 	return result;
 }
@@ -821,6 +898,7 @@ iot_status_t tr50_attribute_publish(
 	struct tr50_data *data,
 	const char *key,
 	const char *value,
+	const iot_transaction_t *txn,
 	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
@@ -837,11 +915,13 @@ iot_status_t tr50_attribute_publish(
 		result = IOT_STATUS_NO_MEMORY;
 		if ( json )
 		{
-			char id[6u];
+			char id[11u];
 			const char *msg;
 
-			os_snprintf( id, 5u, "%d", data->msg_id );
-			id[5u] = '\0';
+			if ( txn )
+				os_snprintf( id, sizeof(id), "%u", (unsigned int)(*txn) );
+			else
+				os_snprintf( id, sizeof(id), "cmd" );
 			iot_json_encode_object_start( json, id );
 			iot_json_encode_string( json, "command",
 				"attribute.publish" );
@@ -863,10 +943,7 @@ iot_status_t tr50_attribute_publish(
 
 			msg = iot_json_encode_dump( json );
 			result = tr50_mqtt_publish(
-				data,
-				"api",
-				msg,
-				os_strlen( msg ) );
+				data, "api", msg, os_strlen( msg ), txn );
 			iot_json_encode_terminate( json );
 		}
 	}
@@ -874,21 +951,24 @@ iot_status_t tr50_attribute_publish(
 }
 
 iot_status_t tr50_check_mailbox(
-	struct tr50_data *data )
+	struct tr50_data *data,
+	const iot_transaction_t *txn )
 {
 	/* check for any outstanding messages on the cloud, when enabling plug-in */
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( data && data->lib &&
 		data->lib->request_queue_free_count < IOT_ACTION_QUEUE_MAX )
 	{
-		char id[6u];
+		char id[11u];
 		const char *msg;
 		char req_buf[376u];
 		iot_json_encoder_t *req_json;
 
 		/* build the message: "{\"cmd\":{\"command\":\"mailbox.check\"}}" */
-		os_snprintf( id, 5u, "%d", data->msg_id );
-		id[5u] = '\0';
+		if ( txn )
+			os_snprintf( id, sizeof(id), "%u", (unsigned int)(*txn) );
+		else
+			os_snprintf( id, sizeof(id), "cmd" );
 		req_json = iot_json_encode_initialize(
 			req_buf, 376u, 0 );
 		iot_json_encode_object_start( req_json, id );
@@ -904,10 +984,7 @@ iot_status_t tr50_check_mailbox(
 		if ( msg )
 		{
 			result = tr50_mqtt_publish(
-				data,
-				"api",
-				msg,
-				os_strlen( msg ) );
+				data, "api", msg, os_strlen( msg ), txn );
 		}
 		else
 			IOT_LOG( data->lib, IOT_LOG_ERROR, "%s",
@@ -920,6 +997,7 @@ iot_status_t tr50_check_mailbox(
 iot_status_t tr50_connect(
 	iot_t *lib,
 	struct tr50_data *data,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out )
 {
 	iot_status_t result = IOT_STATUS_FAILURE;
@@ -1000,7 +1078,7 @@ iot_status_t tr50_connect(
 			iot_mqtt_set_message_callback( data->mqtt,
 				tr50_on_message );
 			iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
-			result = tr50_check_mailbox( data );
+			result = tr50_check_mailbox( data, txn );
 		}
 		else
 			IOT_LOG( lib, IOT_LOG_ERROR, "tr50: %s",
@@ -1012,6 +1090,7 @@ iot_status_t tr50_connect(
 iot_status_t tr50_connect_check(
 	iot_t *lib,
 	struct tr50_data *data,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
@@ -1077,7 +1156,7 @@ iot_status_t tr50_connect_check(
 				max_time_out ) == IOT_STATUS_SUCCESS )
 			{
 				iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
-				result = tr50_check_mailbox( data );
+				result = tr50_check_mailbox( data, txn );
 				IOT_LOG( lib, IOT_LOG_INFO, "tr50 reconnect: %s",
 					"successfully");
 				result = IOT_STATUS_SUCCESS;
@@ -1152,6 +1231,7 @@ iot_status_t tr50_enable(
 iot_status_t tr50_event_publish(
 	struct tr50_data *data,
 	const char *message,
+	const iot_transaction_t *txn,
 	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
@@ -1168,12 +1248,14 @@ iot_status_t tr50_event_publish(
 		result = IOT_STATUS_NO_MEMORY;
 		if ( json )
 		{
-			char id[6u];
+			char id[11u];
 			iot_int64_t level;
 			const char *msg;
 
-			os_snprintf( id, 5u, "%d", data->msg_id );
-			id[5u] = '\0';
+			if ( txn )
+				os_snprintf( id, sizeof(id), "%u", (unsigned int)(*txn) );
+			else
+				os_snprintf( id, sizeof(id), "cmd" );
 			iot_json_encode_object_start( json, id );
 			iot_json_encode_string( json, "command", "log.publish" );
 			iot_json_encode_object_start( json, "params" );
@@ -1205,10 +1287,7 @@ iot_status_t tr50_event_publish(
 
 			msg = iot_json_encode_dump( json );
 			result = tr50_mqtt_publish(
-				data,
-				"api",
-				msg,
-				os_strlen( msg ) );
+				data, "api", msg, os_strlen( msg ), txn );
 			iot_json_encode_terminate( json );
 		}
 	}
@@ -1219,6 +1298,7 @@ iot_status_t tr50_execute(
 	iot_t *lib,
 	void* plugin_data,
 	iot_operation_t op,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out,
 	iot_step_t *step,
 	const void *item,
@@ -1231,8 +1311,11 @@ iot_status_t tr50_execute(
 		IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s %d.%d",
 			"execute", (int)op, (int)*step );
 	else
-		tr50_connect_check( lib, data, max_time_out );
+		tr50_connect_check( lib, data, txn, max_time_out );
 
+	if ( txn )
+		tr50_transaction_status_set( data, (iot_uint8_t)(*txn),
+			TR50_TRANSACTION_INVOKED );
 	if ( *step == IOT_STEP_DURING )
 	{
 #ifdef __clang__
@@ -1242,7 +1325,7 @@ iot_status_t tr50_execute(
 		switch( op )
 		{
 			case IOT_OPERATION_CLIENT_CONNECT:
-				result = tr50_connect( lib, data,
+				result = tr50_connect( lib, data, txn,
 					max_time_out );
 				break;
 			case IOT_OPERATION_CLIENT_DISCONNECT:
@@ -1252,13 +1335,13 @@ iot_status_t tr50_execute(
 			case IOT_OPERATION_FILE_UPLOAD:
 				result = tr50_file_request_send( data, op,
 					(const iot_file_transfer_t*)item,
-					options );
+					txn, options );
 				break;
 			case IOT_OPERATION_TELEMETRY_PUBLISH:
 				result = tr50_telemetry_publish( data,
 					(const iot_telemetry_t*)item,
 					(const struct iot_data*)value,
-					options );
+					txn, options );
 				break;
 			case IOT_OPERATION_ITERATION:
 				if ( data )
@@ -1269,23 +1352,28 @@ iot_status_t tr50_execute(
 				result = tr50_action_complete( data,
 					(const iot_action_t*)item,
 					(const iot_action_request_t*)value,
-					options );
+					txn, options );
 				break;
 			case IOT_OPERATION_ALARM_PUBLISH:
 				result = tr50_alarm_publish( data,
 					(const iot_alarm_t*)item,
 					(const iot_alarm_data_t*)value,
-					options );
+					txn, options );
 				break;
 			case IOT_OPERATION_ATTRIBUTE_PUBLISH:
 				result = tr50_attribute_publish( data,
 					(const char *)item,
 					(const char *)value,
-					options );
+					txn, options );
 				break;
 			case IOT_OPERATION_EVENT_PUBLISH:
 				result = tr50_event_publish( data,
-					(const char *)value, options );
+					(const char *)value, txn, options );
+				break;
+			case IOT_OPERATION_TRANSACTION_STATUS:
+				result = tr50_transaction_status( data,
+					(const iot_transaction_t*)item,
+					options );
 				break;
 			default:
 				/* unhandled operations */
@@ -1299,8 +1387,10 @@ iot_status_t tr50_execute(
 }
 
 iot_status_t tr50_file_request_send(
-	struct tr50_data *data, iot_operation_t op,
-	const iot_file_transfer_t* file_transfer,
+	struct tr50_data *data,
+	iot_operation_t op,
+	const iot_file_transfer_t *file_transfer,
+	const iot_transaction_t *UNUSED(txn),
 	const iot_options_t *options )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
@@ -1310,7 +1400,6 @@ iot_status_t tr50_file_request_send(
 		if ( data->file_transfer_count < TR50_FILE_TRANSFER_MAX )
 		{
 			char buf[ 512u ];
-			char id[ 6u ];
 			const char *msg;
 			struct tr50_file_transfer transfer;
 
@@ -1330,11 +1419,13 @@ iot_status_t tr50_file_request_send(
 			result = IOT_STATUS_FAILURE;
 			if ( json )
 			{
+				char id[11u];
 				char global_name[PATH_MAX];
 
 				/* create json string request for file.get/file.put */
-				os_snprintf( id, 5u, "%d", data->msg_id );
-				id[5u] = '\0';
+				os_snprintf( id, sizeof(id), "%u",
+					(data->file_transfer_count +
+					TR50_FILE_REQUEST_ID_OFFSET) );
 
 				iot_json_encode_object_start( json, id );
 				iot_json_encode_string( json, "command",
@@ -1382,8 +1473,6 @@ iot_status_t tr50_file_request_send(
 					os_memcpy(
 						&data->file_transfer_queue[ data->file_transfer_count ],
 						&transfer, sizeof( struct tr50_file_transfer ) );
-					data->file_transfer_queue[ data->file_transfer_count ].msg_id =
-						data->msg_id;
 					data->file_transfer_queue[ data->file_transfer_count ].plugin_data =
 						(void*)data;
 					++data->file_transfer_count;
@@ -1393,7 +1482,6 @@ iot_status_t tr50_file_request_send(
 						"Failed send file request" );
 
 				iot_json_encode_terminate( json );
-				++data->msg_id;
 			}
 			else
 				IOT_LOG( data->lib, IOT_LOG_ERROR, "%s",
@@ -1697,27 +1785,19 @@ OS_THREAD_DECL tr50_file_transfer(
 
 			if ( tr50 )
 			{
-				iot_uint8_t i = 0u;
-				for ( i= 0u;
-					i < tr50->file_transfer_count &&
-					result != IOT_STATUS_SUCCESS;
-					i++ )
-				{
-					if ( transfer->msg_id ==
-						tr50->file_transfer_queue[i].msg_id )
-					{
-						os_memmove(
-							&tr50->file_transfer_queue[i],
-							&tr50->file_transfer_queue[i+1u],
-							( tr50->file_transfer_count - i -1u ) *
-							sizeof( iot_file_transfer_t ) );
-						os_memzero(
-							&tr50->file_transfer_queue[ tr50->file_transfer_count - 1u ],
-							sizeof( iot_file_transfer_t ) );
-						--tr50->file_transfer_count;
-						result = IOT_STATUS_SUCCESS;
-					}
-				}
+				/* remove the transfer from the queue */
+				iot_uint8_t i = (iot_uint8_t)(
+					(unsigned long)((const unsigned char *)(transfer) - (const unsigned char*)&tr50->file_transfer_queue[0]) / (unsigned long)sizeof(struct tr50_file_transfer));
+				os_memmove(
+					&tr50->file_transfer_queue[i],
+					&tr50->file_transfer_queue[i+1u],
+					( tr50->file_transfer_count - i -1u ) *
+					sizeof( iot_file_transfer_t ) );
+				os_memzero(
+					&tr50->file_transfer_queue[ tr50->file_transfer_count - 1u ],
+					sizeof( iot_file_transfer_t ) );
+				--tr50->file_transfer_count;
+				result = IOT_STATUS_SUCCESS;
 			}
 			else
 			{
@@ -1727,7 +1807,6 @@ OS_THREAD_DECL tr50_file_transfer(
 			}
 		}
 	}
-
 	return (OS_THREAD_RETURN)result;
 }
 
@@ -1882,7 +1961,8 @@ iot_status_t tr50_mqtt_publish(
 	struct tr50_data *data,
 	const char *topic,
 	const void *payload,
-	size_t payload_len )
+	size_t payload_len,
+	const iot_transaction_t *txn )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( data && topic && payload )
@@ -1893,7 +1973,9 @@ iot_status_t tr50_mqtt_publish(
 				(int)payload_len, (const char*)payload );
 		result = iot_mqtt_publish( data->mqtt, topic,
 			payload, payload_len, TR50_MQTT_QOS, IOT_FALSE, NULL );
-		++data->msg_id;
+		if ( result != IOT_STATUS_SUCCESS && txn )
+			tr50_transaction_status_set( data, (iot_uint8_t)(*txn),
+				TR50_TRANSACTION_FAILURE );
 	}
 	return result;
 }
@@ -1946,7 +2028,7 @@ void tr50_on_message(
 
 				/* check if message is for us */
 				if ( os_strncmp( v, data->thing_key, v_len ) == 0 )
-					tr50_check_mailbox( data );
+					tr50_check_mailbox( data, NULL );
 			}
 		}
 		else if ( os_strcmp( topic, "reply" ) == 0 )
@@ -1959,13 +2041,13 @@ void tr50_on_message(
 				const char *v = NULL;
 				size_t v_len = 0u;
 				const iot_json_item_t *j_obj = NULL;
-				unsigned int msg_id = 0u;
+				int msg_id = 0;
 
 				iot_json_decode_object_iterator_key(
 					json, root, root_iter,
 					&v, &v_len );
 				os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
-				msg_id = (unsigned int)os_atoi( name );
+				msg_id = os_atoi( name );
 
 				iot_json_decode_object_iterator_value(
 					json, root, root_iter, &j_obj );
@@ -1979,7 +2061,17 @@ void tr50_on_message(
 						j_obj, "success" );
 					if ( j_success )
 					{
+						enum tr50_transaction_status s = TR50_TRANSACTION_FAILURE;
 						iot_json_decode_bool( json, j_success, &is_success );
+
+						/* update transaction status */
+						if ( msg_id > 0 && msg_id < 256 )
+						{
+							if ( is_success )
+								s = TR50_TRANSACTION_SUCCESS;
+							tr50_transaction_status_set(
+								data, (iot_uint8_t)msg_id, s );
+						}
 
 						if ( is_success )
 						{
@@ -2048,8 +2140,7 @@ void tr50_on_message(
 													char out_msg_buf[ 512u ];
 													iot_json_encoder_t *out_json;
 													out_json = iot_json_encode_initialize( out_msg_buf, 512u, 0 );
-													os_snprintf( out_msg_id, 5u, "%d", data->msg_id );
-													out_msg_id[5u] = '\0';
+													os_snprintf( out_msg_id, sizeof(out_msg_id), "cmd" );
 													iot_json_encode_object_start( out_json, out_msg_id );
 													iot_json_encode_string( out_json, "command", "mailbox.ack" );
 													iot_json_encode_object_start( out_json, "params" );
@@ -2061,10 +2152,8 @@ void tr50_on_message(
 
 													out_msg = iot_json_encode_dump( out_json );
 													tr50_mqtt_publish(
-														data,
-														"api",
-														out_msg,
-														os_strlen( out_msg ) );
+														data, "api", out_msg,
+														os_strlen( out_msg ), NULL );
 													iot_json_encode_terminate( out_json );
 												}
 											}
@@ -2153,17 +2242,13 @@ void tr50_on_message(
 									== IOT_JSON_TYPE_STRING )
 								{
 									/* file transfer request parsing */
-									iot_uint8_t i = 0u;
 									iot_bool_t found_transfer = IOT_FALSE;
 									struct tr50_file_transfer *transfer = NULL;
-									char fileId[ 32u ];
 									iot_int64_t crc32 = 0u;
 									iot_int64_t fileSize = 0u;
 
+									/* obtain the fileId */
 									iot_json_decode_string( json, j_obj, &v, &v_len );
-									/* FIXME:  check size <=32 bytes */
-									os_strncpy( fileId, v, v_len );
-									fileId[ v_len ] = '\0';
 
 									j_obj = iot_json_decode_object_find( json,
 										j_params, "crc32" );
@@ -2177,14 +2262,11 @@ void tr50_on_message(
 										== IOT_JSON_TYPE_INTEGER )
 										iot_json_decode_integer( json, j_obj, &fileSize );
 
-									for ( i= 0u;
-										i < data->file_transfer_count &&
-										found_transfer == IOT_FALSE;
-										i++ )
+									if ( msg_id > 0 && (unsigned int)msg_id >= TR50_FILE_REQUEST_ID_OFFSET &&
+										(unsigned int)msg_id - TR50_FILE_REQUEST_ID_OFFSET < TR50_FILE_TRANSFER_MAX )
 									{
-										transfer = &data->file_transfer_queue[i];
-										if ( transfer->path[0] &&
-											transfer->msg_id == msg_id )
+										transfer = &data->file_transfer_queue[(unsigned int)msg_id - TR50_FILE_REQUEST_ID_OFFSET];
+										if ( transfer->path[0] )
 										{
 											/* determine host name from config file */
 											const char *host = NULL;
@@ -2192,7 +2274,7 @@ void tr50_on_message(
 												"cloud.host", IOT_FALSE,
 												IOT_TYPE_STRING, &host );
 											os_snprintf( transfer->url, PATH_MAX,
-												"https://%s/file/%s", host, fileId );
+												"https://%s/file/%.*s", host, (int)v_len, v );
 											transfer->crc32 = (iot_uint64_t)crc32;
 											transfer->size = (iot_uint64_t)fileSize;
 											transfer->retry_time = 0u;
@@ -2205,18 +2287,18 @@ void tr50_on_message(
 										}
 									}
 
-#ifdef IOT_THREAD_SUPPORT
 									if ( found_transfer )
 									{
+#ifdef IOT_THREAD_SUPPORT
 										os_thread_t thread;
 
 										/* Create a thread to do the file transfer */
 										if ( os_thread_create( &thread, tr50_file_transfer, transfer ) )
 											IOT_LOG( data->lib, IOT_LOG_ERROR,
 												"Failed to create a thread to transfer "
-												"file for message #%u", msg_id );
-									}
+												"file for message #%u", (unsigned int)msg_id );
 #endif /* ifdef IOT_THREAD_SUPPORT */
+									}
 								}
 							}
 						}
@@ -2384,13 +2466,14 @@ iot_status_t tr50_telemetry_publish(
 	struct tr50_data *data,
 	const iot_telemetry_t *t,
 	const struct iot_data *d,
+	const iot_transaction_t *txn,
 	const iot_options_t *UNUSED(options) )
 {
 	iot_status_t result = IOT_STATUS_FAILURE;
 	if ( d->has_value )
 	{
 		const char *cmd;
-		char id[6u];
+		char id[11u];
 		const char *msg;
 		const char *const value_key = "value";
 		iot_json_encoder_t *const json =
@@ -2405,8 +2488,10 @@ iot_status_t tr50_telemetry_publish(
 			cmd = "property.publish";
 
 		/* convert id to string */
-		os_snprintf( id, 5u, "%d", data->msg_id );
-		id[5u] = '\0';
+		if ( txn )
+			os_snprintf( id, sizeof(id), "%u", (unsigned int)(*txn) );
+		else
+			os_snprintf( id, sizeof(id), "cmd" );
 		iot_json_encode_object_start( json, id );
 		iot_json_encode_string( json, "command", cmd );
 		iot_json_encode_object_start( json, "params" );
@@ -2487,10 +2572,7 @@ iot_status_t tr50_telemetry_publish(
 
 		msg = iot_json_encode_dump( json );
 		result = tr50_mqtt_publish(
-			data,
-			"api",
-			msg,
-			os_strlen( msg ) );
+			data, "api", msg, os_strlen( msg ), txn );
 		iot_json_encode_terminate( json );
 	}
 	return result;
@@ -2507,6 +2589,71 @@ iot_status_t tr50_terminate(
 	iot_mqtt_terminate();
 	curl_global_cleanup();
 	return result;
+}
+
+iot_status_t tr50_transaction_status(
+	const struct tr50_data *data,
+	const iot_transaction_t *txn,
+	const iot_options_t *UNUSED(options) )
+{
+	/* size of a "chunk" in bits */
+	const unsigned int chunk_size_bits = sizeof(unsigned int)*8u;
+	/* number of bits required to data for each item */
+	const unsigned int data_bits = 2u;
+	/* number of data blocks in a "chunk" */
+	const unsigned int data_blks = chunk_size_bits/data_bits;
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+
+	if ( data && txn )
+	{
+		const iot_uint8_t txn_id = (iot_uint8_t)(*txn);
+		const unsigned int b = (txn_id / data_blks);
+		enum tr50_transaction_status tx_status;
+
+		/* obtain the bits within a chunk that hold the desired data */
+		tx_status = (data->transactions[b] >> (((txn_id%data_blks)*data_bits)) & ((1u<<data_bits)-1u));
+
+		/* convert tr50 transaction status to result */
+		switch (tx_status)
+		{
+		case TR50_TRANSACTION_SUCCESS:
+			result = IOT_STATUS_SUCCESS;
+			break;
+		case TR50_TRANSACTION_INVOKED:
+			result = IOT_STATUS_INVOKED;
+			break;
+		case TR50_TRANSACTION_FAILURE:
+			result = IOT_STATUS_EXECUTION_ERROR;
+			break;
+		case TR50_TRANSACTION_UNKNOWN:
+		default:
+			result = IOT_STATUS_NOT_FOUND;
+		}
+	}
+	return result;
+}
+
+void tr50_transaction_status_set(
+	struct tr50_data *data,
+	iot_uint8_t txn_id,
+	enum tr50_transaction_status tx_status )
+{
+	/* size of a "chunk" in bits */
+	const unsigned int chunk_size_bits = sizeof(iot_uint32_t)*8u;
+	/* number of bits required to data for each item */
+	const unsigned int data_bits = 2u;
+	/* number of data blocks in a "chunk" */
+	const unsigned int data_blks = chunk_size_bits/data_bits;
+
+	if ( data )
+	{
+		const unsigned int b = (txn_id / data_blks);
+		const iot_uint32_t mask = ((1u<<data_bits)-1u) << ((txn_id%data_blks)*data_bits);
+		const iot_uint32_t value = tx_status << ((txn_id%data_blks)*data_bits);
+
+		if ( b < sizeof(data->transactions) / sizeof(iot_uint32_t) )
+			data->transactions[b] = (data->transactions[b] & ~mask) | (value & mask);
+	}
 }
 
 IOT_PLUGIN( tr50, 10, iot_version_encode(1,0,0,0),

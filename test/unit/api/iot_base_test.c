@@ -2518,29 +2518,45 @@ static void test_iot_timestamp_now_valid( void **state )
 /* iot_transaction_status */
 static void test_iot_transaction_status_bad( void **state )
 {
-	iot_bool_t result;
-	iot_transaction_t txn;
-	bzero( &txn, sizeof( struct iot_transaction ) );
-	txn.status = IOT_STATUS_FAILURE;
-	result = iot_transaction_status( &txn, 0u );
-	assert_int_equal( result, IOT_FALSE );
+	iot_t lib;
+	iot_status_t result;
+	iot_transaction_t txn = 1u;
+
+	bzero( &lib, sizeof( struct iot ) );
+	will_return( __wrap_iot_plugin_perform, IOT_STATUS_EXECUTION_ERROR );
+	result = iot_transaction_status( &lib, &txn, 0u );
+	assert_int_equal( result, IOT_STATUS_EXECUTION_ERROR );
 }
 
 static void test_iot_transaction_status_good( void **state )
 {
-	iot_bool_t result;
-	iot_transaction_t txn;
-	bzero( &txn, sizeof( struct iot_transaction ) );
-	txn.status = IOT_STATUS_SUCCESS;
-	result = iot_transaction_status( &txn, 0u );
-	assert_int_equal( result, IOT_TRUE );
+	iot_t lib;
+	iot_status_t result;
+	iot_transaction_t txn = 2u;
+
+	bzero( &lib, sizeof( struct iot ) );
+	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
+	result = iot_transaction_status( &lib, &txn, 0u );
+	assert_int_equal( result, IOT_STATUS_SUCCESS );
 }
 
-static void test_iot_transaction_status_null( void **state )
+static void test_iot_transaction_status_null_lib( void **state )
 {
-	iot_bool_t result;
-	result = iot_transaction_status( NULL, 0u );
-	assert_int_equal( result, IOT_FALSE );
+	iot_status_t result;
+	iot_transaction_t txn = 3u;
+
+	result = iot_transaction_status( NULL, &txn, 0u );
+	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
+}
+
+static void test_iot_transaction_status_null_txn( void **state )
+{
+	iot_t lib;
+	iot_status_t result;
+
+	bzero( &lib, sizeof( struct iot ) );
+	result = iot_transaction_status( &lib, NULL, 0u );
+	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }
 
 /* iot_version */
@@ -2658,7 +2674,8 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_timestamp_now_valid ),
 		cmocka_unit_test( test_iot_transaction_status_bad ),
 		cmocka_unit_test( test_iot_transaction_status_good ),
-		cmocka_unit_test( test_iot_transaction_status_null ),
+		cmocka_unit_test( test_iot_transaction_status_null_lib ),
+		cmocka_unit_test( test_iot_transaction_status_null_txn ),
 		cmocka_unit_test( test_iot_version ),
 		cmocka_unit_test( test_iot_version_str )
 	};

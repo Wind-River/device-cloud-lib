@@ -2,7 +2,7 @@
  * @file
  * @brief Header file for using the Internet of Things library
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,11 @@ enum iot_operation
 	/** @brief ( up ) publication of a telemetry sample(s) */
 	IOT_OPERATION_TELEMETRY_PUBLISH,
 	/** @brief ( up ) telemetry registration */
-	IOT_OPERATION_TELEMETRY_REGISTER
+	IOT_OPERATION_TELEMETRY_REGISTER,
+	/** @brief ( up ) obtain the transaction status */
+	IOT_OPERATION_TRANSACTION_STATUS,
 };
+
 /** @brief current operation being performed */
 typedef enum iot_operation iot_operation_t;
 
@@ -96,6 +99,7 @@ typedef iot_status_t (*iot_plugin_execute_fptr)(
 	iot_t *lib,
 	void* plugin_data,
 	iot_operation_t op,
+	const iot_transaction_t *txn,
 	iot_millisecond_t max_time_out,
 	iot_step_t *step,
 	const void *item,

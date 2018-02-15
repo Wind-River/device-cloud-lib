@@ -539,7 +539,7 @@ iot_status_t iot_base_device_id_set(
 				IOT_DEFAULT_FILE_DEVICE_ID );
 
 			fd = os_file_open( file_path, OS_READ );
-			*device_id = '\0';
+			os_memzero( device_id, IOT_ID_MAX_LEN + 1u );
 			if ( fd  != OS_FILE_INVALID )
 			{
 				/* read uuid from the file */
@@ -549,6 +549,9 @@ iot_status_t iot_base_device_id_set(
 				os_file_close( fd );
 				if( device_id_len >= IOT_ID_MAX_LEN )
 					device_id_len = IOT_ID_MAX_LEN;
+				if ( device_id_len > 0u &&
+					device_id[device_id_len] == '\n' )
+					--device_id_len;
 				device_id[device_id_len] = '\0';
 				if ( device_id_len > 0u )
 					IOT_LOG( NULL, IOT_LOG_INFO,
@@ -1340,15 +1343,18 @@ iot_timestamp_t iot_timestamp_now( void )
 	return time_stamp;
 }
 
-iot_bool_t iot_transaction_status(
+iot_status_t iot_transaction_status(
+	iot_t *lib,
 	const iot_transaction_t *txn,
-	iot_millisecond_t UNUSED(max_time_out) )
+	iot_millisecond_t max_time_out )
 {
-	iot_bool_t result = IOT_FALSE;
-	if ( txn )
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( lib && txn )
 	{
-		if ( txn->status == IOT_STATUS_SUCCESS )
-			result = IOT_TRUE;
+		result = iot_plugin_perform( lib,
+			NULL, &max_time_out,
+			IOT_OPERATION_TRANSACTION_STATUS,
+			txn, NULL, NULL );
 	}
 	return result;
 }

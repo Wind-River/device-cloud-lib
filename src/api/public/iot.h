@@ -185,7 +185,7 @@ typedef uint32_t                                 iot_severity_t;
 /** @brief Type representing a telemetry data */
 typedef struct iot_telemetry                     iot_telemetry_t;
 /** @brief Type representing communication between client and agent */
-typedef struct iot_transaction                   iot_transaction_t;
+typedef iot_uint8_t                              iot_transaction_t;
 /** @brief Type containing verison information for the library */
 typedef iot_uint32_t                             iot_version_t;
 
@@ -2230,6 +2230,7 @@ IOT_API IOT_SECTION iot_status_t iot_telemetry_publish_raw(
 #endif /* ifndef __clang__ */
 #endif /* ifndef iot_EXPORTS */
 
+/* time */
 /**
  * @brief Explicitly sets the time stamp for a piece of telemetry data
  *
@@ -2248,7 +2249,6 @@ IOT_API IOT_SECTION iot_status_t iot_telemetry_timestamp_set(
 	iot_telemetry_t *telemetry,
 	iot_timestamp_t time_stamp );
 
-/* time */
 /**
  * @brief Initializes a time stamp with the current time
  *
@@ -2259,6 +2259,27 @@ IOT_API IOT_SECTION iot_status_t iot_telemetry_timestamp_set(
  * @see iot_telemetry_timestamp_set
  */
 IOT_API IOT_SECTION iot_timestamp_t iot_timestamp_now( void );
+
+/* transaction */
+/**
+ * @brief Determine the status of a transaction
+ *
+ * @param[in]      lib                 library handle
+ * @param[in]      txn                 transaction to query
+ * @param[in]      max_time_out        maximum time to wait for query to be
+ *                                     performed
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_INVOKED          message has been sent/queue no response
+ * @retval IOT_STATUS_FAILURE          failure status returned from cloud
+ * @retval IOT_STATUS_NOT_FOUND        transaction is unknown
+ * @retval IOT_STATUS_SUCCESS          success status returned from cloud
+ * @retval IOT_STATUS_TIMED_OUT        function timed out before status returned
+ */
+IOT_API IOT_SECTION iot_status_t iot_transaction_status(
+	iot_t *lib,
+	const iot_transaction_t *txn,
+	iot_millisecond_t max_time_out );
 
 /* version */
 /**

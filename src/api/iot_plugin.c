@@ -2,7 +2,7 @@
  * @file
  * @brief source file for IoT library plug-in support
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,7 +226,7 @@ void iot_plugin_initialize(
 
 iot_status_t iot_plugin_perform(
 	iot_t *lib,
-	iot_transaction_t *UNUSED(txn),
+	iot_transaction_t *txn,
 	iot_millisecond_t *max_time_out,
 	iot_operation_t op,
 	const void *item,
@@ -253,6 +253,13 @@ iot_status_t iot_plugin_perform(
 		if ( time_remaining == 0u )
 			ignore_time_out = IOT_TRUE;
 
+		if ( txn )
+		{
+			if ( lib->transaction_count == 0u )
+				++lib->transaction_count;
+			*txn = lib->transaction_count++;
+		}
+
 		for ( i = IOT_STEP_BEFORE; i <= IOT_STEP_AFTER
 			&& (ignore_time_out || time_remaining > 0u); ++i )
 		{
@@ -264,7 +271,7 @@ iot_status_t iot_plugin_perform(
 				{
 					iot_status_t interim_result =
 						p->execute( lib, p->data, op,
-							time_remaining, &i,
+							txn, time_remaining, &i,
 							item, value, options );
 					if ( interim_result > result )
 						result = interim_result;
