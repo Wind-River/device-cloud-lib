@@ -443,6 +443,31 @@ iot_status_t iot_mqtt_connect_impl(
 				opts->ssl_conf->insecure );
 		}
 
+		switch ( opts->version )
+		{
+			case IOT_MQTT_VERSION_3_1:
+			{
+				int ver = MQTT_PROTOCOL_V31;
+				mosquitto_opts_set(
+					mqtt->mosq,
+					MOSQ_OPT_PROTOCOL_VERSION,
+					&ver );
+				break;
+			}
+			case IOT_MQTT_VERSION_3_1_1:
+			{
+				int ver = MQTT_PROTOCOL_V31;
+				mosquitto_opts_set(
+					mqtt->mosq,
+					MOSQ_OPT_PROTOCOL_VERSION,
+					&ver );
+				break;
+			}
+			case IOT_MQTT_VERSION_DEFAULT:
+			default:
+				break;
+		}
+
 #ifdef IOT_THREAD_SUPPORT
 		if ( reconnect == IOT_FALSE )
 			mosq_res = mosquitto_connect_async( mqtt->mosq,
@@ -519,8 +544,24 @@ iot_status_t iot_mqtt_connect_impl(
 			iot_mqtt_on_delivery );
 		conn_opts.keepAliveInterval = IOT_MQTT_KEEP_ALIVE;
 		conn_opts.cleansession = !reconnect;
-		conn_opts.username = opts->username;
-		conn_opts.password = opts->password;
+		if ( opts->version != IOT_MQTT_VERSION_3_1 )
+		{
+			conn_opts.username = opts->username;
+			conn_opts.password = opts->password;
+		}
+
+		switch ( opts->version )
+		{
+			case IOT_MQTT_VERSION_3_1:
+				conn_opts.MQTTVersion = MQTTVERSION_3_1;
+				break;
+			case IOT_MQTT_VERSION_3_1_1:
+				conn_opts.MQTTVersion = MQTTVERSION_3_1_1;
+				break;
+			case IOT_MQTT_VERSION_DEFAULT:
+			default:
+				break;
+		}
 
 #ifdef IOT_THREAD_SUPPORT
 		conn_opts.onSuccess = iot_mqtt_on_success;

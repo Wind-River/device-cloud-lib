@@ -24,6 +24,19 @@ extern "C" {
 #endif /* ifdef __cplusplus */
 
 /**
+ * @brief MQTT version to use
+ */
+typedef enum iot_mqtt_version
+{
+	/** @brief Use default MQTT Version (negotiate version) */
+	IOT_MQTT_VERSION_DEFAULT = 0,
+	/** @brief Use MQTT Version 3.1 */
+	IOT_MQTT_VERSION_3_1 = 3,
+	/** @brief Use MQTT Version 3.1.1 */
+	IOT_MQTT_VERSION_3_1_1 = 4,
+} iot_mqtt_version_t;
+
+/**
  * @brief Possible types for iot proxy
  */
 typedef enum iot_proxy_type
@@ -95,13 +108,15 @@ typedef struct iot_mqtt_connect_options
 	 * MQTT version 3.1.1 protocol or higher.
 	 */
 	const char *password;
+	/** @brief MQTT protocol version to use */
+	iot_mqtt_version_t version;
 } iot_mqtt_connect_options_t;
 
 /**
  * @brief Initializes the @p iot_mqtt_connection_options_t structure
  */
 #define IOT_MQTT_CONNECT_OPTIONS_INIT \
-	{ NULL, NULL, 0u, NULL, NULL, NULL, NULL }
+	{ NULL, NULL, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT }
 
 /**
  * @brief internal MQTT structure

@@ -1071,8 +1071,8 @@ iot_status_t tr50_connect(
 		con_opts.ssl_conf = &ssl_conf;
 		con_opts.username = data->thing_key;
 		con_opts.password = app_token;
+		con_opts.version = IOT_MQTT_VERSION_3_1_1;
 		data->mqtt = iot_mqtt_connect( &con_opts, max_time_out );
-
 
 		if ( data->mqtt )
 		{
@@ -1155,6 +1155,7 @@ iot_status_t tr50_connect_check(
 			/*con_opts.proxy_conf = proxy_conf_p;*/
 			con_opts.username = data->thing_key;
 			con_opts.password = app_token;
+			con_opts.version = IOT_MQTT_VERSION_3_1_1;
 			if ( iot_mqtt_reconnect( data->mqtt, &con_opts,
 				max_time_out ) == IOT_STATUS_SUCCESS )
 			{
