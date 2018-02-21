@@ -237,7 +237,7 @@ IOT_API IOT_SECTION iot_status_t iot_mqtt_loop( iot_mqtt_t *mqtt,
  * @param[out]     msg_id              message id assigned to the message
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
- * @retval IOT_STATUS_FAILURE          operation failed
+ * @retval IOT_STATUS_IO_ERROR         not connected or failed to publish
  * @retval IOT_STATUS_SUCCESS          operation successful
  */
 IOT_API IOT_SECTION iot_status_t iot_mqtt_publish(

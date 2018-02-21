@@ -896,7 +896,7 @@ iot_status_t iot_mqtt_publish(
 	if ( mqtt )
 	{
 #ifdef IOT_MQTT_MOSQUITTO
-		result = IOT_STATUS_FAILURE;
+		result = IOT_STATUS_IO_ERROR;
 		if ( mosquitto_publish( mqtt->mosq, &mid, topic, payload_len,
 			payload, qos, retain ) == MOSQ_ERR_SUCCESS )
 			result = IOT_STATUS_SUCCESS;
@@ -916,14 +916,14 @@ iot_status_t iot_mqtt_publish(
 			opts.onSuccess = iot_mqtt_on_success;
 
 			os_memcpy( pl, payload, payload_len );
-			result = IOT_STATUS_FAILURE;
+			result = IOT_STATUS_IO_ERROR;
 			rs = MQTTAsync_send( mqtt->client, topic,
 				(int)payload_len, pl, qos, retain, &opts );
 			if ( rs == MQTTASYNC_SUCCESS )
 #else /* ifdef IOT_THREAD_SUPPORT */
 			MQTTClient_deliveryToken token;
 			os_memcpy( pl, payload, payload_len );
-			result = IOT_STATUS_FAILURE;
+			result = IOT_STATUS_IO_ERROR;
 			if ( MQTTClient_publish( mqtt->client, topic,
 				(int)payload_len, pl, qos, retain, &token )
 				== MQTTCLIENT_SUCCESS )
