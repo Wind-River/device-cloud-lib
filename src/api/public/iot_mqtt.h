@@ -88,7 +88,15 @@ typedef struct iot_mqtt_connect_options
 	const char *client_id;
 	/** @brief host server to connect to */
 	const char *host;
-	/** @brief port to connect on (if 0, defaults: to 1883 or 8883) */
+	/**
+	 * @brief port to connect on (optional)
+	 *
+	 * @note if set to a value of 0:
+	 * - uses @p 443 if @p websocket_path @p ssl_conf provided
+	 * - uses @p 80 if @p websocket_path provided
+	 * - uses @p 8883 if @p ssl_conf provided
+	 * - uses @p 1883 if neither @p websocket_path or @p ssl_conf not set
+	 */
 	iot_uint16_t port;
 	/** @brief number seconds between sending MQTT pings (if 0, not set) */
 	iot_uint16_t keep_alive;
@@ -112,13 +120,15 @@ typedef struct iot_mqtt_connect_options
 	const char *password;
 	/** @brief MQTT protocol version to use */
 	iot_mqtt_version_t version;
+	/** @brief HTTP to request if using websockets (optional, if NULL: don't use websockets) */
+	const char *websocket_path;
 } iot_mqtt_connect_options_t;
 
 /**
  * @brief Initializes the @p iot_mqtt_connection_options_t structure
  */
 #define IOT_MQTT_CONNECT_OPTIONS_INIT \
-	{ NULL, NULL, 0u, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT }
+	{ NULL, NULL, 0u, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT, NULL }
 
 /**
  * @brief internal MQTT structure

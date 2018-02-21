@@ -34,6 +34,10 @@
 #define IOT_MQTT_PORT                  1883
 /** @brief Default MQTT port for SSL connections */
 #define IOT_MQTT_PORT_SSL              8883
+/** @brief Default port for MQTT over websocket conections */
+#define IOT_MQTT_PORT_WS               80
+/** @brief Default port for MQTT over Secure websocket connections */
+#define IOT_MQTT_PORT_WSS              443
 
 /** @brief count of the number of times that MQTT initalize has been called */
 static unsigned int MQTT_INIT_COUNT = 0u;
@@ -296,8 +300,9 @@ iot_mqtt_t* iot_mqtt_connect(
 #ifndef IOT_MQTT_MOSQUITTO
 			iot_uint16_t port = opts->port;
 			char url[IOT_MQTT_URL_MAX + 1u];
+			const char *uri_proto = "tcp";
+			const char *ws_path = "";
 #endif /* ifndef IOT_MQTT_MOSQUITTO */
-
 			os_memzero( result, sizeof( struct iot_mqtt ) );
 
 #ifdef IOT_THREAD_SUPPORT
@@ -315,18 +320,41 @@ iot_mqtt_t* iot_mqtt_connect(
 #else /* ifdef IOT_MQTT_MOSQUITTO */
 			if ( port == 0u )
 			{
-				if ( opts->ssl_conf )
+				if ( opts->websocket_path && opts->ssl_conf )
+					port = IOT_MQTT_PORT_WSS;
+				else if ( opts->websocket_path )
+					port = IOT_MQTT_PORT_WS;
+				else if ( opts->ssl_conf )
 					port = IOT_MQTT_PORT_SSL;
 				else
 					port = IOT_MQTT_PORT;
 			}
 
-			if ( opts->ssl_conf && port != IOT_MQTT_PORT )
-				os_snprintf( url, IOT_MQTT_URL_MAX,
-					"ssl://%s:%d", opts->host, port );
+			if ( port == IOT_MQTT_PORT_WSS ||
+				( opts->websocket_path && opts->ssl_conf ) )
+			{
+				uri_proto = "wss";
+				if ( opts->websocket_path &&
+					*opts->websocket_path != '\0' )
+					ws_path = opts->websocket_path;
+				else
+					ws_path = "/mqtt";
+			}
+			else if ( port == IOT_MQTT_PORT_WS || opts->websocket_path )
+			{
+				uri_proto = "ws";
+				if ( opts->websocket_path &&
+					*opts->websocket_path != '\0' )
+					ws_path = opts->websocket_path;
+				else
+					ws_path = "/mqtt";
+			}
+			else if ( opts->ssl_conf )
+				uri_proto = "ssl";
 			else
-				os_snprintf( url, IOT_MQTT_URL_MAX,
-					"tcp://%s:%d", opts->host, port );
+				uri_proto = "tcp";
+			os_snprintf( url, IOT_MQTT_URL_MAX, "%s://%s:%d%s",
+				uri_proto, opts->host, port, ws_path );
 			url[ IOT_MQTT_URL_MAX ] = '\0';
 
 			if ( PAHO_OBJ( _create )( &result->client, url,
@@ -390,7 +418,11 @@ iot_status_t iot_mqtt_connect_impl(
 		result = IOT_STATUS_FAILURE;
 		if ( port == 0u )
 		{
-			if ( opts->ssl_conf )
+			if ( opts->websocket_path && opts->ssl_conf )
+				port = IOT_MQTT_PORT_WSS;
+			else if ( opts->websocket_path )
+				port = IOT_MQTT_PORT_WS;
+			else if ( opts->ssl_conf )
 				port = IOT_MQTT_PORT_SSL;
 			else
 				port = IOT_MQTT_PORT;
@@ -429,6 +461,10 @@ iot_status_t iot_mqtt_connect_impl(
 					(int)opts->proxy_conf->port,
 					(int)opts->proxy_conf->type );
 		}
+
+		if ( opts->websocket_path )
+			os_fprintf( OS_STDERR, "websocket support not "
+				"implemented in client library\n" );
 
 		if ( opts->ssl_conf && port != IOT_MQTT_PORT )
 		{
