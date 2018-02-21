@@ -106,7 +106,7 @@ struct tr50_data
 	struct tr50_file_transfer file_transfer_queue[ TR50_FILE_TRANSFER_MAX ];
 	/** @brief number of ongoing file transfer */
 	iot_uint8_t file_transfer_count;
-	/** @brief timestamp of when file transfer queue is last checked */
+	/** @brief time when file transfer queue is last checked */
 	iot_timestamp_t file_queue_last_checked;
 	/** @brief library handle */
 	iot_t *lib;
@@ -1006,6 +1006,7 @@ iot_status_t tr50_connect(
 	{
 		const char *app_token = NULL;
 		const char *ca_bundle = NULL;
+		iot_mqtt_connect_options_t con_opts = IOT_MQTT_CONNECT_OPTIONS_INIT;
 		const char *host = NULL;
 		const char *proxy_type = NULL;
 		iot_int64_t port = 0;
@@ -1062,15 +1063,16 @@ iot_status_t tr50_connect(
 		os_snprintf( data->thing_key, TR50_THING_KEY_MAX_LEN,
 			"%s-%s", lib->device_id, iot_id( lib ) );
 		data->thing_key[ TR50_THING_KEY_MAX_LEN ] = '\0';
-		data->mqtt = iot_mqtt_connect(
-			iot_id( lib ),
-			host,
-			(iot_uint16_t)port,
-			&ssl_conf,
-			proxy_conf_p,
-			data->thing_key,
-			app_token,
-			max_time_out );
+
+		con_opts.client_id = iot_id( lib );
+		con_opts.host = host;
+		con_opts.port = (iot_uint16_t)port;
+		con_opts.proxy_conf = proxy_conf_p;
+		con_opts.ssl_conf = &ssl_conf;
+		con_opts.username = data->thing_key;
+		con_opts.password = app_token;
+		data->mqtt = iot_mqtt_connect( &con_opts, max_time_out );
+
 
 		if ( data->mqtt )
 		{
@@ -1118,6 +1120,7 @@ iot_status_t tr50_connect_check(
 		{
 			const char *app_token = NULL;
 			const char *ca_bundle = NULL;
+			iot_mqtt_connect_options_t con_opts = IOT_MQTT_CONNECT_OPTIONS_INIT;
 			const char *host = NULL;
 			iot_int64_t port = 0;
 			iot_mqtt_ssl_t ssl_conf;
@@ -1145,14 +1148,14 @@ iot_status_t tr50_connect_check(
 			os_snprintf( data->thing_key, TR50_THING_KEY_MAX_LEN,
 				"%s-%s", lib->device_id, iot_id( lib ) );
 			data->thing_key[ TR50_THING_KEY_MAX_LEN ] = '\0';
-			if( iot_mqtt_reconnect(
-				data->mqtt,
-				iot_id( lib ),
-				host,
-				(iot_uint16_t)port,
-				&ssl_conf,
-				data->thing_key,
-				app_token,
+			con_opts.client_id = iot_id( lib );
+			con_opts.host = host;
+			con_opts.port = (iot_uint16_t)port;
+			con_opts.ssl_conf = &ssl_conf;
+			/*con_opts.proxy_conf = proxy_conf_p;*/
+			con_opts.username = data->thing_key;
+			con_opts.password = app_token;
+			if ( iot_mqtt_reconnect( data->mqtt, &con_opts,
 				max_time_out ) == IOT_STATUS_SUCCESS )
 			{
 				iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
@@ -1461,7 +1464,6 @@ iot_status_t tr50_file_request_send(
 				iot_json_encode_object_end( json );
 
 				msg = iot_json_encode_dump( json );
-				IOT_LOG( data->lib, IOT_LOG_TRACE, "-->%s", msg );
 
 				/* publish */
 				result = iot_mqtt_publish( data->mqtt, "api",

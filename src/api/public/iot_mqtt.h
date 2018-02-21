@@ -67,6 +67,43 @@ typedef struct iot_mqtt_ssl
 } iot_mqtt_ssl_t;
 
 /**
+ * @brief Structure containing options for connecting to an MQTT broker
+ */
+typedef struct iot_mqtt_connect_options
+{
+	/** @brief id of the client */
+	const char *client_id;
+	/** @brief host server to connect to */
+	const char *host;
+	/** @brief port to connect on (if 0, defaults: to 1883 or 8883) */
+	iot_uint16_t port;
+	/** @brief proxy information (optional) */
+	iot_mqtt_proxy_t *proxy_conf;
+	/** @brief secure connection information (optional) */
+	iot_mqtt_ssl_t *ssl_conf;
+	/**
+	 * @brief user name to connect with (optional)
+	 *
+	 * @note This field is only applicable to clients that connect using
+	 * MQTT version 3.1.1 protocol or higher.
+	 */
+	const char *username;
+	/**
+	 * @brief password to connect with (optional)
+	 *
+	 * @note This field is only applicable to clients that connect using
+	 * MQTT version 3.1.1 protocol or higher.
+	 */
+	const char *password;
+} iot_mqtt_connect_options_t;
+
+/**
+ * @brief Initializes the @p iot_mqtt_connection_options_t structure
+ */
+#define IOT_MQTT_CONNECT_OPTIONS_INIT \
+	{ NULL, NULL, 0u, NULL, NULL, NULL, NULL }
+
+/**
  * @brief internal MQTT structure
  */
 typedef struct iot_mqtt iot_mqtt_t;
@@ -100,13 +137,10 @@ typedef void (*iot_mqtt_message_callback_t)(
 /**
  * @brief connects to an MQTT server
  *
- * @param[in]      client_id           id of the client
- * @param[in]      host                host server to connect to
- * @param[in]      port                (optional) port to connect on
- * @param[in]      ssl_conf            (optional) secure connection information
- * @param[in]      proxy_conf          (optional) proxy information
- * @param[in]      username            user name to connect with
- * @param[in]      password            password to connect with
+ * @note The @p username & @p password fields are only applicable to clients
+ * that connect using MQTT version 3.1.1 protocol or higher.
+ *
+ * @param[in]      opts                connection options
  * @param[in]      max_time_out        maximum time to wait
  *                                     (0 = wait indefinitely)
  *
@@ -114,15 +148,10 @@ typedef void (*iot_mqtt_message_callback_t)(
  * @retval         !NULL               successful connection established
  *
  * @see iot_mqtt_disconnect
+ * @see iot_mqtt_reconnect
  */
 IOT_API IOT_SECTION iot_mqtt_t* iot_mqtt_connect(
-	const char *client_id,
-	const char *host,
-	iot_uint16_t port,
-	iot_mqtt_ssl_t *ssl_conf,
-	iot_mqtt_proxy_t *proxy_conf,
-	const char *username,
-	const char *password,
+	const iot_mqtt_connect_options_t *opts,
 	iot_millisecond_t max_time_out );
 
 /**
@@ -135,6 +164,7 @@ IOT_API IOT_SECTION iot_mqtt_t* iot_mqtt_connect(
  * @retval IOT_STATUS_SUCCESS          operation successful
  *
  * @see iot_mqtt_connect
+ * @see iot_mqtt_reconnect
  */
 IOT_API IOT_SECTION iot_status_t iot_mqtt_disconnect(
 	iot_mqtt_t* mqtt
@@ -270,30 +300,23 @@ IOT_API IOT_SECTION iot_status_t iot_mqtt_set_user_data(
 	void *user_data );
 
 /**
- * @brief reconnects to an MQTT server
+ * @brief reconnects to an MQTT server after a connection
  *
- * @param[in]      mqtt                MQTT object to subscribe to
- * @param[in]      client_id           id of the client
- * @param[in]      host                host server to connect to
- * @param[in]      port                (optional) port to connect on
- * @param[in]      ssl_conf            (optional) secure connection information
- * @param[in]      username            user name to connect with
- * @param[in]      password            password to connect with
+ * @param[in,out]  mqtt                MQTT object to subscribe to
+ * @param[in]      opts                connection options
  * @param[in]      max_time_out        maximum time to wait
  *                                     (0 = wait indefinitely)
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
  * @retval IOT_STATUS_FAILURE          operation failed
  * @retval IOT_STATUS_SUCCESS          operation successful
+ *
+ * @see iot_mqtt_connect
+ * @see iot_mqtt_disconnect
  */
 IOT_API IOT_SECTION iot_status_t iot_mqtt_reconnect(
 	iot_mqtt_t *mqtt,
-	const char *client_id,
-	const char *host,
-	iot_uint16_t port,
-	iot_mqtt_ssl_t *ssl_conf,
-	const char *username,
-	const char *password,
+	const iot_mqtt_connect_options_t *opts,
 	iot_millisecond_t max_time_out );
 
 /**
