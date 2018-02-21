@@ -90,6 +90,8 @@ typedef struct iot_mqtt_connect_options
 	const char *host;
 	/** @brief port to connect on (if 0, defaults: to 1883 or 8883) */
 	iot_uint16_t port;
+	/** @brief number seconds between sending MQTT pings (if 0, not set) */
+	iot_uint16_t keep_alive;
 	/** @brief proxy information (optional) */
 	iot_mqtt_proxy_t *proxy_conf;
 	/** @brief secure connection information (optional) */
@@ -116,7 +118,7 @@ typedef struct iot_mqtt_connect_options
  * @brief Initializes the @p iot_mqtt_connection_options_t structure
  */
 #define IOT_MQTT_CONNECT_OPTIONS_INIT \
-	{ NULL, NULL, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT }
+	{ NULL, NULL, 0u, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT }
 
 /**
  * @brief internal MQTT structure

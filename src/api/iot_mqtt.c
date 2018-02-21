@@ -239,8 +239,6 @@ static IOT_SECTION iot_status_t iot_mqtt_connect_impl(
 	iot_millisecond_t max_time_out,
 	iot_bool_t reconnect );
 
-/** @brief number of seconds before sending a keep alive message */
-#define IOT_MQTT_KEEP_ALIVE            60u
 /** @brief maximum length for an mqtt connection url */
 #define IOT_MQTT_URL_MAX               64u
 
@@ -471,7 +469,8 @@ iot_status_t iot_mqtt_connect_impl(
 #ifdef IOT_THREAD_SUPPORT
 		if ( reconnect == IOT_FALSE )
 			mosq_res = mosquitto_connect_async( mqtt->mosq,
-				opts->host, opts->port, IOT_MQTT_KEEP_ALIVE );
+				opts->host, opts->port,
+				opts->keep_alive );
 		else
 			mosq_res = mosquitto_reconnect_async( mqtt->mosq );
 
@@ -493,7 +492,7 @@ iot_status_t iot_mqtt_connect_impl(
 #else /* ifdef IOT_THREAD_SUPPORT */
 		if ( reconnect == IOT_FALSE )
 			mosq_res = mosquitto_connect( mqtt->mosq,
-				opts->host, opts->port, IOT_MQTT_KEEP_ALIVE );
+				opts->host, opts->port, opts->keep_alive );
 		else
 			mosq_res = mosquitto_reconnect( mqtt->mosq );
 
@@ -542,8 +541,11 @@ iot_status_t iot_mqtt_connect_impl(
 			iot_mqtt_on_disconnect,
 			iot_mqtt_on_message,
 			iot_mqtt_on_delivery );
-		conn_opts.keepAliveInterval = IOT_MQTT_KEEP_ALIVE;
 		conn_opts.cleansession = !reconnect;
+
+		if ( opts->keep_alive > 0u )
+			conn_opts.keepAliveInterval = opts->keep_alive;
+
 		if ( opts->version != IOT_MQTT_VERSION_3_1 )
 		{
 			conn_opts.username = opts->username;
@@ -631,18 +633,21 @@ iot_status_t iot_mqtt_disconnect(
 		mosquitto_destroy( mqtt->mosq );
 		mqtt->mosq = NULL;
 #else /* ifdef IOT_MQTT_MOSQUITTO */
+/** @brief time to wait up to for a disconnect acknowledgement */
+#define IOT_PAHO_DISCONNECT_TIMEOUT 60u
 #ifdef IOT_THREAD_SUPPORT
 		{
 			MQTTAsync_disconnectOptions opts =
 				MQTTAsync_disconnectOptions_initializer;
-			opts.timeout = IOT_MQTT_KEEP_ALIVE;
+			opts.timeout = IOT_PAHO_DISCONNECT_TIMEOUT;
 			if ( MQTTAsync_disconnect( mqtt->client, &opts )
 				== MQTTASYNC_SUCCESS )
 				result = IOT_STATUS_SUCCESS;
 			MQTTAsync_destroy( &mqtt->client );
 		}
 #else /* ifdef IOT_THREAD_SUPPORT */
-		if ( MQTTClient_disconnect( mqtt->client, IOT_MQTT_KEEP_ALIVE )
+		if ( MQTTClient_disconnect( mqtt->client,
+			IOT_PAHO_DISCONNECT_TIMEOUT )
 			== MQTTCLIENT_SUCCESS )
 			result = IOT_STATUS_SUCCESS;
 		MQTTClient_destroy( &mqtt->client );

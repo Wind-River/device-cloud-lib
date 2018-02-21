@@ -48,6 +48,8 @@
                                              IOT_MILLISECONDS_IN_SECOND /* 1 hour */
 /** @brief Amount to offset the request id by */
 #define TR50_FILE_REQUEST_ID_OFFSET          256u
+/** @brief number of seconds before sending a keep alive message */
+#define TR50_MQTT_KEEP_ALIVE                 60u
 
 #ifdef IOT_THREAD_SUPPORT
 /** @brief File transfer progress interval in seconds */
@@ -1067,6 +1069,7 @@ iot_status_t tr50_connect(
 		con_opts.client_id = iot_id( lib );
 		con_opts.host = host;
 		con_opts.port = (iot_uint16_t)port;
+		con_opts.keep_alive = TR50_MQTT_KEEP_ALIVE;
 		con_opts.proxy_conf = proxy_conf_p;
 		con_opts.ssl_conf = &ssl_conf;
 		con_opts.username = data->thing_key;
