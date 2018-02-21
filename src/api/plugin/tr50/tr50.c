@@ -44,6 +44,10 @@
 #define TR50_FILE_REQUEST_ID_OFFSET         256u
 /** @brief number of seconds before sending a keep alive message */
 #define TR50_MQTT_KEEP_ALIVE                60u
+/** @brief Time interval to send a ping if not data received */
+#define TR50_PING_INTERVAL                  60 * IOT_MILLISECONDS_IN_SECOND
+/** @brief Number of pings that can be missed before reconnection */
+#define TR50_PING_MISS_ALLOWED              0u
 /** @brief default QOS level */
 #define TR50_MQTT_QOS                       1
 /** @brief number of seconds to show "Connection loss message" */
@@ -118,12 +122,16 @@ struct tr50_data
 	iot_t *lib;
 	/** @brief pointer to the mqtt connection to the cloud */
 	iot_mqtt_t *mqtt;
+	/** @brief current number of pings missed */
+	iot_uint8_t ping_miss_count;
 	/** @brief proxy details */
 	struct iot_proxy proxy;
 	/** @brief number of times reconnection has been attempted */
 	iot_uint32_t reconnect_count;
 	/** @brief the key of the thing */
 	char thing_key[ TR50_THING_KEY_MAX_LEN + 1u ];
+	/** @brief time when last message was received from cloud */
+	iot_timestamp_t time_last_msg_received;
 	/** @brief transaction status based on id */
 	iot_uint32_t transactions[16u];
 };
@@ -253,7 +261,9 @@ static IOT_SECTION iot_status_t tr50_check_mailbox(
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
  *
+ * @see tr50_connect_check
  * @see tr50_disconnect
+ * @see tr50_ping
  */
 static IOT_SECTION iot_status_t tr50_connect(
 	iot_t *lib,
@@ -276,6 +286,7 @@ static IOT_SECTION iot_status_t tr50_connect(
  * @retval IOT_STATUS_SUCCESS          on success
  *
  * @see tr50_connect
+ * @see tr50_ping
  */
 static IOT_SECTION iot_status_t tr50_connect_check(
 	iot_t *lib,
@@ -531,6 +542,24 @@ static IOT_SECTION void tr50_optional(
 	const iot_options_t *options,
 	const char *options_key,
 	iot_type_t type );
+
+/**
+ * @brief sends a ping to the server if required (i.e. timeout expired)
+ *
+ * @param[in]      lib                 loaded iot library
+ * @param[in]      data                plug-in specific data
+ * @param[in]      txn                 transaction status information
+ * @param[in]      max_time_out        maximum time to wait
+ *                                     (0 = wait indefinitely)
+ *
+ * @see tr50_connect
+ * @see tr50_connect_check
+ */
+static IOT_SECTION void tr50_ping(
+	iot_t *lib,
+	struct tr50_data *data,
+	const iot_transaction_t *txn,
+	iot_millisecond_t max_time_out );
 
 /**
  * @brief convert a timestamp to a formatted time as in RFC3339
@@ -1098,6 +1127,7 @@ iot_status_t tr50_connect(
 				max_time_out );
 		}
 
+		data->time_last_msg_received = iot_timestamp_now();
 		data->ping_miss_count = 0u;
 		if ( data->mqtt && result == IOT_STATUS_SUCCESS )
 		{
@@ -1332,6 +1362,7 @@ iot_status_t tr50_execute(
 			case IOT_OPERATION_ITERATION:
 				if ( data )
 					iot_mqtt_loop( data->mqtt, max_time_out );
+				tr50_ping( lib, data, txn, max_time_out );
 				tr50_file_queue_check( data );
 				break;
 			case IOT_OPERATION_ACTION_COMPLETE:
@@ -1981,10 +2012,13 @@ void tr50_on_message(
 	const iot_json_item_t *root;
 
 	if ( data )
+	{
 		IOT_LOG( data->lib, IOT_LOG_DEBUG,
 			"tr50: received (%u bytes on %s): %.*s",
 			(unsigned int)payload_len, topic,
 			(int)payload_len, (const char *)payload );
+		data->time_last_msg_received = iot_timestamp_now();
+	}
 
 #ifdef IOT_STACK_ONLY
 	json = iot_json_decode_initialize( buf, TR50_IN_BUFFER_SIZE, 0u );
@@ -2033,11 +2067,14 @@ void tr50_on_message(
 					&v, &v_len );
 				os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
 				msg_id = os_atoi( name );
-
 				iot_json_decode_object_iterator_value(
 					json, root, root_iter, &j_obj );
 
-				if ( j_obj )
+
+				if ( os_strncmp( name, "ping", 4 ) == 0 &&
+					data->ping_miss_count > 0u )
+					--data->ping_miss_count;
+				else if ( j_obj )
 				{
 					const iot_json_item_t *j_success;
 					iot_bool_t is_success;
@@ -2406,6 +2443,52 @@ void tr50_optional(
 			}
 			break;
 		}
+		}
+	}
+}
+
+void tr50_ping(
+	iot_t *lib,
+	struct tr50_data *data,
+	const iot_transaction_t *txn,
+	iot_millisecond_t max_time_out )
+{
+	if ( data )
+	{
+		iot_timestamp_t now = iot_timestamp_now();
+		if ( data->time_last_msg_received > 0u &&
+			now - data->time_last_msg_received >= TR50_PING_INTERVAL )
+		{
+			if ( data->ping_miss_count > TR50_PING_MISS_ALLOWED )
+			{
+				/* try to reconnect */
+				tr50_connect( lib, data, txn,
+					max_time_out, IOT_TRUE );
+				data->ping_miss_count = 0u;
+			}
+			else
+			{
+				/* encode ping message */
+				const char *out_msg;
+				char out_msg_id[6u];
+				char out_msg_buf[ 512u ];
+				iot_json_encoder_t *out_json;
+				out_json = iot_json_encode_initialize( out_msg_buf, 512u, 0 );
+				os_snprintf( out_msg_id, sizeof(out_msg_id), "ping" );
+				iot_json_encode_object_start( out_json, out_msg_id );
+				iot_json_encode_string( out_json, "command", "diag.ping" );
+				iot_json_encode_object_end( out_json );
+
+				out_msg = iot_json_encode_dump( out_json );
+				tr50_mqtt_publish(
+					data, "api", out_msg,
+					os_strlen( out_msg ), NULL );
+				iot_json_encode_terminate( out_json );
+
+				/* update receive time, so another ping isn't sent */
+				data->time_last_msg_received = now;
+				++data->ping_miss_count;
+			}
 		}
 	}
 }
