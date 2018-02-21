@@ -118,8 +118,8 @@ struct tr50_data
 	struct iot_proxy proxy;
 	/** @brief the key of the thing */
 	char thing_key[ TR50_THING_KEY_MAX_LEN + 1u ];
-	/** @brief time_stamp of when connection loss is reported */
-	iot_timestamp_t time_stamp_connetion_loss_reported;
+	/** @brief time when connection loss is reported */
+	iot_timestamp_t time_connection_lost;
 	/** @brief transaction status based on id */
 	iot_uint32_t transactions[16u];
 };
@@ -1103,23 +1103,19 @@ iot_status_t tr50_connect_check(
 	if ( lib && data && data->mqtt )
 	{
 		iot_bool_t connected = IOT_TRUE;
-		iot_bool_t connection_changed = IOT_TRUE;
 		iot_timestamp_t time_stamp_current =
 			iot_timestamp_now();
-		iot_timestamp_t time_stamp_connection_changed;
+		iot_timestamp_t time_stamp_changed = 0u;
 
 		if( max_time_out == 0u )
 			max_time_out = IOT_MILLISECONDS_IN_SECOND;
 
 		result = IOT_STATUS_FAILURE;
 
-
-		if( ( iot_mqtt_get_connection_status( data->mqtt,
-			&connected, &connection_changed,
-			&time_stamp_connection_changed ) ==
+		if( ( iot_mqtt_connection_status( data->mqtt,
+			&connected, &time_stamp_changed ) ==
 				IOT_STATUS_SUCCESS ) &&
-			( connected == IOT_FALSE ||
-			  connection_changed == IOT_TRUE ) )
+			connected == IOT_FALSE )
 		{
 			const char *app_token = NULL;
 			const char *ca_bundle = NULL;
@@ -1170,23 +1166,21 @@ iot_status_t tr50_connect_check(
 			}
 			else
 			{
-				iot_timestamp_t time_stamp_diff =
+				const iot_timestamp_t time_stamp_diff =
+					time_stamp_current - time_stamp_changed;
+				const iot_timestamp_t time_stamp_reported =
 					time_stamp_current -
-					time_stamp_connection_changed;
-				iot_timestamp_t time_stamp_reported =
-					time_stamp_current -
-					data->time_stamp_connetion_loss_reported;
+					data->time_connection_lost;
 
-				time_stamp_diff /= IOT_MILLISECONDS_IN_SECOND;
-				time_stamp_reported /= IOT_MILLISECONDS_IN_SECOND;
-
-				if ( time_stamp_diff >= TR50_SHOW_CONNECTION_LOSS_MSG &&
-				     time_stamp_reported >= TR50_SHOW_CONNECTION_LOSS_MSG )
+				if ( ( time_stamp_diff / IOT_MILLISECONDS_IN_SECOND )
+					>= TR50_SHOW_CONNECTION_LOSS_MSG &&
+				     ( time_stamp_reported /IOT_MILLISECONDS_IN_SECOND )
+					>= TR50_SHOW_CONNECTION_LOSS_MSG )
 				{
 					IOT_LOG( lib, IOT_LOG_INFO,
-						"tr50 connection loss for %d seconds",
-						(int)time_stamp_diff );
-					data->time_stamp_connetion_loss_reported =
+						"tr50 connection loss for %u seconds",
+						(unsigned int)(time_stamp_diff / IOT_MILLISECONDS_IN_SECOND) );
+					data->time_connection_lost =
 						time_stamp_current;
 				}
 			}

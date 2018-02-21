@@ -268,8 +268,6 @@ struct iot_mqtt
 #endif /* else ifdef IOT_MQTT_MOSQUITTO */
 	/** @brief whether the client is expected to be connected */
 	iot_bool_t                       is_connected;
-	/** @brief whether the client cloud connection is changed */
-	iot_bool_t                       connection_changed;
 	/** @brief timestamp when the client cloud connection is changed */
 	iot_timestamp_t                  time_stamp_changed;
 	/** @brief the client cloud reconnect counter */
@@ -616,6 +614,24 @@ iot_status_t iot_mqtt_connect_impl(
 	return result;
 }
 
+IOT_API IOT_SECTION iot_status_t iot_mqtt_connection_status(
+	const iot_mqtt_t* mqtt,
+	iot_bool_t *connected,
+	iot_timestamp_t *time_stamp_changed )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( mqtt )
+	{
+		if( connected )
+			*connected = mqtt->is_connected;
+		if ( time_stamp_changed )
+			*time_stamp_changed = mqtt->time_stamp_changed;
+		result = IOT_STATUS_SUCCESS;
+	}
+	return result;
+}
+
+
 iot_status_t iot_mqtt_disconnect(
 	iot_mqtt_t* mqtt )
 {
@@ -665,27 +681,6 @@ iot_status_t iot_mqtt_disconnect(
 	return result;
 }
 
-IOT_API IOT_SECTION iot_status_t iot_mqtt_get_connection_status(
-	const iot_mqtt_t* mqtt,
-	iot_bool_t *connected,
-	iot_bool_t *connection_changed,
-	iot_timestamp_t *time_stamp_connection_changed )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( mqtt )
-	{
-		if( connected )
-			*connected = mqtt->is_connected;
-		if( connection_changed )
-			*connection_changed = mqtt->connection_changed;
-		if ( time_stamp_connection_changed )
-			*time_stamp_connection_changed =
-				mqtt->time_stamp_changed;
-		result = IOT_STATUS_SUCCESS;
-	}
-	return result;
-}
-
 iot_status_t iot_mqtt_initialize( void )
 {
 	if ( MQTT_INIT_COUNT == 0u )
@@ -731,7 +726,6 @@ void iot_mqtt_on_connect(
 	if ( mqtt && mqtt->is_connected == IOT_FALSE )
 	{
 		mqtt->is_connected = IOT_TRUE;
-		mqtt->connection_changed = IOT_TRUE;
 		mqtt->time_stamp_changed = iot_timestamp_now();
 
 #ifdef IOT_THREAD_SUPPORT
@@ -752,7 +746,6 @@ void iot_mqtt_on_disconnect(
 	{
 		const iot_bool_t unexpected = rc ? IOT_TRUE : IOT_FALSE;
 		mqtt->is_connected = IOT_FALSE;
-		mqtt->connection_changed = IOT_TRUE;
 		mqtt->time_stamp_changed = iot_timestamp_now();
 		mqtt->reconnect_count = 0u;
 		if ( mqtt->on_disconnect )
@@ -810,7 +803,6 @@ void iot_mqtt_on_disconnect(
 		/* this function is called after a keep-alive timeout fails */
 		const iot_bool_t unexpected = mqtt->is_connected;
 		mqtt->is_connected = IOT_FALSE;
-		mqtt->connection_changed = IOT_TRUE;
 		mqtt->time_stamp_changed = iot_timestamp_now();
 		mqtt->reconnect_count = 0u;
 		if( mqtt->on_disconnect )

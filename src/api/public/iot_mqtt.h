@@ -172,6 +172,27 @@ IOT_API IOT_SECTION iot_mqtt_t* iot_mqtt_connect(
 	iot_millisecond_t max_time_out );
 
 /**
+ * @brief MQTT broker connection status
+ *
+ * @param[in]      mqtt                  MQTT object to disconnect
+ * @param[out]     connected             currently connected to broker
+ * @param[out]     time_stamp_changed    time stamp when server connection last
+ *                                       changed
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER      invalid parameter passed to the function
+ * @retval IOT_STATUS_FAILURE            operation failed
+ * @retval IOT_STATUS_SUCCESS            operation successful
+ *
+ * @see iot_mqtt_connect
+ * @see iot_mqtt_disconnect
+ * @see iot_mqtt_reconnect
+ */
+IOT_API IOT_SECTION iot_status_t iot_mqtt_connection_status(
+	const iot_mqtt_t* mqtt,
+	iot_bool_t *connected,
+	iot_timestamp_t *time_stamp_changed );
+
+/**
  * @brief disconnects from an MQTT server
  *
  * @param[in]      mqtt                MQTT object to disconnect
@@ -186,26 +207,6 @@ IOT_API IOT_SECTION iot_mqtt_t* iot_mqtt_connect(
 IOT_API IOT_SECTION iot_status_t iot_mqtt_disconnect(
 	iot_mqtt_t* mqtt
 	);
-
-/**
- * @brief gets MQTT server connection status
- *
- * @param[in]      mqtt                  MQTT object to disconnect
- * @param[out]     connected             server is connected
- * @param[out]     connection_changed    server connection is changed
- * @param[out]     time_stamp_connection_changed
- *                                       time stamp when server connection was
- *                                       changed
- *
- * @retval IOT_STATUS_BAD_PARAMETER      invalid parameter passed to the function
- * @retval IOT_STATUS_FAILURE            operation failed
- * @retval IOT_STATUS_SUCCESS            operation successful
- */
-IOT_API IOT_SECTION iot_status_t iot_mqtt_get_connection_status(
-	const iot_mqtt_t* mqtt,
-	iot_bool_t *connected,
-	iot_bool_t *connection_changed,
-	iot_timestamp_t *time_stamp_connection_changed );
 
 /**
  * @brief initializes MQTT functionality
