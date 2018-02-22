@@ -383,6 +383,8 @@ iot_status_t iot_mqtt_connect_impl(
 			PAHO_OBJ( _SSLOptions_initializer );
 #endif /* else ifdef IOT_MQTT_MOSQUITTO */
 		iot_uint16_t port = opts->port;
+		iot_millisecond_t wait_time = 0u; /* time wait so far */
+
 		mqtt->is_connected = IOT_FALSE;
 
 		result = IOT_STATUS_FAILURE;
@@ -464,66 +466,85 @@ iot_status_t iot_mqtt_connect_impl(
 				break;
 		}
 
+		do
+		{
 #ifdef IOT_THREAD_SUPPORT
-		if ( reconnect == IOT_FALSE )
-			mosq_res = mosquitto_connect_async( mqtt->mosq,
-				opts->host, opts->port,
-				opts->keep_alive );
-		else
-			mosq_res = mosquitto_reconnect_async( mqtt->mosq );
-
-		if ( mosq_res == MOSQ_ERR_SUCCESS )
-		{
-			mosquitto_loop_start( mqtt->mosq );
-
-			/* wait here until connected or timed out! */
-			if ( max_time_out > 0u )
-				os_thread_condition_timed_wait(
-					&mqtt->notification_signal,
-					&mqtt->notification_mutex,
-					max_time_out );
+			if ( reconnect == IOT_FALSE )
+				mosq_res = mosquitto_connect_async( mqtt->mosq,
+					opts->host, opts->port,
+					opts->keep_alive );
 			else
-				os_thread_condition_wait(
-					&mqtt->notification_signal,
-					&mqtt->notification_mutex );
-		}
-#else /* ifdef IOT_THREAD_SUPPORT */
-		if ( reconnect == IOT_FALSE )
-			mosq_res = mosquitto_connect( mqtt->mosq,
-				opts->host, opts->port, opts->keep_alive );
-		else
-			mosq_res = mosquitto_reconnect( mqtt->mosq );
+				mosq_res = mosquitto_reconnect_async( mqtt->mosq );
 
-		if ( mosq_res == MOSQ_ERR_SUCCESS )
-		{
-			os_timestamp_t ts = 0u;
-
-			/* default is to wait for 1 day */
-			iot_millisecond_t wait_time =
-				IOT_MILLISECONDS_IN_SECOND *
-				IOT_SECONDS_IN_MINUTE *
-				IOT_MINUTES_IN_HOUR * IOT_HOURS_IN_DAY;
-
-			if ( max_time_out > 0u )
-				wait_time = max_time_out;
-
-			/* loop until connected or time out */
-			os_time( &ts, NULL );
-			while ( mosq_res == MOSQ_ERR_SUCCESS &&
-				mqtt->is_connected == IOT_FALSE &&
-				wait_time > 0u )
+			if ( mosq_res == MOSQ_ERR_SUCCESS )
 			{
-				mosq_res = mosquitto_loop(
-					mqtt->mosq,
-					wait_time, 1 );
+				mosquitto_loop_start( mqtt->mosq );
+
+				/* wait here until connected or timed out! */
+				if ( max_time_out > 0u )
+					os_thread_condition_timed_wait(
+						&mqtt->notification_signal,
+						&mqtt->notification_mutex,
+						max_time_out );
+				else
+					os_thread_condition_wait(
+						&mqtt->notification_signal,
+						&mqtt->notification_mutex );
+			}
+#else /* ifdef IOT_THREAD_SUPPORT */
+			if ( reconnect == IOT_FALSE )
+				mosq_res = mosquitto_connect( mqtt->mosq,
+					opts->host, opts->port, opts->keep_alive );
+			else
+				mosq_res = mosquitto_reconnect( mqtt->mosq );
+
+			if ( mosq_res == MOSQ_ERR_SUCCESS )
+			{
+				os_timestamp_t ts = 0u;
+
+				/* default is to wait for 1 day */
+				iot_millisecond_t wait_for_mqtt_work =
+					IOT_MILLISECONDS_IN_SECOND *
+					IOT_SECONDS_IN_MINUTE *
+					IOT_MINUTES_IN_HOUR * IOT_HOURS_IN_DAY;
 
 				if ( max_time_out > 0u )
-					os_time_remaining( &ts,
-						max_time_out,
-						&wait_time );
+					wait_for_mqtt_work =
+						max_time_out - wait_time;
+
+				/* loop until connected or time out */
+				os_time( &ts, NULL );
+				while ( mosq_res == MOSQ_ERR_SUCCESS &&
+					mqtt->is_connected == IOT_FALSE &&
+					wait_for_mqtt_work > 0u )
+				{
+					mosq_res = mosquitto_loop(
+						mqtt->mosq,
+						wait_for_mqtt_work, 1 );
+
+					if ( max_time_out > 0u )
+						os_time_remaining( &ts,
+							max_time_out,
+							&wait_for_mqtt_work );
+				}
 			}
-		}
 #endif /* ifdef IOT_THREAD_SUPPORT */
+			else if ( mosq_res == MOSQ_ERR_EAI ) /* network not ready */
+			{
+				iot_millisecond_t wait_interval =
+					IOT_MILLISECONDS_IN_SECOND;
+				if ( opts->keep_alive > 0u )
+					wait_interval *= opts->keep_alive;
+
+				/* wait here until connected or timed out! */
+				if ( wait_interval < max_time_out )
+					wait_interval = max_time_out;
+
+				os_time_sleep( wait_interval, IOT_TRUE );
+				wait_time += wait_interval;
+			}
+		} while ( mosq_res == MOSQ_ERR_EAI &&
+			( max_time_out == 0u || wait_time < max_time_out ) );
 #else /* ifdef IOT_MQTT_MOSQUITTO */
 		if ( opts->proxy_conf )
 			os_fprintf(OS_STDERR,
@@ -588,25 +609,40 @@ iot_status_t iot_mqtt_connect_impl(
 				(max_time_out /
 				IOT_MILLISECONDS_IN_SECOND) + 1u;
 
-		if ( PAHO_OBJ( _connect )( mqtt->client,
-				&conn_opts ) == PAHO_RES( _SUCCESS ) )
+		/* connect in a loop for when network is not available initially */
+		while ( mqtt->is_connected == IOT_FALSE &&
+			( max_time_out == 0u || wait_time < max_time_out ) )
 		{
-#ifdef IOT_THREAD_SUPPORT
+			iot_millisecond_t wait_interval =
+				IOT_MILLISECONDS_IN_SECOND;
+
+			if ( opts->keep_alive > 0u )
+				wait_interval *= opts->keep_alive;
+
 			/* wait here until connected or timed out! */
-			if ( max_time_out > 0u )
+			if ( wait_interval < max_time_out )
+				wait_interval = max_time_out;
+
+#ifdef IOT_THREAD_SUPPORT
+			if ( MQTTAsync_connect( mqtt->client, &conn_opts )
+				== MQTTASYNC_SUCCESS )
 				os_thread_condition_timed_wait(
 					&mqtt->notification_signal,
 					&mqtt->notification_mutex,
-					max_time_out );
+					wait_interval );
 			else
-				os_thread_condition_wait(
-					&mqtt->notification_signal,
-					&mqtt->notification_mutex );
+				max_time_out = 0u; /* failure, so break loop */
 #else /* ifdef IOT_THREAD_SUPPORT */
-			mqtt->is_connected = IOT_TRUE;
+			if ( MQTTClient_connect( mqtt->client, &conn_opts )
+				== MQTTCLIENT_SUCCESS )
+				mqtt->is_connected = IOT_TRUE;
+			else
+				os_time_sleep( wait_interval, IOT_TRUE );
 #endif /* else ifdef IOT_THREAD_SUPPORT */
+			wait_time += wait_interval;
 		}
 #endif /* else ifdef IOT_MQTT_MOSQUITTO */
+
 		/* if we connected then success */
 		if ( mqtt->is_connected != IOT_FALSE )
 			result = IOT_STATUS_SUCCESS;
