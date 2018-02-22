@@ -115,6 +115,7 @@ os_status_t __wrap_os_thread_rwlock_write_unlock( os_thread_rwlock_t *lock );
 os_status_t __wrap_os_thread_wait( os_thread_t *thread );
 #endif /* ifdef IOT_THREAD_SUPPORT */
 os_status_t __wrap_os_time( os_timestamp_t *time_stamp, os_bool_t *up_time );
+os_status_t __wrap_os_time_sleep( os_millisecond_t ms, os_bool_t allow_interrupts );
 int __wrap_os_vfprintf( os_file_t stream, const char *format, va_list args )
 	__attribute__((format(printf,2,0)));
 int __wrap_os_vsnprintf( char *str, size_t size, const char *format, va_list args )
@@ -927,6 +928,11 @@ int __wrap_os_vsnprintf( char *str, size_t size, const char *format, va_list arg
 os_status_t __wrap_os_time( os_timestamp_t *time_stamp, os_bool_t *up_time )
 {
 	*time_stamp = 1234567u;
+	return OS_STATUS_SUCCESS;
+}
+
+os_status_t __wrap_os_time_sleep( os_millisecond_t ms, os_bool_t allow_interrupts )
+{
 	return OS_STATUS_SUCCESS;
 }
 

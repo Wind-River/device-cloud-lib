@@ -30,36 +30,38 @@
 #define TR50_IN_BUFFER_SIZE                 1024u
 #endif /* ifdef IOT_STACK_ONLY */
 
-/** @brief Maximum length for a "thingkey" */
-#define TR50_THING_KEY_MAX_LEN               ( IOT_ID_MAX_LEN * 2 ) + 1u
-/** @brief number of seconds to show "Connection loss message" */
-#define TR50_SHOW_CONNECTION_LOSS_MSG        20u
-/** @brief default QOS level */
-#define TR50_MQTT_QOS                        1
 /** @brief Maximum concurrent file transfers */
-#define TR50_FILE_TRANSFER_MAX               10u
+#define TR50_FILE_TRANSFER_MAX              10u
 /** @brief Time interval in seconds to check file
  *         transfer queue */
-#define TR50_FILE_QUEUE_CHECK_INTERVAL       30 * IOT_MILLISECONDS_IN_SECOND /* 30 seconds */
+#define TR50_FILE_QUEUE_CHECK_INTERVAL      30u * IOT_MILLISECONDS_IN_SECOND /* 30 seconds */
 /** @brief Time interval in seconds for a file
  *         transfer to expire if it keeps failing */
-#define TR50_FILE_TRANSFER_EXPIRY_TIME       1 * IOT_MINUTES_IN_HOUR * \
-                                             IOT_SECONDS_IN_MINUTE * \
-                                             IOT_MILLISECONDS_IN_SECOND /* 1 hour */
+#define TR50_FILE_TRANSFER_EXPIRY_TIME      1u * IOT_MINUTES_IN_HOUR * \
+                                            IOT_SECONDS_IN_MINUTE * \
+                                            IOT_MILLISECONDS_IN_SECOND /* 1 hour */
 /** @brief Amount to offset the request id by */
-#define TR50_FILE_REQUEST_ID_OFFSET          256u
+#define TR50_FILE_REQUEST_ID_OFFSET         256u
 /** @brief number of seconds before sending a keep alive message */
-#define TR50_MQTT_KEEP_ALIVE                 60u
+#define TR50_MQTT_KEEP_ALIVE                60u
+/** @brief default QOS level */
+#define TR50_MQTT_QOS                       1
+/** @brief number of seconds to show "Connection loss message" */
+#define TR50_TIMEOUT_CONNECTION_LOSS_MSG_MS 20u * IOT_MILLISECONDS_IN_SECOND /* 20 seconds */
+/** @brief number of milliseconds between reconnect attempts */
+#define TR50_TIMEOUT_RECONNECT_MS           5u * IOT_MILLISECONDS_IN_SECOND /* 5 seconds */
+/** @brief Maximum length for a "thingkey" */
+#define TR50_THING_KEY_MAX_LEN              ( IOT_ID_MAX_LEN * 2u ) + 1u
 
 #ifdef IOT_THREAD_SUPPORT
 /** @brief File transfer progress interval in seconds */
 #define TR50_FILE_TRANSFER_PROGRESS_INTERVAL 5.0
 /** @brief Default value for ssl verify host */
-#define TR50_DEFAULT_SSL_VERIFY_HOST         2u
+#define TR50_DEFAULT_SSL_VERIFY_HOST        2u
 /** @brief Default value for ssl verify peer */
-#define TR50_DEFAULT_SSL_VERIFY_PEER         1u
+#define TR50_DEFAULT_SSL_VERIFY_PEER        1u
 /** @brief Extension for temporary downloaded file */
-#define TR50_DOWNLOAD_EXTENSION              ".part"
+#define TR50_DOWNLOAD_EXTENSION             ".part"
 #endif /* ifdef IOT_THREAD_SUPPORT */
 
 /** @brief structure containing informaiton about a file transfer */
@@ -104,6 +106,8 @@ struct tr50_file_transfer
 /** @brief internal data required for the plug-in */
 struct tr50_data
 {
+	/** @brief number of times connection lost reported */
+	iot_uint32_t connection_lost_msg_count;
 	/** @brief file transfer queue */
 	struct tr50_file_transfer file_transfer_queue[ TR50_FILE_TRANSFER_MAX ];
 	/** @brief number of ongoing file transfer */
@@ -116,10 +120,10 @@ struct tr50_data
 	iot_mqtt_t *mqtt;
 	/** @brief proxy details */
 	struct iot_proxy proxy;
+	/** @brief number of times reconnection has been attempted */
+	iot_uint32_t reconnect_count;
 	/** @brief the key of the thing */
 	char thing_key[ TR50_THING_KEY_MAX_LEN + 1u ];
-	/** @brief time when connection loss is reported */
-	iot_timestamp_t time_connection_lost;
 	/** @brief transaction status based on id */
 	iot_uint32_t transactions[16u];
 };
@@ -244,6 +248,7 @@ static IOT_SECTION iot_status_t tr50_check_mailbox(
  * @param[in]      txn                 transaction status information
  * @param[in]      max_time_out        maximum time to wait
  *                                     (0 = wait indefinitely)
+ * @param[in]      is_reconnect        whether this is a reconnection
  *
  * @retval IOT_STATUS_FAILURE          on failure
  * @retval IOT_STATUS_SUCCESS          on success
@@ -254,7 +259,8 @@ static IOT_SECTION iot_status_t tr50_connect(
 	iot_t *lib,
 	struct tr50_data *data,
 	const iot_transaction_t *txn,
-	iot_millisecond_t max_time_out );
+	iot_millisecond_t max_time_out,
+	iot_bool_t is_reconnect );
 
 /**
  * @brief helper function for tr50 to check connection to the cloud
@@ -1000,10 +1006,15 @@ iot_status_t tr50_connect(
 	iot_t *lib,
 	struct tr50_data *data,
 	const iot_transaction_t *txn,
-	iot_millisecond_t max_time_out )
+	iot_millisecond_t max_time_out,
+	iot_bool_t is_reconnect )
 {
 	iot_status_t result = IOT_STATUS_FAILURE;
-	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "connect" );
+	const char *reason = "connect";
+	if ( is_reconnect != IOT_FALSE )
+		reason = "reconnect";
+	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", reason );
+
 	if ( data )
 	{
 		const char *app_token = NULL;
@@ -1059,8 +1070,8 @@ iot_status_t tr50_connect(
 		}
 
 		if ( app_token == NULL )
-			IOT_LOG( lib, IOT_LOG_ERROR, "tr50: %s",
-				"no application token provided" );
+			IOT_LOG( lib, IOT_LOG_ERROR, "tr50 %s: %s",
+				reason, "no application token provided" );
 
 		os_snprintf( data->thing_key, TR50_THING_KEY_MAX_LEN,
 			"%s-%s", lib->device_id, iot_id( lib ) );
@@ -1075,19 +1086,36 @@ iot_status_t tr50_connect(
 		con_opts.username = data->thing_key;
 		con_opts.password = app_token;
 		con_opts.version = IOT_MQTT_VERSION_3_1_1;
-		data->mqtt = iot_mqtt_connect( &con_opts, max_time_out );
-
-		if ( data->mqtt )
+		if ( is_reconnect == IOT_FALSE )
 		{
+			data->mqtt = iot_mqtt_connect( &con_opts, max_time_out );
+			if ( data->mqtt )
+				result = IOT_STATUS_SUCCESS;
+		}
+		else
+		{
+			result = iot_mqtt_reconnect( data->mqtt, &con_opts,
+				max_time_out );
+		}
+
+		data->ping_miss_count = 0u;
+		if ( data->mqtt && result == IOT_STATUS_SUCCESS )
+		{
+			data->reconnect_count = 1u;
+			data->connection_lost_msg_count = 1u;
 			iot_mqtt_set_user_data( data->mqtt, data );
 			iot_mqtt_set_message_callback( data->mqtt,
 				tr50_on_message );
 			iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
+			IOT_LOG( lib, IOT_LOG_INFO, "tr50 %s: %s",
+				reason, "successfully" );
 			result = tr50_check_mailbox( data, txn );
 		}
-		else
-			IOT_LOG( lib, IOT_LOG_ERROR, "tr50: %s",
-				"failed to connect" );
+		else if ( is_reconnect == IOT_FALSE ) /* show on connect only */
+		{
+			IOT_LOG( lib, IOT_LOG_ERROR,
+				"tr50: failed to %s", reason );
+		}
 	}
 	return result;
 }
@@ -1103,90 +1131,44 @@ iot_status_t tr50_connect_check(
 	if ( lib && data && data->mqtt )
 	{
 		iot_bool_t connected = IOT_TRUE;
-		iot_timestamp_t time_stamp_current =
-			iot_timestamp_now();
 		iot_timestamp_t time_stamp_changed = 0u;
+		 iot_timestamp_t time_stamp_diff;
 
-		if( max_time_out == 0u )
-			max_time_out = IOT_MILLISECONDS_IN_SECOND;
+		/* obtain the current connection status */
+		result = iot_mqtt_connection_status( data->mqtt,
+			&connected, &time_stamp_changed );
 
-		result = IOT_STATUS_FAILURE;
+		/* calculate the time since the last connection changed */
+		time_stamp_diff  = iot_timestamp_now() - time_stamp_changed;
 
-		if( ( iot_mqtt_connection_status( data->mqtt,
-			&connected, &time_stamp_changed ) ==
-				IOT_STATUS_SUCCESS ) &&
-			connected == IOT_FALSE )
+		if ( result == IOT_STATUS_SUCCESS && connected == IOT_FALSE )
 		{
-			const char *app_token = NULL;
-			const char *ca_bundle = NULL;
-			iot_mqtt_connect_options_t con_opts = IOT_MQTT_CONNECT_OPTIONS_INIT;
-			const char *host = NULL;
-			iot_int64_t port = 0;
-			iot_mqtt_ssl_t ssl_conf;
-			iot_bool_t validate_cert = IOT_FALSE;
+			result = IOT_STATUS_FAILURE; /* not connected */
 
-			iot_config_get( lib, "cloud.host", IOT_FALSE,
-				IOT_TYPE_STRING, &host );
-			iot_config_get( lib, "cloud.port", IOT_FALSE,
-				IOT_TYPE_INT64, &port );
-			iot_config_get( lib, "cloud.token", IOT_FALSE,
-				IOT_TYPE_STRING, &app_token );
-			iot_config_get( lib, "ca_bundle_file", IOT_FALSE,
-				IOT_TYPE_STRING, &ca_bundle );
-			iot_config_get( lib, "validate_cloud_cert", IOT_FALSE,
-				IOT_TYPE_BOOL, &validate_cert );
-
-			os_memzero( &ssl_conf, sizeof( iot_mqtt_ssl_t ) );
-			ssl_conf.ca_path = ca_bundle;
-			ssl_conf.insecure = !validate_cert;
-
-			if ( app_token == NULL )
-				IOT_LOG( lib, IOT_LOG_ERROR, "tr50 reconnect: %s",
-					"no application token provided" );
-
-			os_snprintf( data->thing_key, TR50_THING_KEY_MAX_LEN,
-				"%s-%s", lib->device_id, iot_id( lib ) );
-			data->thing_key[ TR50_THING_KEY_MAX_LEN ] = '\0';
-			con_opts.client_id = iot_id( lib );
-			con_opts.host = host;
-			con_opts.port = (iot_uint16_t)port;
-			con_opts.ssl_conf = &ssl_conf;
-			/*con_opts.proxy_conf = proxy_conf_p;*/
-			con_opts.username = data->thing_key;
-			con_opts.password = app_token;
-			con_opts.version = IOT_MQTT_VERSION_3_1_1;
-			if ( iot_mqtt_reconnect( data->mqtt, &con_opts,
-				max_time_out ) == IOT_STATUS_SUCCESS )
+			/* attempt to reconnect, if time out condition is met */
+			if ( data->reconnect_count > 0u && time_stamp_diff >=
+			     ( data->reconnect_count * TR50_TIMEOUT_RECONNECT_MS ) )
 			{
-				iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
-				result = tr50_check_mailbox( data, txn );
-				IOT_LOG( lib, IOT_LOG_INFO, "tr50 reconnect: %s",
-					"successfully");
-				result = IOT_STATUS_SUCCESS;
-			}
-			else
-			{
-				const iot_timestamp_t time_stamp_diff =
-					time_stamp_current - time_stamp_changed;
-				const iot_timestamp_t time_stamp_reported =
-					time_stamp_current -
-					data->time_connection_lost;
+				++data->reconnect_count;
 
-				if ( ( time_stamp_diff / IOT_MILLISECONDS_IN_SECOND )
-					>= TR50_SHOW_CONNECTION_LOSS_MSG &&
-				     ( time_stamp_reported /IOT_MILLISECONDS_IN_SECOND )
-					>= TR50_SHOW_CONNECTION_LOSS_MSG )
+				/* default to 1 second */
+				if( max_time_out == 0u )
+					max_time_out = IOT_MILLISECONDS_IN_SECOND;
+
+				result = tr50_connect( lib, data, txn,
+					max_time_out, IOT_TRUE );
+				if ( result == IOT_STATUS_SUCCESS ||
+				   ( time_stamp_diff >=
+				     data->connection_lost_msg_count *
+					TR50_TIMEOUT_CONNECTION_LOSS_MSG_MS ) )
 				{
+					++data->connection_lost_msg_count;
 					IOT_LOG( lib, IOT_LOG_INFO,
 						"tr50 connection loss for %u seconds",
 						(unsigned int)(time_stamp_diff / IOT_MILLISECONDS_IN_SECOND) );
-					data->time_connection_lost =
-						time_stamp_current;
 				}
 			}
 		}
-		else
-			os_time_sleep( max_time_out, OS_TRUE );
 	}
 	return result;
 }
@@ -1198,7 +1180,10 @@ iot_status_t tr50_disconnect(
 	iot_status_t result = IOT_STATUS_FAILURE;
 	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "disconnect" );
 	if ( data )
+	{
+		data->reconnect_count = 0u; /* don't reconnect */
 		result = iot_mqtt_disconnect( data->mqtt );
+	}
 	return result;
 }
 
@@ -1327,7 +1312,7 @@ iot_status_t tr50_execute(
 		{
 			case IOT_OPERATION_CLIENT_CONNECT:
 				result = tr50_connect( lib, data, txn,
-					max_time_out );
+					max_time_out, IOT_FALSE );
 				break;
 			case IOT_OPERATION_CLIENT_DISCONNECT:
 				result = tr50_disconnect( lib, data );

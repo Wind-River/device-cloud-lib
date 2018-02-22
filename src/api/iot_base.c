@@ -1123,7 +1123,10 @@ iot_status_t iot_loop_forever( iot_t *lib )
 		result = IOT_STATUS_SUCCESS;
 		while( result == IOT_STATUS_SUCCESS &&
 			lib->to_quit == IOT_FALSE )
-			result = iot_loop_iteration( lib, 1000u );
+		{
+			result = iot_loop_iteration( lib,
+				IOT_MILLISECONDS_IN_SECOND );
+		}
 	}
 	return result;
 }
@@ -1147,6 +1150,11 @@ iot_status_t iot_loop_iteration( iot_t *lib, iot_millisecond_t max_time_out )
 			 * main thread */
 			result = iot_action_process( lib, max_time_out );
 		}
+
+#ifdef IOT_THREAD_SUPPORT
+		/* this prevents 100% CPU utilization */
+		os_time_sleep( max_time_out, IOT_TRUE );
+#endif
 	}
 	return result;
 }

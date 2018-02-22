@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ set( MOCK_OSAL_FUNC
 	"os_thread_rwlock_write_unlock"
 	"os_thread_wait"
 	"os_time"
+	"os_time_sleep"
 	"os_uuid_generate"
 	"os_uuid_to_string_lower"
 	"os_vfprintf"
