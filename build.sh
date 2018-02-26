@@ -53,6 +53,17 @@ cmake -E copy "jsmn.h" "$DEPS_DIR/include"
 cd ..
 rm -rf jsmn
 
+# civetweb
+export CIVETWEB_GIT_TAG=v1.10
+git clone https://github.com/civetweb/civetweb.git
+cd civetweb
+git checkout tags/$CIVETWEB_GIT_TAG
+cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" -DCIVETWEB_ENABLE_WEBSOCKETS:BOOL=ON -DCIVETWEB_ENABLE_IPV6:BOOL=ON -DCIVETWEB_ENABLE_SSL:BOOL=ON .
+make
+make install
+cd ..
+rm -rf civetweb
+
 # libwebsockets
 export LWS_GIT_TAG=v2.3.0
 git clone https://github.com/warmcat/libwebsockets.git libwebsockets

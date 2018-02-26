@@ -15,7 +15,6 @@
 set( TARGET "${IOT_TARGET_RELAY}" )
 set( TARGET_DESCRIPTION "${IOT_RELAY_DESCRIPTION}" )
 
-find_package( LibWebSockets REQUIRED )
 find_package( OpenSSL )
 find_package( Threads )
 
@@ -32,7 +31,7 @@ set( IOT_SRCS_C ${IOT_SRCS_C}
 
 # System include directories
 include_directories( SYSTEM
-	${LIBWEBSOCKETS_INCLUDE_DIR}
+	${WEBSOCKET_INCLUDE_DIR}
 	${OPENSSL_INCLUDE_DIR}
 )
 
@@ -54,8 +53,7 @@ add_executable( ${TARGET}
 # Required libraries
 target_link_libraries( ${TARGET}
 	iotutils
-	iot
-	${LIBWEBSOCKETS_LIBRARIES}
+	${WEBSOCKET_LIBRARIES}
 	${OPENSSL_LIBRARIES}
 	${OSAL_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}

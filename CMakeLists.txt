@@ -48,12 +48,16 @@ include( GetFullPath )
 include( GNUInstallDirs )
 include( OptionSelect )
 option_select( IOT_JSON_LIBRARY
-	DESCRIPTION "JSON Library to use"
+	DESCRIPTION "JSON library to use"
 	DEFAULT "jsmn" "jansson" "jsmn" "json-c"
 )
 option_select( IOT_MQTT_LIBRARY
-	DESCRIPTION "MQTT Library to use"
+	DESCRIPTION "MQTT library to use"
 	DEFAULT "paho" "mosquitto" "paho"
+)
+option_select( IOT_WEBSOCKET_LIBRARY
+	DESCRIPTION "Websocket library to use"
+	DEFAULT "libwebsockets" "libwebsockets" "civetweb"
 )
 option_ensure_set( IOT_THREAD_SUPPORT   "support the use of threads" ON )
 option_ensure_set( IOT_STACK_ONLY       "build library without the use of the heap" OFF )
@@ -131,6 +135,18 @@ else()
 	set( MQTT_INCLUDE_DIR "${PAHO_INCLUDE_DIR}" )
 	set( MQTT_LIBRARIES "${PAHO_LIBRARIES}" )
 	set( MQTT_SSL_SUPPORT ${PAHO_SSL_SUPPORT} )
+endif()
+
+if ( IOT_WEBSOCKET_LIBRARY STREQUAL "civetweb" )
+	set( CIVETWEB_ROOT_DIR "/home/kholman/work/civetweb/output/out" )
+	find_package( Civetweb REQUIRED )
+	add_definitions( "-DIOT_WEBSOCKET_CIVETWEB" )
+	set( WEBSOCKET_INCLUDE_DIR "${CIVETWEB_INCLUDE_DIR}" )
+	set( WEBSOCKET_LIBRARIES "${CIVETWEB_LIBRARIES}" )
+else()
+	find_package( LibWebSockets REQUIRED )
+	set( WEBSOCKET_INCLUDE_DIR "${LIBWEBSOCKETS_INCLUDE_DIR}" )
+	set( WEBSOCKET_LIBRARIES "${LIBWEBSOCKETS_LIBRARIES}" )
 endif()
 
 set( OSAL_PREFER_STATIC ON )
