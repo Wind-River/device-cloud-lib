@@ -1887,7 +1887,7 @@ iot_status_t tr50_mqtt_publish(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( data && topic && payload )
 	{
-		IOT_LOG( data->lib, IOT_LOG_TRACE,
+		IOT_LOG( data->lib, IOT_LOG_DEBUG,
 			"tr50: sent (%u bytes on %s): %.*s",
 				(unsigned int)payload_len, topic,
 				(int)payload_len, (const char*)payload );
@@ -1914,7 +1914,7 @@ void tr50_on_message(
 	const iot_json_item_t *root;
 
 	if ( data )
-		IOT_LOG( data->lib, IOT_LOG_TRACE,
+		IOT_LOG( data->lib, IOT_LOG_DEBUG,
 			"tr50: received (%u bytes on %s): %.*s",
 			(unsigned int)payload_len, topic,
 			(int)payload_len, (const char *)payload );
