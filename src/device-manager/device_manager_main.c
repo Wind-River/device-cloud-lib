@@ -1783,25 +1783,33 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		/* for debugging, create two file handles */
 		if ( debug_mode != IOT_FALSE )
 		{
-			os_snprintf(log_file, PATH_MAX, "%s%c%s",
-				device_manager->runtime_dir, OS_DIR_SEP, "iot-relay-stdout.log");
+			os_snprintf( log_file, PATH_MAX, "%s%c%s-%s",
+				device_manager->runtime_dir, OS_DIR_SEP,
+				IOT_TARGET_RELAY, "stdout.log" );
 			out_files[0] = os_file_open(log_file,OS_CREATE | OS_WRITE);
 
-			os_snprintf(log_file, PATH_MAX, "%s%c%s", device_manager->runtime_dir,
-				OS_DIR_SEP, "iot-relay-stderr.log");
+			os_snprintf( log_file, PATH_MAX, "%s%c%s-%s",
+				device_manager->runtime_dir, OS_DIR_SEP,
+				IOT_TARGET_RELAY, "stderr.log" );
 			out_files[1] = os_file_open(log_file,OS_CREATE | OS_WRITE);
 		}
 
 		IOT_LOG( iot_lib, IOT_LOG_TRACE,
-			"Remote login params host=%s, protocol=%s, url=%s, "
-			"debug-mode=%d",
-			host_in, protocol_in, url_in, debug_mode );
+			"Remote login: host=%s, protocol=%s, debug=%d",
+			host_in, protocol_in, debug_mode );
 
 		if ( host_in && *host_in != '\0'
 		     && protocol_in && *protocol_in != '\0'
 		     && url_in && *url_in != '\0' )
 		{
 			os_status_t run_status;
+
+			if ( app_path_executable_directory_get(
+				relay_cmd, PATH_MAX ) == IOT_STATUS_SUCCESS )
+			{
+				relay_cmd_len = os_strlen( relay_cmd );
+				relay_cmd[ relay_cmd_len++ ] = OS_DIR_SEP;
+			}
 
 			os_snprintf( &relay_cmd[ relay_cmd_len ],
 				PATH_MAX,
