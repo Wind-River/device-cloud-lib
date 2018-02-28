@@ -1961,9 +1961,16 @@ void tr50_file_queue_check(
 					transfer->retry_time <= now )
 				{
 					os_thread_t thread;
+					size_t stack_size = 0u;
 
 					/* Create a thread to do the file transfer */
-					if ( os_thread_create( &thread, tr50_file_transfer, transfer ) == 0 )
+#if defined( __VXWORKS__ )
+					stack_size = deviceCloudStackSizeGet();
+#endif /* if defined( __VXWORKS__ ) */
+
+					if ( os_thread_create( &thread,
+						tr50_file_transfer,
+						transfer, stack_size ) == 0 )
 						transfer->retry_time = 0u;
 				}
 			}
@@ -2330,15 +2337,20 @@ void tr50_on_message(
 
 									if ( found_transfer )
 									{
-#ifdef IOT_THREAD_SUPPORT
+#if defined( IOT_THREAD_SUPPORT )
 										os_thread_t thread;
+										size_t stack_size = 0u;
+
+#if defined( __VXWORKS__ )
+										stack_size = deviceCloudStackSizeGet();
+#endif /* if defined( __VXWORKS__ ) */
 
 										/* Create a thread to do the file transfer */
-										if ( os_thread_create( &thread, tr50_file_transfer, transfer ) )
+										if ( os_thread_create( &thread, tr50_file_transfer, transfer, stack_size ) )
 											IOT_LOG( data->lib, IOT_LOG_ERROR,
 												"Failed to create a thread to transfer "
 												"file for message #%u", (unsigned int)msg_id );
-#endif /* ifdef IOT_THREAD_SUPPORT */
+#endif /* if defined( IOT_THREAD_SUPPORT ) */
 									}
 								}
 							}

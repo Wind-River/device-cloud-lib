@@ -714,7 +714,8 @@ iot_status_t iot_action_execute_command(
 			}
 
 			system_res = os_system_run_wait( command_with_params,
-				&system_ret, buf, buf_len, max_time_out );
+				&system_ret, OS_FALSE, 0, 0u,
+				buf, buf_len, max_time_out );
 			if ( system_res == OS_STATUS_SUCCESS )
 			{
 				if ( !( action->flags & IOT_ACTION_NO_RETURN ) )

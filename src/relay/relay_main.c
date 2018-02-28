@@ -413,9 +413,16 @@ int relay_civetweb_on_receive( struct mg_connection *connection,
 		relay_civetweb_on_close( connection, user_data );
 	else if ( opcode == 0x9 ) /* websocket ping */
 	{
+#if CIVETWEB_VERSION_MAJOR > 1 || CIVETWEB_VERSION_MAJOR == 1 && CIVETWEB_VERSION_MINOR >= 10
 		/* build a "PONG" websocket frame */
 		rv = mg_websocket_client_write( connection,
 			MG_WEBSOCKET_OPCODE_PONG, data, data_len );
+#else /* if civetweb >= 1.10 */
+		/* build a "PONG" websocket frame */
+		rv = mg_websocket_client_write( connection,
+			WEBSOCKET_OPCODE_PONG, data, data_len );
+#endif /* else if civetweb >= 1.10 */
+		/* build a "PONG" websocket frame */
 	}
 	return rv;
 }
@@ -1067,11 +1074,19 @@ int relay_on_send( struct relay_data *app_data, void *connection )
 	if ( app_data )
 	{
 #if defined( IOT_WEBSOCKET_CIVETWEB )
+#if CIVETWEB_VERSION_MAJOR > 1 || CIVETWEB_VERSION_MAJOR == 1 && CIVETWEB_VERSION_MINOR >= 10
 		result = mg_websocket_client_write(
 			(struct mg_connection *)connection,
 			MG_WEBSOCKET_OPCODE_BINARY,
 			(const char *)&app_data->tx_buffer[ SEND_BUFFER_PRE_PADDING ],
 			app_data->tx_buffer_len );
+#else /* if civetewb >= 1.10 */
+		result = mg_websocket_client_write(
+			(struct mg_connection *)connection,
+			WEBSOCKET_OPCODE_BINARY,
+			(const char *)&app_data->tx_buffer[ SEND_BUFFER_PRE_PADDING ],
+			app_data->tx_buffer_len );
+#endif /* else if civetewb >= 1.10 */
 #else /* if defined( IOT_WEBSOCKET_CIVETWEB ) */
 		result = lws_write( (struct lws *)connection,
 			&app_data->tx_buffer[ SEND_BUFFER_PRE_PADDING ],

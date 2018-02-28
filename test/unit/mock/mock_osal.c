@@ -70,7 +70,7 @@ char *__wrap_os_strpbrk( const char *str1, const char *str2 );
 char *__wrap_os_strrchr( const char *s, int c );
 char *__wrap_os_strstr( const char *str1, const char *str2 );
 double __wrap_os_strtod( const char *str, char **endptr );
-char* __wrap_os_strtok( char* s, char* delm );
+char* __wrap_os_strtok( char* s, const char* delm );
 long __wrap_os_strtol( const char *str, char **endptr );
 unsigned long __wrap_os_strtoul( const char *str, char **endptr );
 int __wrap_os_system_error_last( void );
@@ -79,12 +79,16 @@ os_uint32_t __wrap_os_system_pid( void );
 os_status_t __wrap_os_system_run(
 	const char *command,
 	int *exit_status,
-	char *out_buf[2u],
-	size_t out_len[2u],
-	os_millisecond_t max_time_out );
+	os_bool_t privileged,
+	int priority,
+	size_t stack_size,
+	os_file_t pipe_files[2u] );
 os_status_t __wrap_os_system_run_wait(
 	const char *command,
 	int *exit_status,
+	os_bool_t privileged,
+	int priority,
+	size_t stack_size,
 	char *out_buf[2u],
 	size_t out_len[2u],
 	os_millisecond_t max_time_out );
@@ -100,7 +104,7 @@ os_status_t __wrap_os_thread_condition_wait(
 	os_thread_condition_t *cond,
 	os_thread_mutex_t *lock );
 os_status_t __wrap_os_thread_create(
-	os_thread_t *thread, os_thread_main_t main, void *arg );
+	os_thread_t *thread, os_thread_main_t main, void *arg, size_t stack_size );
 os_status_t __wrap_os_thread_destroy( os_thread_t *thread );
 os_status_t __wrap_os_thread_mutex_create( os_thread_mutex_t *lock );
 os_status_t __wrap_os_thread_mutex_destroy( os_thread_mutex_t *lock );
@@ -599,37 +603,29 @@ double __wrap_os_strtod( const char *str, char **endptr )
 	return result;
 }
 
-char* __wrap_os_strtok( char* s, char* delm )
+char* __wrap_os_strtok( char* s, const char* delm )
 {
-	static int currIndex = 0;
-	char token[ 100 ];
-	char *token_ptr;
-	int i = currIndex, k = 0, j = 0;
-	os_bool_t found = OS_FALSE;
-	token_ptr = token;
-	if( !s || !delm || s[currIndex] == '\0' )
-		return NULL;
-	while (s[i] != '\0'){
-		j = 0;
-		while (delm[j] != '\0'){
-			if ( s[i] != delm[j] )
-				token_ptr[k] = s[i];
-			else
-			{
-				found = OS_TRUE;
-				break;
-			}
-			j++;
-		}
-		if( found == OS_TRUE )
-			break;
-		i++;
-		k++;
-	}
+	static char *str = NULL;
+	char *rv = NULL;
 
-	token_ptr[i] = 0;
-	currIndex = i+1;
-	return token_ptr;
+	if ( s )
+		str = s;
+
+	if ( str && delm )
+	{
+		while ( *str && rv == NULL )
+		{
+			const char *d = delm;
+			while ( *d && rv == NULL )
+			{
+				if ( *str == *d )
+					rv = str;
+				++d;
+			}
+			++str;
+		}
+	}
+	return rv;
 }
 
 long __wrap_os_strtol( const char *str, char **endptr )
@@ -668,29 +664,27 @@ os_uint32_t __wrap_os_system_pid( void )
 os_status_t __wrap_os_system_run(
 	const char *command,
 	int *exit_status,
-	char *out_buf[2u],
-	size_t out_len[2u],
-	os_millisecond_t max_time_out )
+	os_bool_t privileged,
+	int priority,
+	size_t stack_size,
+	os_file_t pipe_files[2u] )
 {
 	/* ensure this function is called meeting pre-requirements */
 	assert_non_null( command );
 	check_expected( command );
 	assert_non_null( exit_status );
-	assert_non_null( out_buf );
-	assert_non_null( out_len );
 
 	if ( exit_status )
 		*exit_status = mock_type( int );
-	if ( out_buf[0u] )
-		strncpy( out_buf[0u], mock_type( char * ), out_len[0u] );
-	if ( out_buf[1u] )
-		strncpy( out_buf[1u], mock_type( char * ), out_len[1u] );
 	return mock_type( os_status_t );
 }
 
 os_status_t __wrap_os_system_run_wait(
 	const char *command,
 	int *exit_status,
+	os_bool_t privileged,
+	int priority,
+	size_t stack_size,
 	char *out_buf[2u],
 	size_t out_len[2u],
 	os_millisecond_t max_time_out )
@@ -759,7 +753,7 @@ os_status_t __wrap_os_thread_condition_wait(
 }
 
 os_status_t __wrap_os_thread_create(
-	os_thread_t *thread, os_thread_main_t main, void *arg )
+	os_thread_t *thread, os_thread_main_t main, void *arg, size_t stack_size )
 {
 	static unsigned int thread_id = 1u;
 	os_status_t result = (os_status_t)mock();

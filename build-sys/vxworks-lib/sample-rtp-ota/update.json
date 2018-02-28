@@ -1,0 +1,12 @@
+{
+    "name":"Testing OTA:success path",
+    "version":"2.0.1",
+    "description":"Updating nothing special",
+    "pre_install":"sh pre_install.sh",
+    "install":"sh install.sh",
+    "post_install":"sh post_install.sh",
+    "error_action":"sh err_install.sh",
+    "reboot":"no",
+    "extra_key_value_ary": [ { "key":"value" }, {"foo":"foo-value"}],
+    "custom_obj": { }
+}

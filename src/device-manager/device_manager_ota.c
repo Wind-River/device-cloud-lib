@@ -471,7 +471,8 @@ iot_status_t device_manager_ota_install_execute(
 
 			result = IOT_STATUS_SUCCESS;
 			os_system_run_wait( command_with_params,
-				&system_ret, out_buf, out_len, 0U );
+				&system_ret, OS_FALSE, 0, 0u,
+				out_buf, out_len, 0U );
 
 			IOT_LOG( iot_lib, IOT_LOG_TRACE,
 				"Completed executing OTA script with result: %i",

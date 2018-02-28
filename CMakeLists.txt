@@ -59,8 +59,9 @@ option_select( IOT_WEBSOCKET_LIBRARY
 	DESCRIPTION "Websocket library to use"
 	DEFAULT "libwebsockets" "libwebsockets" "civetweb"
 )
-option_ensure_set( IOT_THREAD_SUPPORT   "support the use of threads" ON )
+option_ensure_set( IOT_PLUGIN_SUPPORT   "allow dynamic plug-in support" ON )
 option_ensure_set( IOT_STACK_ONLY       "build library without the use of the heap" OFF )
+option_ensure_set( IOT_THREAD_SUPPORT   "support the use of threads" ON )
 
 # Enforce Build Type
 # set a default build type if none was specified

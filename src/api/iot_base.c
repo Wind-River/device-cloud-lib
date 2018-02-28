@@ -1170,15 +1170,22 @@ iot_status_t iot_loop_start( iot_t *lib )
 		else if ( lib->main_thread == 0 )
 		{
 			size_t i;
+			size_t stack_size = 0u;
+
+#if defined( __VXWORKS__ )
+			stack_size = deviceCloudStackSizeGet();
+#endif /* defined( __VXWORKS__ ) */
+
 			os_status_t os_result;
 			result = IOT_STATUS_FAILURE;
 			os_result = os_thread_create( &lib->main_thread,
-				iot_base_main_thread, lib );
+				iot_base_main_thread, lib, stack_size );
 			for ( i = 0u; os_result == OS_STATUS_SUCCESS &&
 				i < IOT_WORKER_THREADS; ++i )
 				os_result = os_thread_create(
 					&lib->worker_thread[i],
-					iot_base_worker_thread_main, lib );
+					iot_base_worker_thread_main, lib,
+					stack_size );
 			if ( os_result == OS_STATUS_SUCCESS )
 				result = IOT_STATUS_SUCCESS;
 		}
