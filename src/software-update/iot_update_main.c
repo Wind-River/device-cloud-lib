@@ -47,14 +47,13 @@
 #define IOT_UPDATE_TIMESTAMP_LENGTH 16u
 
 /**
- * @def COMMAND_PREFIX
- * @brief optional prefix to use when running external commands to run with
- *        administrator privledges
+ * @def PRIVLEDGE_MODE
+ * @brief designates the run-level for certain commands
  */
 #if defined( __unix__ ) && !defined( __ANDROID__ )
-#	define COMMAND_PREFIX      "sudo "
+#	define PRIVILEDGE_MODE     OS_TRUE
 #else
-#	define COMMAND_PREFIX      ""
+#	define PRIVILEDGE_MODE     OS_FALSE
 #endif
 
 /** @brief iot update log output */
@@ -394,8 +393,9 @@ iot_status_t iot_update(
 						result = IOT_STATUS_FAILURE;
 						if ( os_system_run_wait(
 							iot_update_install[i].script,
-							&exit_status,
-							out_buf, out_len, 0 ) == OS_STATUS_SUCCESS )
+							&exit_status, OS_FALSE,
+							0, 0u, out_buf, out_len,
+							0 ) == OS_STATUS_SUCCESS )
 							result = IOT_STATUS_SUCCESS;
 
 						for ( j = 0u; j < 2u; ++j )
@@ -429,7 +429,7 @@ iot_status_t iot_update(
 
 								if ( os_system_run_wait(
 									iot_update_install[OTA_PHASE_ERROR].script,
-									&exit_status,
+									&exit_status, OS_FALSE, 0, 0u,
 									out_buf, out_len, 0 ) == OS_STATUS_SUCCESS )
 									result = IOT_STATUS_SUCCESS;
 
@@ -580,18 +580,12 @@ iot_status_t iot_update_mec_enable(
 	iot_status_t result = IOT_STATUS_FAILURE;
 
 	if ( enable == IOT_UPDATE_MEC_ENABLE )
-		os_snprintf( command,
-			31u,
-			COMMAND_PREFIX" sadmin eu"
-			);
+		os_snprintf( command, 31u, "sadmin eu" );
 	else
-		os_snprintf( command,
-			31u,
-			COMMAND_PREFIX" sadmin bu"
-			);
+		os_snprintf( command, 31u, "sadmin bu" );
 
 	if ( os_system_run_wait( command, &exit_status,
-		buf, buf_len, 0 ) == OS_STATUS_SUCCESS )
+		PRIVILEDGE_MODE, 0, 0u, buf, buf_len, 0 ) == OS_STATUS_SUCCESS )
 		result = IOT_STATUS_SUCCESS;
 
 	if ( result == IOT_STATUS_SUCCESS && exit_status == 0 )
@@ -639,10 +633,8 @@ enum iot_update_mec_status iot_update_mec_status( void )
 	out_buf[1] = buf_stderr;
 	out_len[1] = IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN;
 
-	result = os_system_run_wait(
-		COMMAND_PREFIX"sadmin status",
-		&exit_status,
-		out_buf, out_len, 0 );
+	result = os_system_run_wait( "sadmin status", &exit_status,
+		PRIVILEDGE_MODE, 0, 0u, out_buf, out_len, 0 );
 
 	if ( result == OS_STATUS_SUCCESS && exit_status == 0 )
 	{

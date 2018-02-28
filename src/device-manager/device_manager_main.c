@@ -1777,7 +1777,8 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 			IOT_LOG( iot_lib, IOT_LOG_TRACE, "Remote login cmd: %s",
 				relay_cmd );
 
-			run_status = os_system_run( relay_cmd, NULL, out_files);
+			run_status = os_system_run( relay_cmd, NULL, OS_FALSE,
+				0, 0u, out_files);
 			IOT_LOG( iot_lib, IOT_LOG_TRACE,
 				"System Run returned %d", result );
 			os_time_sleep( 10, IOT_FALSE );

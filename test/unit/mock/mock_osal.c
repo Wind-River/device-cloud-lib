@@ -100,7 +100,7 @@ os_status_t __wrap_os_thread_condition_wait(
 	os_thread_condition_t *cond,
 	os_thread_mutex_t *lock );
 os_status_t __wrap_os_thread_create(
-	os_thread_t *thread, os_thread_main_t main, void *arg );
+	os_thread_t *thread, os_thread_main_t main, void *arg, int stack_size );
 os_status_t __wrap_os_thread_destroy( os_thread_t *thread );
 os_status_t __wrap_os_thread_mutex_create( os_thread_mutex_t *lock );
 os_status_t __wrap_os_thread_mutex_destroy( os_thread_mutex_t *lock );
@@ -759,7 +759,7 @@ os_status_t __wrap_os_thread_condition_wait(
 }
 
 os_status_t __wrap_os_thread_create(
-	os_thread_t *thread, os_thread_main_t main, void *arg )
+	os_thread_t *thread, os_thread_main_t main, void *arg, int stack_size )
 {
 	static unsigned int thread_id = 1u;
 	os_status_t result = (os_status_t)mock();

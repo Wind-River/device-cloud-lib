@@ -28,7 +28,7 @@ __plugin_module_name:= $1
 __plugin_module_src:= $2
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iot_c_includes) external/hdc/curl/include
-LOCAL_CFLAGS += -DIOT_PLUGIN_BUILTIN -DOPENSSL ${EXTRA_CFLAGS}
+LOCAL_CFLAGS += -DIOT_PLUGIN_BUILTIN=1 -DOPENSSL ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/public
 LOCAL_MODULE := $$(__plugin_module_name)
 LOCAL_MODULE_TAGS := optional
@@ -42,7 +42,7 @@ $(eval $(call build_plugin_util, libtr50, ./plugin/tr50/tr50.c ) )
 # build libiot
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iot_c_includes) external/hdc/libarchive/contrib/android/include
-LOCAL_CFLAGS += -DIOT_PLUGIN_BUILTIN -DOPENSSL -DJSMN_PARENT_LINKS -DJSMN_STRICT ${EXTRA_CFLAGS}
+LOCAL_CFLAGS += -DIOT_PLUGIN_SUPPORT=1 -DOPENSSL -DJSMN_PARENT_LINKS -DJSMN_STRICT ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/public
 LOCAL_SHARED_LIBRARIES := libcutils libdl libjansson libmosquitto libext2_uuid libcrypto libssl libcurl
 LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs libtr50 libpaho-mqtt3as libiotjsmn libarchive

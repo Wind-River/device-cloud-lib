@@ -198,11 +198,11 @@ struct iot_plugin
  * @param[in]      y                   minimum library version
  * @param[in]      z                   maximum library version
  */
-#ifdef IOT_PLUGIN_BUILTIN
+#if defined(IOT_PLUGIN_BUILTIN)
 #define IOT_PLUGIN(x,o,v,y,z) IOT_PLUGIN_NAME(x,x,o,v,y,z)
-#else
+#else /* if defined(IOT_PLUGIN_BUILTIN) */
 #define IOT_PLUGIN(x,o,v,y,z) IOT_PLUGIN_NAME(iot,x,o,v,y,z)
-#endif /* ifdef IOT_PLUGIN_BUILTIN */
+#endif /* else if defined(IOT_PLUGIN_BUILTIN) */
 
 #ifdef __cplusplus
 }

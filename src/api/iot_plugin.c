@@ -281,11 +281,10 @@ iot_status_t iot_plugin_perform(
 	}
 	if ( max_time_out )
 		*max_time_out = time_remaining;
-
-
 	return result;
 }
 
+#if defined(IOT_PLUGIN_SUPPORT) && IOT_PLUGIN_SUPPORT
 iot_status_t iot_plugin_load(
 	iot_t *lib,
 	const char *file )
@@ -373,4 +372,5 @@ iot_status_t iot_plugin_unload( iot_t *lib, const char *name )
 	}
 	return result;
 }
+#endif /* if defined(IOT_PLUGIN_SUPPORT) && IOT_PLUGIN_SUPPORT */
 

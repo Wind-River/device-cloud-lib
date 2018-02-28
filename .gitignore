@@ -1,5 +1,4 @@
 _CPack_Packages/
-bin/
 cmake_install.cmake
 CMakeCache.txt
 CMakeDoxyfile.in
@@ -23,8 +22,7 @@ iot_build.h
 iot-connect.schema.json.*
 iot_plugin_builtin.c
 iot.make
-lib/
-Makefile
+/Makefile
 out/
 preinst
 postinst
