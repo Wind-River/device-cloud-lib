@@ -191,7 +191,7 @@ static IOT_SECTION void control_config_user_prompt(
 	iot_bool_t show_user_input,
 	const char *prompt, ... ) __attribute__((format(printf,4,5)));
 
-iot_status_t control_config_generate( void )
+iot_status_t control_config_generate( const char *file_name )
 {
 	iot_json_encoder_t *encoder;
 	iot_status_t result = IOT_STATUS_NO_MEMORY;
@@ -208,20 +208,24 @@ iot_status_t control_config_generate( void )
 	{
 		iot_bool_t value_set = IOT_FALSE;
 		result = control_config_user_interface( encoder, &value_set );
-
 		if ( result == IOT_STATUS_SUCCESS && value_set == IOT_TRUE )
 		{
 			char config_file[ PATH_MAX + 1u ];
-			size_t config_file_len = 0u;
 			os_file_t connection_file;
 
-			/* generate connection configuration file */
-			config_file_len = iot_directory_name_get(
-				IOT_DIR_CONFIG, config_file, PATH_MAX );
-			os_snprintf( &config_file[config_file_len],
-				PATH_MAX - config_file_len, "%c%s%s",
-				OS_DIR_SEP, IOT_DEFAULT_FILE_CONFIG,
-				IOT_DEFAULT_FILE_CONFIG_EXT );
+			/* use file name if specified */
+			if ( file_name )
+				os_strncpy( config_file, file_name, PATH_MAX );
+			else
+			{
+				size_t config_file_len;
+				config_file_len = iot_directory_name_get(
+					IOT_DIR_CONFIG, config_file, PATH_MAX );
+				os_snprintf( &config_file[config_file_len],
+					PATH_MAX - config_file_len, "%c%s%s",
+					OS_DIR_SEP, IOT_DEFAULT_FILE_CONFIG,
+					IOT_DEFAULT_FILE_CONFIG_EXT );
+			}
 
 			if ( os_file_exists( config_file ) != IOT_FALSE )
 				os_file_delete( config_file );
@@ -234,7 +238,7 @@ iot_status_t control_config_generate( void )
 				os_printf(
 					"Wrote configuration to file (%s)...\n",
 					config_file );
-				os_fprintf( connection_file, "%s",
+				os_fprintf( connection_file, "%s\n",
 					iot_json_encode_dump( encoder ) );
 				os_file_close( connection_file );
 			}

@@ -2,7 +2,7 @@
  * @file
  * @brief Main source file for the Wind River IoT control application
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,14 +107,16 @@ int control_device_decommission( void )
 int control_main( int argc, char *argv[] )
 {
 	int result = EXIT_SUCCESS;
+	const char *file_name = NULL;
 
 	struct app_arg args[] = {
-		{ 'h', "help"          , 0u, NULL, NULL, "display help menu"  , 0u },
-		{ 0u , "reboot"        , 0u, NULL, NULL, "reboot the device"  , 0u },
-		{ 0u , "shutdown"      , 0u, NULL, NULL, "shutdown the device", 0u },
-		{ 'v', "version"       , 0u, NULL, NULL, "display version"    , 0u },
+		{ 'f' , "file"          , 0u, "file", &file_name, "output config file" , 0u },
+		{ 'h' , "help"          , 0u, NULL, NULL, "display help menu"  , 0u },
+		{ '\0', "reboot"        , 0u, NULL, NULL, "reboot the device"  , 0u },
+		{ '\0', "shutdown"      , 0u, NULL, NULL, "shutdown the device", 0u },
+		{ 'v' , "version"       , 0u, NULL, NULL, "display version"    , 0u },
 		{ 'd' , "decommission"  , 0u, NULL, NULL, "decommission device", 0u },
-		{ 0, NULL, 0, NULL, NULL, NULL, 0u }
+		{ '\0', NULL, 0, NULL, NULL, NULL, 0u }
 	};
 
 	result = app_arg_parse( args, argc, argv, NULL );
@@ -125,8 +127,9 @@ int control_main( int argc, char *argv[] )
 		/* Prompt user if no argument is provided
 		 * Generate iot connection configuration file
 		 */
-		if ( result == EXIT_SUCCESS && argc <= 1 )
-			control_config_generate();
+		if ( result == EXIT_SUCCESS &&
+			( argc <= 1 || app_arg_count( args, 'f', NULL ) ) )
+			control_config_generate( file_name );
 		if ( app_arg_count( args, 'v', NULL ) )
 			control_build_information();
 		if ( result == EXIT_SUCCESS &&
