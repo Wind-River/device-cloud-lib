@@ -2,7 +2,7 @@
  * @file
  * @brief source file for argument parsing functionality for an application
  *
- * @copyright Copyright (C) 2016-2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,19 @@
 
 #include <os.h>
 
+/** @brief Prefix to use for short argument id */
+#define APP_ARG_PREFIX_SHORT           '-'
+/** @brief Prefix to use for long argument ids */
+#define APP_ARG_PREFIX_LONG            "--"
+/** @brief Character to use to split between a key & value pairs */
+#define APP_ARG_VALUE_SPLIT            '='
+
 unsigned int app_arg_count( const struct app_arg *args, char ch,
 	const char *name )
 {
 	unsigned int result = 0u;
 	int found = 0;
+
 	while ( !found && args && ( args->ch || args->name ) )
 	{
 		if ( ( ch != 0 && ch == args->ch ) ||
@@ -38,6 +46,211 @@ unsigned int app_arg_count( const struct app_arg *args, char ch,
 	return result;
 }
 
+app_arg_iterator_t *app_arg_find(
+	int argc,
+	char **argv,
+	app_arg_iterator_t *iter,
+	char ch,
+	const char *name )
+{
+	struct app_arg_iterator *rv = NULL;
+	if ( iter )
+	{
+		iter->idx = 0;
+		iter->ch = ch;
+		iter->name = name;
+		rv = app_arg_find_next( argc, argv, iter );
+	}
+	return rv;
+}
+
+struct app_arg_iterator *app_arg_find_next(
+	int argc,
+	char **argv,
+	struct app_arg_iterator *iter )
+{
+	struct app_arg_iterator *rv = NULL;
+	if ( iter && argv )
+	{
+		const size_t arg_prefix_long_len = os_strlen( APP_ARG_PREFIX_LONG );
+		int match_found = 0;
+		int cnt = iter->idx + 1;
+		int no_key_count = 0;
+
+		while ( cnt < argc && !match_found && no_key_count < 2 )
+		{
+			const char *c = argv[cnt];
+			if ( c && os_strncmp( c, APP_ARG_PREFIX_LONG,
+				arg_prefix_long_len ) == 0 )
+			{
+				c += arg_prefix_long_len;
+				if ( *c == '\0' ) /* handle "--" case */
+					no_key_count = 2u;
+				else
+				{
+					const char *p;
+					p = os_strchr( c, APP_ARG_VALUE_SPLIT );
+					if ( iter->name )
+					{
+						if ( p )
+						{
+							if ( os_strncmp( iter->name,
+								c, (size_t)(p - c) ) == 0 )
+								match_found = 1;
+						}
+						else if ( os_strncmp( iter->name,
+							c, os_strlen(iter->name) ) == 0 )
+							match_found = 1;
+					}
+					else if ( iter->ch == '\0' ) /* return everything */
+						match_found = 1;
+				}
+			}
+			else if ( c && *c == APP_ARG_PREFIX_SHORT )
+			{
+				if ( iter->ch != '\0' )
+				{
+					if ( *(c+1) == iter->ch )
+						++match_found;
+				}
+				else if ( !iter->name ) /* return everything */
+					++match_found;
+			}
+			else
+				++no_key_count;
+
+			if ( !match_found && no_key_count < 2 )
+				++cnt;
+		}
+
+		/* a match was found! */
+		iter->idx = cnt;
+		if ( match_found )
+			rv = iter;
+	}
+	return rv;
+}
+
+int app_arg_iterator_key(
+	int argc,
+	char **argv,
+	const app_arg_iterator_t *iter,
+	size_t *key_len,
+	const char **key )
+{
+	int rv = 0;
+	if ( iter && iter->idx < argc )
+	{
+		const size_t arg_prefix_long_len = os_strlen( APP_ARG_PREFIX_LONG );
+		const char *key_out = argv[iter->idx];
+		size_t key_len_out = 0u;
+
+		if ( key_out )
+		{
+			if ( os_strncmp( key_out, APP_ARG_PREFIX_LONG,
+				arg_prefix_long_len ) == 0 )
+			{
+				const char *p;
+				key_out += arg_prefix_long_len;
+				p = os_strchr( key_out, APP_ARG_VALUE_SPLIT );
+				if ( p )
+					key_len_out = (size_t)(p - key_out);
+				else
+					key_len_out = os_strlen( key_out );
+			}
+			else if ( key_out[0u] == APP_ARG_PREFIX_SHORT &&
+				  key_out[1u] != '\0' &&
+				  key_out[1u] != APP_ARG_VALUE_SPLIT )
+			{
+				key_len_out = 1u;
+				++key_out;
+			}
+		}
+
+		/* return results */
+		if ( key_len_out > 0u )
+		{
+			if ( key )
+				*key = key_out;
+			if ( key_len )
+				*key_len = key_len_out;
+			rv = 1;
+		}
+	}
+	return rv;
+}
+
+int app_arg_iterator_value(
+	int argc,
+	char **argv,
+	const app_arg_iterator_t *iter,
+	size_t *value_len,
+	const char **value )
+{
+	int rv = 0;
+	if ( iter && iter->idx < argc )
+	{
+		const size_t arg_prefix_long_len =
+			os_strlen( APP_ARG_PREFIX_LONG );
+		const char *value_out = argv[iter->idx];
+		size_t value_len_out = 0u;
+
+		if ( value_out )
+		{
+			if ( os_strncmp( value_out, APP_ARG_PREFIX_LONG,
+				arg_prefix_long_len ) == 0 ||
+				*value_out == APP_ARG_PREFIX_SHORT )
+			{
+				if ( os_strncmp( value_out, APP_ARG_PREFIX_LONG,
+					arg_prefix_long_len ) == 0 )
+				{
+					const char *p;
+					value_out += arg_prefix_long_len;
+					p = os_strchr( value_out, APP_ARG_VALUE_SPLIT );
+					if ( p )
+						value_out = p + 1;
+					else
+						value_out = NULL;
+				}
+				else
+				{
+					value_out += 2u;
+					if ( *value_out == APP_ARG_VALUE_SPLIT )
+						++value_out;
+					else if ( *value_out == '\0' )
+						value_out = NULL;
+				}
+
+				if ( !value_out && iter->idx + 1 < argc )
+				{
+					value_out = argv[iter->idx + 1];
+					if ( value_out && (
+						*value_out == APP_ARG_PREFIX_SHORT ||
+						os_strncmp( value_out,
+							APP_ARG_PREFIX_LONG,
+							arg_prefix_long_len ) == 0 ))
+						value_out = NULL;
+				}
+			}
+
+			if ( value_out )
+				value_len_out = os_strlen( value_out );
+		}
+
+		/* return results */
+		if ( value_len_out > 0u )
+		{
+			if ( value )
+				*value = value_out;
+			if ( value_len )
+				*value_len = value_len_out;
+			rv = 1;
+		}
+	}
+	return rv;
+}
+
+/** @todo rewrite to use iterator functions */
 int app_arg_parse( struct app_arg *args, int argc, char **argv,
 	int *pos )
 {
@@ -103,7 +316,7 @@ int app_arg_parse( struct app_arg *args, int argc, char **argv,
 					++arg->hit;
 					if ( arg->param_result )
 					{
-						if ( *a && *a == '=' )
+						if ( *a && *a == APP_ARG_VALUE_SPLIT )
 							++a;
 						if ( *a )
 							*arg->param_result = a;
@@ -150,7 +363,7 @@ int app_arg_parse( struct app_arg *args, int argc, char **argv,
 	{
 		if ( !arg->hit && arg->req )
 		{
-			os_fprintf( OS_STDERR,"%s", 
+			os_fprintf( OS_STDERR,"%s",
 				"required argument not specified: " );
 			name = arg->name;
 			ch = arg->ch;
@@ -161,9 +374,9 @@ int app_arg_parse( struct app_arg *args, int argc, char **argv,
 	if ( result == EXIT_FAILURE )
 	{
 		if ( ch )
-			os_fprintf( OS_STDERR, "-%c\n", ch );
+			os_fprintf( OS_STDERR, "%c%c\n", APP_ARG_PREFIX_SHORT, ch );
 		else if ( name )
-			os_fprintf( OS_STDERR, "--%s\n", name );
+			os_fprintf( OS_STDERR, "%s%s\n", APP_ARG_PREFIX_LONG, name );
 	}
 	else if ( !pos && pos_arg > 0 )
 	{
@@ -207,9 +420,9 @@ void app_arg_usage( const struct app_arg *args, size_t col,
 		else
 			++has_type[0];
 		if ( arg->ch )
-			os_printf( "-%c", arg->ch );
+			os_printf( "%c%c", APP_ARG_PREFIX_SHORT, arg->ch );
 		else
-			os_printf( "--%s", arg->name );
+			os_printf( "%s%s", APP_ARG_PREFIX_LONG, arg->name );
 		if ( arg->param )
 			os_printf( " %s", arg->param );
 		if ( !arg->req )
@@ -296,7 +509,9 @@ void app_arg_usage( const struct app_arg *args, size_t col,
 					}
 					if ( arg->ch )
 					{
-						os_printf( "-%c", arg->ch );
+						os_printf( "%c%c",
+							APP_ARG_PREFIX_SHORT,
+							arg->ch );
 						line_len = 2u;
 						if ( arg->param )
 						{
@@ -317,7 +532,8 @@ void app_arg_usage( const struct app_arg *args, size_t col,
 						size_t max_name_len = col - line_len - 2u;
 						if ( arg->param )
 							max_name_len -= id_len - 1u; /* " " */
-						os_printf( "--%.*s",
+						os_printf( "%s%.*s",
+							APP_ARG_PREFIX_LONG,
 							(int)max_name_len,
 							arg->name );
 						if ( os_strlen( arg->name )

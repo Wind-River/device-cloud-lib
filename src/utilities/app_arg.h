@@ -2,7 +2,7 @@
  * @file
  * @brief header file for argument parsing functionality for an application
  *
- * @copyright Copyright (C) 2016-2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,30 @@ struct app_arg
 	const char *name;
 	/** @brief Whether the argument is required */
 	int req;
-	/** @brief Parameter id used in display */
+	/** @brief Parameter id used in display (optional) */
 	const char *param;
-	/** @brief Location set pointer if found */
+	/** @brief Location set pointer if found (optional) */
 	const char **param_result;
-	/** @brief Argument description */
+	/** @brief Argument description (optional) */
 	const char *desc;
-	/** @brief Number of times argument was found */
+	/** @brief Number of times argument was found (initialize to 0)*/
 	unsigned int hit;
 };
+
+/** @brief Structure defining the iterator for going through arguments */
+struct app_arg_iterator
+{
+	/** @brief Character key iterating through */
+	char ch;
+	/** @brief Full name iterating through */
+	const char *name;
+	/** @brief Current index */
+	int idx;
+};
+/** @brief Structure of initializing an @p app_arg_iterator structure */
+#define APP_ARG_ITERATOR_INIT { '\0', NULL, 0u }
+/** @brief Type defining an argument iterator */
+typedef struct app_arg_iterator app_arg_iterator_t;
 
 /**
  * @brief Returns the number of times an argument was specified
@@ -55,6 +70,99 @@ struct app_arg
  */
 unsigned int app_arg_count( const struct app_arg *args, char ch,
 	const char *name );
+
+/**
+ * @brief Create an iterator finding all arguments matching criteria
+ *
+ * @note if neither @p ch or @p name is not given then this will return an
+ * iterator to every argument pair passed to the function.  If both are
+ * specified then this function will return any item matching either @p ch or
+ * @p name.
+ *
+ * @param[in]      argc                number of command line arguments
+ * @param[in]      argv                array of command line arguments
+ * @param[in,out]  iter                iterator object to initialize
+ * @param[in]      ch                  argument key to match (optional)
+ * @param[in]      name                argument name to match (optional)
+ *
+ * @retval         NULL                no matching arguments found
+ * @retval         !NULL               iterator to matching argument
+ *
+ * @see app_arg_find_next
+ * @see app_arg_iterator_key
+ * @see app_arg_iterator_value
+ */
+app_arg_iterator_t *app_arg_find(
+	int argc,
+	char **argv,
+	app_arg_iterator_t *iter,
+	char ch,
+	const char *name );
+
+/**
+ * @brief Finds the next item in the iterator
+ *
+ * @param[in]      argc                number of command line arguments
+ * @param[in]      argv                array of command line arguments
+ * @param[in,out]  iter                iterator object to increment
+ *
+ * @retval         NULL                no more matching arguments found
+ * @retval         !NULL               next matching argument
+ *
+ * @see app_arg_find
+ * @see app_arg_iterator_key
+ * @see app_arg_iterator_value
+ */
+app_arg_iterator_t *app_arg_find_next(
+	int argc,
+	char **argv,
+	app_arg_iterator_t *iter );
+
+/**
+ * @brief Returns the key for the item an iterator points to
+ *
+ * @param[in]      argc                number of command line arguments
+ * @param[in]      argv                array of command line arguments
+ * @param[in]      iter                iterator object to retrieve key for
+ * @param[out]     key_len             string length of the key (optional)
+ * @param[out]     key                 pointer to the key (optional)
+ *
+ * @retval         0                   on failure
+ * @retval         1                   on success
+ *
+ * @see app_arg_find
+ * @see app_arg_find_next
+ * @see app_arg_iterator_value
+ */
+int app_arg_iterator_key(
+	int argc,
+	char **argv,
+	const app_arg_iterator_t *iter,
+	size_t *key_len,
+	const char **key );
+
+/**
+ * @brief Returns the value for the item an iterator points to
+ *
+ * @param[in]      argc                number of command line arguments
+ * @param[in]      argv                array of command line arguments
+ * @param[in]      iter                iterator object to retrieve value for
+ * @param[out]     value_len           string length of the value (optional)
+ * @param[out]     value               pointer to the value (optional)
+ *
+ * @retval         0                   on failure
+ * @retval         1                   on success
+ *
+ * @see app_arg_find
+ * @see app_arg_find_next
+ * @see app_arg_iterator_key
+ */
+int app_arg_iterator_value(
+	int argc,
+	char **argv,
+	const app_arg_iterator_t *iter,
+	size_t *value_len,
+	const char **value );
 
 /**
  * @brief Parses arguments passed to the application
