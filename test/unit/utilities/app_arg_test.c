@@ -76,8 +76,13 @@ static char** internal_args_allocate( const char **args, int argc )
 	char **result = NULL;
 	if ( argc > 0 )
 	{
+		int i;
 		result = test_malloc( sizeof( char * ) * argc );
 		assert_non_null( result );
+		printf( "parsing: [" );
+		for ( i = 0; i < argc; ++i )
+			printf( " %s", args[i] );
+		printf( " ]\n" );
 	}
 	while ( argc > 0 )
 	{
@@ -138,6 +143,367 @@ static void test_app_arg_count_null_obj( void **state )
 	assert_int_equal( result, 0 );
 }
 
+/* app_arg_find */
+static void test_app_arg_find_null_argv( void **state )
+{
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+	result = app_arg_find( 0u, NULL, &iter, '\0', NULL );
+	assert_null( result );
+}
+
+static void test_app_arg_find_null_iter( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, NULL, '\0', NULL );
+	assert_null( result );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_find_all_items( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, &iter, '\0', NULL );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 1u );
+	assert_true( result == &iter );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_find_item_by_id( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-2", "value", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, &iter, '3', NULL );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 5u );
+	assert_true( result == &iter );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_find_item_by_name( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-2", "value", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, &iter, '\0', "name" );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 2u );
+	assert_true( result == &iter );
+
+	internal_args_free( argv, argc );
+}
+
+/* app_arg_find_next */
+static void test_app_arg_find_next_null_argv( void **state )
+{
+	app_arg_iterator_t *result;
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	result = app_arg_find_next( 0u, NULL, &iter );
+	assert_null( result );
+}
+
+static void test_app_arg_find_next_null_iter( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find_next( argc, argv, NULL );
+	assert_null( result );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_find_next_all_items( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	int idx = 0;
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, &iter, '\0', NULL );
+	assert_non_null( result );
+	assert_int_equal( result->idx, ++idx );
+	assert_true( result == &iter );
+
+	while ( idx < argc )
+	{
+		result = app_arg_find_next( argc, argv, result );
+		if ( idx == argc - 1 )
+		{
+			assert_null( result );
+			++idx;
+		}
+		else
+		{
+			assert_non_null( result );
+			assert_int_equal( result->idx, ++idx );
+			assert_true( result == &iter );
+		}
+	}
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_find_next_item_by_id( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-2", "value",
+		"-3=value", "-2value", "-2=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, &iter, '2', NULL );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 1 );
+	assert_true( result == &iter );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 3 );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 6 );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 7 );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_null( result );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_find_next_item_by_name( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-2", "value",
+		"--name=value", "--name", "value3", "--", "--name", "value4" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t *result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_find( argc, argv, &iter, '\0', "name" );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 2 );
+	assert_true( result == &iter );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 5 );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_non_null( result );
+	assert_int_equal( result->idx, 6 );
+
+	result = app_arg_find_next( argc, argv, result );
+	assert_null( result );
+
+	internal_args_free( argv, argc );
+}
+
+/* app_arg_iterator_key */
+static void test_app_arg_iterator_key_null_argv( void **state )
+{
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	size_t key_len = 0u;
+	const char *key = NULL;
+	int result;
+
+	result = app_arg_iterator_key( 0u, NULL, &iter, &key_len, &key );
+	assert_int_equal( result, 0 );
+}
+
+static void test_app_arg_iterator_key_null_iter( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	size_t key_len = 0u;
+	const char *key = NULL;
+	int result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_iterator_key( argc, argv, NULL, &key_len, &key );
+	assert_int_equal( result, 0 );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_iterator_key_valid( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-1", "--key2", "-3", "value1",
+		"--key4", "value2", "-5=value3", "--key6=value4",
+		"--", "-7=value5", "--key8", "value6" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t  *iter_ptr;
+	size_t key_len = 0u;
+	const char *key = NULL;
+	int result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	iter_ptr = app_arg_find( argc, argv, &iter, '\0', NULL );
+	assert_non_null( iter_ptr );
+
+	while( iter_ptr )
+	{
+		const char *k;
+		key_len = 0u;
+		key = NULL;
+		result = app_arg_iterator_key( argc, argv, iter_ptr, &key_len, &key );
+		assert_int_equal( result, 1 );
+
+		k = args[iter_ptr->idx];
+		while ( *k == '-' )
+			++k;
+		printf( "expected key: %.*s==%.*s\n",
+			(int)key_len, k, (int)key_len, key );
+		assert_true( strncmp( key, k, key_len ) == 0 );
+		iter_ptr = app_arg_find_next( argc, argv, iter_ptr );
+	}
+
+	key_len = 0u;
+	key = NULL;
+	result = app_arg_iterator_key( argc, argv, iter_ptr, &key_len, &key );
+	assert_int_equal( result, 0 );
+	assert_int_equal( key_len, 0 );
+	assert_null( key );
+
+	internal_args_free( argv, argc );
+}
+
+/* app_arg_iterator_value */
+static void test_app_arg_iterator_value_null_argv( void **state )
+{
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	size_t value_len = 0u;
+	const char *value= NULL;
+	int result;
+
+	result = app_arg_iterator_value( 0u, NULL, &iter, &value_len, &value );
+	assert_int_equal( result, 0 );
+}
+
+static void test_app_arg_iterator_value_null_iter( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-2", "--name", "-3=value" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	size_t value_len = 0u;
+	const char *value = NULL;
+	int result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	result = app_arg_iterator_value( argc, argv, NULL, &value_len, &value );
+	assert_int_equal( result, 0 );
+
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_iterator_value_valid( void **state )
+{
+	char **argv;
+	const char *args[] = { "/path/to/app", "-1", "--key2", "-3", "value1",
+		"--key4", "value2", "-5=value3", "--key6=value4",
+		"--", "-7=value5", "--key8", "value6" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	app_arg_iterator_t iter = APP_ARG_ITERATOR_INIT;
+	app_arg_iterator_t  *iter_ptr;
+	size_t value_len = 0u;
+	const char *value = NULL;
+	int result;
+
+	argv = internal_args_allocate( args, argc );
+	assert_non_null( argv );
+	iter_ptr = app_arg_find( argc, argv, &iter, '\0', NULL );
+	assert_non_null( iter_ptr );
+
+	while( iter_ptr )
+	{
+		const char *v;
+		value_len = 0u;
+		value = NULL;
+		result = app_arg_iterator_value( argc, argv,
+			iter_ptr, &value_len, &value );
+
+		v = strchr( args[iter_ptr->idx], '=' );
+		if ( v )
+			++v;
+		else
+		{
+			v = args[iter_ptr->idx + 1];
+			if ( *v == '-' )
+				v = NULL;
+		}
+
+		if ( v )
+			assert_int_equal( result, 1 );
+		else
+			assert_int_equal( result, 0 );
+
+		printf( "expected value: %.*s==%.*s\n",
+			(int)value_len, v, (int)value_len, value );
+		assert_true( strncmp( value, v, value_len ) == 0 );
+		iter_ptr = app_arg_find_next( argc, argv, iter_ptr );
+	}
+
+	value_len = 0u;
+	value = NULL;
+	result = app_arg_iterator_value( argc, argv,
+		iter_ptr, &value_len, &value );
+	assert_int_equal( result, 0 );
+	assert_int_equal( value_len, 0u );
+	assert_null( value );
+
+	internal_args_free( argv, argc );
+}
 
 /* app_arg_parse */
 static void test_app_arg_parse_argument_expected_value( void **state )
@@ -545,6 +911,22 @@ int main( int argc, char* argv[] )
 		cmocka_unit_test( test_app_arg_count_found_by_name ),
 		cmocka_unit_test( test_app_arg_count_no_id_or_name ),
 		cmocka_unit_test( test_app_arg_count_null_obj ),
+		cmocka_unit_test( test_app_arg_find_null_argv ),
+		cmocka_unit_test( test_app_arg_find_null_iter ),
+		cmocka_unit_test( test_app_arg_find_all_items ),
+		cmocka_unit_test( test_app_arg_find_item_by_id ),
+		cmocka_unit_test( test_app_arg_find_item_by_name ),
+		cmocka_unit_test( test_app_arg_find_next_null_argv ),
+		cmocka_unit_test( test_app_arg_find_next_null_iter ),
+		cmocka_unit_test( test_app_arg_find_next_all_items ),
+		cmocka_unit_test( test_app_arg_find_next_item_by_id ),
+		cmocka_unit_test( test_app_arg_find_next_item_by_name ),
+		cmocka_unit_test( test_app_arg_iterator_key_null_argv ),
+		cmocka_unit_test( test_app_arg_iterator_key_null_iter ),
+		cmocka_unit_test( test_app_arg_iterator_key_valid ),
+		cmocka_unit_test( test_app_arg_iterator_value_null_argv ),
+		cmocka_unit_test( test_app_arg_iterator_value_null_iter ),
+		cmocka_unit_test( test_app_arg_iterator_value_valid ),
 		cmocka_unit_test( test_app_arg_parse_argument_expected_value ),
 		cmocka_unit_test( test_app_arg_parse_argument_no_value ),
 		cmocka_unit_test( test_app_arg_parse_argument_optional_not_specified ),
