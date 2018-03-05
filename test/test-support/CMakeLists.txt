@@ -14,9 +14,6 @@
 
 include( TestSupport )
 
-set_compiler_flag_if_supported(
-	"-Wno-disabled-macro-expansion" )
-
 add_test_library( test-support
 	"test_support.c"
 	"test_support.h"

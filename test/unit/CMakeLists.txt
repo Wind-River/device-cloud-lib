@@ -38,4 +38,5 @@ add_subdirectory( "mock" )
 set( TEST_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
 set( TEST_BINARY_DIR "${CMAKE_SOURCE_DIR}/src" )
 add_subdirectory( "api" )
+add_subdirectory( "utilities" )
 

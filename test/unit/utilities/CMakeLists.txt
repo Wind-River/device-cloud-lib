@@ -12,18 +12,18 @@
 # OR CONDITIONS OF ANY KIND, either express or implied.
 #
 
-if( MSVC )
-	add_definitions( "/D_CRT_SECURE_NO_WARNINGS" )
-endif( MSVC )
+set( TARGET "utilities" )
+set( TESTS
+	"app_arg"
+)
 
-set_compiler_flag_if_supported(
-	"-Wno-bad-function-cast"
-	"-Wno-disabled-macro-expansion"
-	"-Wno-unused-parameter" )
+include( "mock_osal" )
 
-# Generate test support functions
-include_directories( "test-support" )
-add_subdirectory( "test-support" )
+set( TEST_APP_ARG_MOCK ${MOCK_OSAL_FUNC} )
+set( TEST_APP_ARG_SRCS ${MOCK_OSAL_SRCS} "app_arg_test.c" )
+set( TEST_APP_ARG_LIBS ${MOCK_OSAL_LIBS} )
+set( TEST_APP_ARG_UNIT "app_arg.c" )
 
-# Add unit tests
-add_subdirectory( "unit" )
+include( TestSupport )
+add_tests( ${TARGET} ${TESTS} )
+
