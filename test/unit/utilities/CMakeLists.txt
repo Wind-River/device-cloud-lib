@@ -16,6 +16,7 @@ set( TARGET "utilities" )
 set( TESTS
 	"app_arg"
 	"app_log"
+	"app_path"
 )
 
 include( "mock_api" )
@@ -30,6 +31,11 @@ set( TEST_APP_LOG_MOCK ${MOCK_API_FUNC} ${MOCK_OSAL_FUNC} )
 set( TEST_APP_LOG_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "app_log_test.c" )
 set( TEST_APP_LOG_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} )
 set( TEST_APP_LOG_UNIT "app_log.c" )
+
+set( TEST_APP_PATH_MOCK ${MOCK_OSAL_FUNC} )
+set( TEST_APP_PATH_SRCS ${MOCK_OSAL_SRCS} "app_path_test.c" )
+set( TEST_APP_PATH_LIBS ${MOCK_OSAL_LIBS} )
+set( TEST_APP_PATH_UNIT "app_path.c" )
 
 include( TestSupport )
 add_tests( ${TARGET} ${TESTS} )
