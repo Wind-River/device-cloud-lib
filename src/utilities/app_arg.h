@@ -21,6 +21,15 @@
 #include <stdlib.h> /* for size_t */
 #include "os.h"     /* osal functions */
 
+/** @brief Argument is required (no flags specified) */
+#define APP_ARG_FLAG_REQUIRED          0x0
+/** @brief Argument is optional */
+#define APP_ARG_FLAG_OPTIONAL          0x1
+/** @brief Argument is allowed to be specified multiple times */
+#define APP_ARG_FLAG_MULTI             0x2
+/** @brief Argument has required parameters */
+#define APP_ARG_FLAG_PARAM_OPTIONAL    0x4
+
 /** @brief Structure defining an arugment for an application */
 struct app_arg
 {
@@ -28,8 +37,8 @@ struct app_arg
 	char ch;
 	/** @brief Argument multi character token (i.e. specified with "--") */
 	const char *name;
-	/** @brief Whether the argument is required */
-	int req;
+	/** @brief Flags for this argument */
+	int flags;
 	/** @brief Parameter id used in display (optional) */
 	const char *param;
 	/** @brief Location set pointer if found (optional) */

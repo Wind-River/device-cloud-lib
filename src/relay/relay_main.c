@@ -2,7 +2,7 @@
  * @file
  * @brief Main source file for the Wind River IoT relay application
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -970,22 +970,26 @@ int relay_main( int argc, char *argv[] )
 	int url_pos = 0;
 
 	struct app_arg args[] = {
-		{ 'p', "port", 1, "port", &port_str, "port to connect to", 0u },
-		{ 'b', "bind", 0, NULL, NULL,
+		{ 'p', "port", APP_ARG_FLAG_REQUIRED,
+			"port", &port_str, "port to connect to", 0u },
+		{ 'b', "bind", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
 			"bind to the specified socket", 0u },
-		{ 'c', "configure", 0, "file", &config_file,
-			"configuration file", 0u },
-		{ 'h', "help", 0, NULL, NULL, "display help menu", 0u },
-		{ 'i', "insecure", 0, NULL, NULL,
+		{ 'c', "configure", APP_ARG_FLAG_OPTIONAL,
+			"file", &config_file, "configuration file", 0u },
+		{ 'h', "help", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
+			"display help menu", 0u },
+		{ 'i', "insecure", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
 			"disable certificate validation", 0u },
-		{ 'n', "notification", 0, "file", &notification_file,
-			"notification file", 0u },
-		{ 'o', "host", 0, "host", &host,
+		{ 'n', "notification", APP_ARG_FLAG_OPTIONAL,
+			"file", &notification_file, "notification file", 0u },
+		{ 'o', "host", APP_ARG_FLAG_OPTIONAL, "host", &host,
 			"host for socket connection", 0u },
-		{ 'u', "udp", 0, NULL, NULL, "UDP packets instead of TCP", 0u },
-		{ 'v', "verbose", 0, NULL, NULL, "verbose output", 0u },
-		{ 'f', "log-file", 0, "file", &log_file_path, 
-			"log to the file specified", 0u },
+		{ 'u', "udp", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
+			"UDP packets instead of TCP", 0u },
+		{ 'v', "verbose", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
+			"verbose output", 0u },
+		{ 'f', "log-file", APP_ARG_FLAG_OPTIONAL, "file",
+			&log_file_path, "log to the file specified", 0u },
 		{ 0, NULL, 0, NULL, NULL, NULL, 0u }
 	};
 

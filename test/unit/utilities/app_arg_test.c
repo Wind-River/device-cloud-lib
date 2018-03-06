@@ -25,19 +25,19 @@
 
 static const char *ARG_VALUE[] = { NULL, NULL, NULL, NULL, NULL, NULL };
 static const struct app_arg TEST_ARGS[] = {
-	{ '1', "one",           0u,    NULL,    NULL,          "one description",   1u },
-	{ '2', "two",           1u,    NULL,    NULL,          "two required",      2u },
-	{ '3', "three",         0u,    "arg",   &ARG_VALUE[0], "three description", 3u },
-	{ '4', "four",          0u,    NULL,    &ARG_VALUE[1], "four description",  4u },
-	{ '5', "five",          0u,    "[arg]", &ARG_VALUE[2], "five description",  5u },
-	{ '6', "six",           0u,    "[arg]", &ARG_VALUE[3], "six description",   6u },
-	{ '7', "seven",         0u,    "arg",   &ARG_VALUE[4], "seven description", 7u },
-	{ '8', "eight",         0u,    NULL,    NULL,          "eight description", 8u },
-	{ '9', "nine",          0u,    NULL,    NULL,          "nine description",  9u },
-	{ 0u,  "name-only",     0u,    NULL,    NULL,          "name-only #1",      10u },
-	{ 0u,  "name-required", 1u,    NULL,    NULL,          "name-only #2",      11u },
-	{ 0u,  "name-with-arg", 0u,    "arg",   &ARG_VALUE[5], "name-only #3",      12u },
-	{ 0u, NULL, 0, NULL, NULL, NULL, 0u }
+	{ '1', "one",           APP_ARG_FLAG_OPTIONAL,                                  NULL,  NULL,          "one description",   1u },
+	{ '2', "two",           APP_ARG_FLAG_REQUIRED | APP_ARG_FLAG_MULTI,             NULL,  NULL,          "two required",      2u },
+	{ '3', "three",         APP_ARG_FLAG_OPTIONAL,                                  "arg", &ARG_VALUE[0], "three description", 3u },
+	{ '4', "four",          APP_ARG_FLAG_OPTIONAL,                                  NULL,  &ARG_VALUE[1], "four description",  4u },
+	{ '5', "five",          APP_ARG_FLAG_OPTIONAL | APP_ARG_FLAG_PARAM_OPTIONAL,    "arg", &ARG_VALUE[2], "five description",  5u },
+	{ '6', "six",           APP_ARG_FLAG_OPTIONAL | APP_ARG_FLAG_PARAM_OPTIONAL,    "arg", &ARG_VALUE[3], "six description",   6u },
+	{ '7', "seven",         APP_ARG_FLAG_OPTIONAL,                                  "arg", &ARG_VALUE[4], "seven description", 7u },
+	{ '8', "eight",         APP_ARG_FLAG_OPTIONAL,                                  NULL,  NULL,          "eight description", 8u },
+	{ '9', "nine",          APP_ARG_FLAG_OPTIONAL,                                  NULL,  NULL,          "nine description",  9u },
+	{ 0u,  "name-only",     APP_ARG_FLAG_OPTIONAL,                                  NULL,  NULL,          "name-only #1",      10u },
+	{ 0u,  "name-required", APP_ARG_FLAG_REQUIRED,                                  NULL,  NULL,          "name-only #2",      11u },
+	{ 0u,  "name-with-arg", APP_ARG_FLAG_OPTIONAL,                                  "arg", &ARG_VALUE[5], "name-only #3",      12u },
+	{ 0u,  NULL,            0,                                                      NULL,  NULL,          NULL,                0u }
 };
 
 
@@ -671,6 +671,48 @@ static void test_app_arg_parse_argument_required( void **state )
 	internal_args_free( argv, argc );
 }
 
+static void test_app_arg_parse_argument_bad_key( void **state )
+{
+	const char *args[] = { "/path/to/app", "-2", "--name-required",
+		"-=" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	char **argv;
+	int result;
+
+	struct app_arg *opts =
+		(struct app_arg *)internal_struct_copy( TEST_ARGS,
+		sizeof( struct app_arg ),
+		sizeof( TEST_ARGS ) / sizeof( struct app_arg ) );
+	argv = internal_args_allocate( args, argc );
+
+	result = app_arg_parse( opts, argc, argv, NULL );
+	assert_int_equal( result, EXIT_FAILURE );
+
+	internal_struct_free( opts );
+	internal_args_free( argv, argc );
+}
+
+static void test_app_arg_parse_argument_duplicate( void **state )
+{
+	const char *args[] = { "/path/to/app", "-1", "-2", "-1",
+		"--name-required" };
+	int argc = sizeof( args ) / sizeof( const char * );
+	char **argv;
+	int result;
+
+	struct app_arg *opts =
+		(struct app_arg *)internal_struct_copy( TEST_ARGS,
+		sizeof( struct app_arg ),
+		sizeof( TEST_ARGS ) / sizeof( struct app_arg ) );
+	argv = internal_args_allocate( args, argc );
+
+	result = app_arg_parse( opts, argc, argv, NULL );
+	assert_int_equal( result, EXIT_FAILURE );
+
+	internal_struct_free( opts );
+	internal_args_free( argv, argc );
+}
+
 static void test_app_arg_parse_argument_unexpected_value( void **state )
 {
 	const char *args[] = { "/path/to/app", "-2", "--name-required",
@@ -927,6 +969,8 @@ int main( int argc, char* argv[] )
 		cmocka_unit_test( test_app_arg_iterator_value_null_argv ),
 		cmocka_unit_test( test_app_arg_iterator_value_null_iter ),
 		cmocka_unit_test( test_app_arg_iterator_value_valid ),
+		cmocka_unit_test( test_app_arg_parse_argument_bad_key ),
+		cmocka_unit_test( test_app_arg_parse_argument_duplicate ),
 		cmocka_unit_test( test_app_arg_parse_argument_expected_value ),
 		cmocka_unit_test( test_app_arg_parse_argument_no_value ),
 		cmocka_unit_test( test_app_arg_parse_argument_optional_not_specified ),

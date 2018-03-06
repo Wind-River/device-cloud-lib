@@ -1243,10 +1243,12 @@ int device_manager_main( int argc, char *argv[] )
 	int result = EXIT_FAILURE;
 	const char *config_file = NULL;
 	struct app_arg args[] = {
-		{ 'c', "configure", 0, "file", &config_file,
-			"configuration file", 0u },
-		{ 'h', "help", 0, NULL, NULL, "display help menu", 0u },
-		{ 's', "service", 0, NULL, NULL, "run as a service", 0u },
+		{ 'c', "configure", APP_ARG_FLAG_OPTIONAL,
+			"file", &config_file, "configuration file", 0u },
+		{ 'h', "help", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "display help menu", 0u },
+		{ 's', "service", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "run as a service", 0u },
 		{ 0, NULL, 0, NULL, NULL, NULL, 0u }
 	};
 

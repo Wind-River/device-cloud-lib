@@ -110,12 +110,18 @@ int control_main( int argc, char *argv[] )
 	const char *file_name = NULL;
 
 	struct app_arg args[] = {
-		{ 'f' , "file"          , 0u, "file", &file_name, "output config file" , 0u },
-		{ 'h' , "help"          , 0u, NULL, NULL, "display help menu"  , 0u },
-		{ '\0', "reboot"        , 0u, NULL, NULL, "reboot the device"  , 0u },
-		{ '\0', "shutdown"      , 0u, NULL, NULL, "shutdown the device", 0u },
-		{ 'v' , "version"       , 0u, NULL, NULL, "display version"    , 0u },
-		{ 'd' , "decommission"  , 0u, NULL, NULL, "decommission device", 0u },
+		{ 'd' , "decommission", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "decommission device", 0u },
+		{ 'f' , "file", APP_ARG_FLAG_OPTIONAL,
+			"file", &file_name, "output config file", 0u },
+		{ 'h' , "help", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "display help menu", 0u },
+		{ '\0', "reboot", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "reboot the device", 0u },
+		{ '\0', "shutdown", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "shutdown the device", 0u },
+		{ 'v' , "version", APP_ARG_FLAG_OPTIONAL,
+			NULL, NULL, "display version", 0u },
 		{ '\0', NULL, 0, NULL, NULL, NULL, 0u }
 	};
 
@@ -135,13 +141,13 @@ int control_main( int argc, char *argv[] )
 		if ( result == EXIT_SUCCESS &&
 			app_arg_count( args, 0u, "reboot" ) )
 		{
-			result = control_device_shutdown(IOT_TRUE, IOT_REBOOT_DELAY);
+			result = control_device_shutdown( IOT_TRUE, IOT_REBOOT_DELAY );
 			os_printf("reboot device delay=%d seconds\n", IOT_REBOOT_DELAY);
 		}
 		if ( result == EXIT_SUCCESS &&
 			app_arg_count( args, 0u, "shutdown" ) )
 		{
-			result = control_device_shutdown( IOT_FALSE, IOT_REBOOT_DELAY);
+			result = control_device_shutdown( IOT_FALSE, IOT_REBOOT_DELAY );
 			os_printf("shutdown device delay=%d seconds\n", IOT_REBOOT_DELAY);
 		}
                 if ( result == EXIT_SUCCESS &&
