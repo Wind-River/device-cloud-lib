@@ -2,7 +2,7 @@
  * @file
  * @brief Main source file for the Wind River IoT control application
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,16 @@
 
 #ifndef DEVICE_MANAGER_OTA_H
 #define DEVICE_MANAGER_OTA_H
-#pragma warning( push, 1 )
+
+#if defined( _MSC_VER )
+#	pragma warning( push, 1 )
+#endif /* defined( _MSC_VER ) */
+
 #include <curl/curl.h>             /* for performing REST requests */
-#pragma warning( pop )
+
+#if defined( _MSC_VER )
+#	pragma warning( pop )
+#endif /* defined( _MSC_VER ) */
 
 #include "os.h"
 #include "iot.h"

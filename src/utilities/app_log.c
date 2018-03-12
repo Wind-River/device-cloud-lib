@@ -2,7 +2,7 @@
  * @file
  * @brief Implementation of common log functionality for applications
  *
- * @copyright Copyright (C) 2016-2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,17 +31,14 @@ void app_log( iot_log_level_t log_level, const iot_log_source_t *source,
 	const char *file_name = "";
 	int fg_colour;
 	unsigned int i = 0u;
-#ifndef _WRS_KERNEL
 	unsigned long hash = 5381u;
 	static unsigned int  last_msg_count = 0u;
 	static unsigned long last_msg_hash = 0u;
-#endif /* ifndef _WRS_KERNEL */
 	unsigned int line_number = 0u;
 	const char *const prefix[] =
 		{ "Fatal", "Alert", "Critical", "Error", "Warning", "Notice",
 		  "Info", "Debug", "Trace" };
 
-#ifndef _WRS_KERNEL
 	/* create hash of message (to detect if this message is a repeat) */
 	{
 		const char *str = message;
@@ -74,7 +71,6 @@ void app_log( iot_log_level_t log_level, const iot_log_source_t *source,
 		os_fprintf( OS_STDERR, "%s ", timestamp );
 #endif
 
-#endif /* ifndef _WRS_KERNEL */
 		/* ensure function name points to a string */
 		if ( source && source->file_name )
 		{
@@ -111,9 +107,7 @@ void app_log( iot_log_level_t log_level, const iot_log_source_t *source,
 			line_number, message, OS_FILE_LINE_BREAK );
 		os_flush( OS_STDOUT );
 		os_flush( OS_STDERR );
-#ifndef _WRS_KERNEL
 		last_msg_hash = hash;
 	}
-#endif /* ifndef _WRS_KERNEL */
 }
 

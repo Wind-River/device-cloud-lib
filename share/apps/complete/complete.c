@@ -26,9 +26,16 @@
 #ifdef _WIN32
 #	include <Windows.h>  /* for Sleep */
 #else
-#	include <unistd.h>   /* for sleep */
+#	if defined( __VXWORKS__ ) && !defined( _WRS_KERNEL )
+#		include <published/UNIX/unistd.h> /* for readlink */
+#	endif /* if defined( __VXWORKS__ ) */
+#	include <unistd.h>   /* for sleep, readlink */
 #	include <errno.h>    /* for errno */
 #endif
+
+#if !defined( M_PI )
+#	define M_PI 3.14159265358979323846
+#endif /* if !defined( M_PI ) */
 
 /** @brief maximum value of json integer in range [-(2**53)+1, (2**53)-1] */
 #define MAX_JSON_INT 9007199254740991u

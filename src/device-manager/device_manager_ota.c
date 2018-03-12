@@ -386,8 +386,8 @@ iot_status_t device_manager_ota_install_execute(
 	if ( device_manager_info && package_path && package_path[0] != '\0' &&
 		file_name && file_name[0] != '\0')
 	{
-		char iot_update_dup_path[PATH_MAX + 1u] = "";
-		char command_with_params[PATH_MAX + 1u];
+		char iot_update_dup_path[PATH_MAX + 1u] = { 0 };
+		char command_with_params[PATH_MAX + 1u] = { 0 };
 		iot_t *const iot_lib = device_manager_info->iot_lib;
 
 		result = device_manager_ota_extract_package(iot_lib, package_path, file_name);
