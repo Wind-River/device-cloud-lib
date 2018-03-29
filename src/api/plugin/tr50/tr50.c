@@ -2509,7 +2509,7 @@ char *tr50_strtime( iot_timestamp_t ts,
 		{
 			size_t out_req;
 			out_req = (size_t)os_snprintf( &out[out_len],
-				len - out_len, ".%u", (unsigned int)ts );
+				len - out_len, ".%03u", (unsigned int)ts );
 
 			if ( out_req < len - out_len )
 				out_len += out_req;
