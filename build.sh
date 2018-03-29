@@ -29,10 +29,13 @@
 SCRIPT_PATH="$( cd "$(dirname "$0")" ; pwd -P )"
 export DEPS_DIR=`pwd`/deps
 mkdir -p "$DEPS_DIR"
+mkdir -p "$DEPS_DIR/include"
+mkdir -p "$DEPS_DIR/lib"
 
 # cmocka
 wget https://cmocka.org/files/1.1/cmocka-1.1.1.tar.xz
 tar -xvf cmocka-1.1.1.tar.xz
+if [ -e cmocka-1.1.1 ]; then
 cd cmocka-1.1.1
 mkdir build
 cd build
@@ -41,6 +44,7 @@ make
 make install
 cd ../..
 rm -rf cmocka-1.1.1
+fi
 
 # jsmn
 git clone https://github.com/zserge/jsmn.git jsmn
@@ -48,8 +52,8 @@ cd jsmn
 make clean
 make "CFLAGS=-DJSMN_PARENT_LINKS=1 -DJSMN_STRICT=1 -fPIC"
 make test
-cmake -E copy "libjsmn.a" "$DEPS_DIR/lib"
-cmake -E copy "jsmn.h" "$DEPS_DIR/include"
+cmake -E copy "jsmn.h" "$DEPS_DIR/include/"
+cmake -E copy "libjsmn.a" "$DEPS_DIR/lib/"
 cd ..
 rm -rf jsmn
 
