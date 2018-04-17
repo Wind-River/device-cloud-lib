@@ -46,6 +46,8 @@
 #define TR50_MQTT_KEEP_ALIVE                60u
 /** @brief Time interval to send a ping if not data received */
 #define TR50_PING_INTERVAL                  60 * IOT_MILLISECONDS_IN_SECOND
+/** @brief Time interval to check mailbox if nothing */
+#define TR50_MAILBOX_CHECK_INTERVAL         120 * IOT_MILLISECONDS_IN_SECOND
 /** @brief Number of pings that can be missed before reconnection */
 #define TR50_PING_MISS_ALLOWED              0u
 /** @brief default QOS level */
@@ -130,6 +132,8 @@ struct tr50_data
 	iot_uint32_t reconnect_count;
 	/** @brief the key of the thing */
 	char thing_key[ TR50_THING_KEY_MAX_LEN + 1u ];
+	/** @brief time when mailbox was last checked */
+	iot_timestamp_t time_last_mailbox_check;
 	/** @brief time when last message was received from cloud */
 	iot_timestamp_t time_last_msg_received;
 	/** @brief transaction status based on id */
@@ -240,13 +244,15 @@ static IOT_SECTION iot_status_t tr50_attribute_publish(
  *
  * @param[in]      data                plug-in specific data
  * @param[in]      txn                 transaction status information
+ * @param[in]      iteration_check     being called during an "iteration"
  *
  * @retval IOT_STATUS_BAD_PARAMETER    bad parameter passed to the function
  * @retval IOT_STATUS_SUCCESS          on success
  */
 static IOT_SECTION iot_status_t tr50_check_mailbox(
 	struct tr50_data *data,
-	const iot_transaction_t *txn );
+	const iot_transaction_t *txn,
+	iot_bool_t iteration_check );
 
 /**
  * @brief helper function for tr50 to connect to the cloud
@@ -989,11 +995,22 @@ iot_status_t tr50_attribute_publish(
 
 iot_status_t tr50_check_mailbox(
 	struct tr50_data *data,
-	const iot_transaction_t *txn )
+	const iot_transaction_t *txn,
+	iot_bool_t iteration_check )
 {
-	/* check for any outstanding messages on the cloud, when enabling plug-in */
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( data && data->lib &&
+	iot_bool_t check_mailbox = IOT_TRUE;
+	if ( iteration_check != IOT_FALSE && data )
+	{
+		const iot_timestamp_t now = iot_timestamp_now();
+		check_mailbox = IOT_FALSE;
+		if ( now - data->time_last_mailbox_check >=
+			TR50_MAILBOX_CHECK_INTERVAL )
+			check_mailbox = IOT_TRUE;
+	}
+
+	/* check for any outstanding messages on the cloud */
+	if ( check_mailbox != IOT_FALSE && data && data->lib &&
 		data->lib->request_queue_free_count < IOT_ACTION_QUEUE_MAX )
 	{
 		char id[11u];
@@ -1027,6 +1044,7 @@ iot_status_t tr50_check_mailbox(
 			IOT_LOG( data->lib, IOT_LOG_ERROR, "%s",
 				"Error failed to obtain device requests" );
 		iot_json_encode_terminate( req_json );
+		data->time_last_mailbox_check = iot_timestamp_now();
 	}
 	return result;
 }
@@ -1139,7 +1157,7 @@ iot_status_t tr50_connect(
 			iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
 			IOT_LOG( lib, IOT_LOG_INFO, "tr50 %s: %s",
 				reason, "successfully" );
-			result = tr50_check_mailbox( data, txn );
+			result = tr50_check_mailbox( data, txn, IOT_FALSE );
 		}
 		else if ( is_reconnect == IOT_FALSE ) /* show on connect only */
 		{
@@ -1364,6 +1382,7 @@ iot_status_t tr50_execute(
 					iot_mqtt_loop( data->mqtt, max_time_out );
 				tr50_ping( lib, data, txn, max_time_out );
 				tr50_file_queue_check( data );
+				tr50_check_mailbox( data, NULL, IOT_TRUE );
 				break;
 			case IOT_OPERATION_ACTION_COMPLETE:
 				result = tr50_action_complete( data,
@@ -2047,7 +2066,7 @@ void tr50_on_message(
 
 				/* check if message is for us */
 				if ( os_strncmp( v, data->thing_key, v_len ) == 0 )
-					tr50_check_mailbox( data, NULL );
+					tr50_check_mailbox( data, NULL, IOT_FALSE );
 			}
 		}
 		else if ( os_strcmp( topic, "reply" ) == 0 )
