@@ -21,6 +21,7 @@ addons:
     packages:
       - cmake
       - libarchive-dev
+      - libcmocka-dev
       - libjansson-dev
       - libjson-c-dev
       - libcurl4-openssl-dev

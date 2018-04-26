@@ -2081,7 +2081,8 @@ static void test_iot_action_parameter_set_raw_new_parameter( void **state )
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
 		os_free( request.parameter[i].name );
-		os_free( request.parameter[i].data.heap_storage );
+		if ( request.parameter[i].data.heap_storage )
+			os_free( request.parameter[i].data.heap_storage );
 	}
 	os_free( request.parameter );
 #endif
@@ -2213,7 +2214,8 @@ static void test_iot_action_parameter_set_raw_type_null( void **state )
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
 		os_free( request.parameter[i].name );
-		os_free( request.parameter[i].data.heap_storage );
+		if ( request.parameter[i].data.heap_storage )
+			os_free( request.parameter[i].data.heap_storage );
 	}
 	os_free( request.parameter );
 #endif
@@ -2306,7 +2308,8 @@ static void test_iot_action_parameter_set_raw_valid( void **state )
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
 		os_free( request.parameter[i].name );
-		os_free( request.parameter[i].data.heap_storage );
+		if ( request.parameter[i].data.heap_storage )
+			os_free( request.parameter[i].data.heap_storage );
 	}
 	os_free( request.parameter );
 #endif
@@ -4822,9 +4825,11 @@ static void test_iot_action_process_wait_queue_full( void **state )
 	/* clean up */
 #ifndef IOT_STACK_ONLY
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
-		os_free( lib.action[i].name );
+		if ( lib.action[i].name )
+			os_free( lib.action[i].name );
 	for ( i = 0u; i < IOT_ACTION_QUEUE_MAX; ++i )
-		os_free( lib.request_queue[i].name );
+		if ( lib.request_queue[i].name )
+			os_free( lib.request_queue[i].name );
 #endif
 }
 
@@ -5487,7 +5492,10 @@ static void test_iot_action_request_option_set_raw_valid( void **state )
 	assert_int_equal( req.option[0u].data.has_value, IOT_TRUE );
 	assert_int_equal( req.option[0u].data.type, IOT_TYPE_RAW );
 	assert_int_equal( req.option[0u].data.value.raw.length, 5u );
-	assert_string_equal( req.option[0u].data.value.raw.ptr, (const char*)"test" );
+	assert_string_equal( req.option[0u].data.value.raw.ptr,
+		(const char*)"test" );
+	assert_ptr_equal( req.option[0u].data.value.raw.ptr,
+		req.option[0u].data.heap_storage );
 #endif
 
 	/* clean up */

@@ -349,7 +349,6 @@ static void test_iot_common_arg_get_bool_from_string_null( void **state )
 	result = iot_common_arg_get_wrapper( &obj, IOT_TRUE, IOT_TYPE_BOOL, &data );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_int_equal( data, IOT_FALSE );
-	os_free( obj.heap_storage );
 }
 
 static void test_iot_common_arg_get_bool_from_string_true( void **state )
@@ -2892,10 +2891,11 @@ static void test_iot_common_data_copy_location( void **state )
 	assert_int_equal( to.value.location->source, source );
 	assert_memory_equal( &to.value.location->speed, &speed, sizeof( iot_float64_t ) );
 	assert_string_equal( to.value.location->tag, tag );
-#endif
 
 	/* clean up */
 	os_free( to.heap_storage );
+#endif
+
 	test_free( from.value.location->tag );
 	test_free( from.heap_storage );
 }

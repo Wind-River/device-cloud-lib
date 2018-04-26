@@ -1137,7 +1137,7 @@ void iot_json_decode_terminate(
 #elif defined( IOT_JSON_JSONC )
 #else /* defined( IOT_JSON_JSMN ) */
 #ifndef IOT_STACK_ONLY
-		if ( decoder->flags & IOT_JSON_FLAG_DYNAMIC )
+		if ( decoder->flags & IOT_JSON_FLAG_DYNAMIC && decoder->tokens )
 			iot_json_free( decoder->tokens );
 #endif /* ifndef IOT_STACK_ONLY */
 #endif /* defined( IOT_JSON_JSMN ) */

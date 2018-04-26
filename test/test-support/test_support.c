@@ -208,3 +208,167 @@ int test_parse_arg(
 	return retval;
 }
 
+/* introduced in cmocka 1.0.0 */
+#if defined(NEED_TEST_REALLOC)
+#define MALLOC_GUARD_SIZE 16
+struct ListNode {
+	const void *value;
+	int refcount;
+	struct ListNode *next;
+	struct ListNode *prev;
+};
+
+struct MallocBlockInfo {
+	void* block;
+	size_t allocated_size;
+	size_t size;
+	SourceLocation location;
+	struct ListNode node;
+};
+
+void *_test_realloc(void *ptr,
+	const size_t size,
+	const char *file,
+	const int line)
+{
+	void *rv = NULL;
+
+	if ( size == 0 )
+		_test_free(ptr, file, line);
+	else
+		rv = _test_malloc(size, file, line);
+
+	if ( ptr && rv )
+	{
+		size_t cpy_size = size;
+		struct MallocBlockInfo *block_info =
+			(struct MallocBlockInfo*)(void *)
+			((char*)ptr - (MALLOC_GUARD_SIZE + sizeof(struct MallocBlockInfo)));
+
+		if (block_info->size < size)
+			cpy_size = block_info->size;
+
+		memcpy(rv, ptr, cpy_size);
+		_test_free(ptr, file, line);
+	}
+
+	return rv;
+}
+#endif /* if defined(NEED_TEST_REALLOC) */
+
+#if defined(NEED_CMOCKA_RUN_GROUP_TESTS)
+int _cmocka_run_group_tests(const char *group_name,
+	const struct CMUnitTest *const tests,
+	const size_t num_tests,
+	CMFixtureFunction group_setup,
+	CMFixtureFunction group_teardown)
+{
+	int rv = 0;
+	void *group_state = NULL;
+	size_t i;
+	unsigned int tests_executed = 0u, tests_failed = 0u;
+	const char **failed_names = NULL;
+
+	/* group setup */
+	if ( group_setup )
+	{
+		rv = (*group_setup)(&group_state);
+		if ( rv != 0 )
+			print_error( "[  ERROR   ] %s - Group setup failed\n",
+				tests->name );
+	}
+
+	/* run tests */
+	if ( rv == 0 )
+	{
+		const struct CMUnitTest *test = tests;
+		for ( i = 0u; i < num_tests; ++i, ++test )
+		{
+			if ( test->test_func )
+			{
+				const int test_res =_run_test( test->name,
+					test->test_func, group_state,
+					UNIT_TEST_FUNCTION_TYPE_TEST, NULL );
+				if ( test_res != 0 )
+				{
+					const char **fn = realloc(failed_names,
+						sizeof(char *) * (tests_failed + 1u));
+					if ( fn )
+					{
+						fn[tests_failed] = test->name;
+						failed_names = fn;
+						++tests_failed;
+					}
+					++rv;
+				}
+				++tests_executed;
+			}
+		}
+	}
+
+	/* group teardown */
+	if ( group_teardown && (*group_teardown)(&group_state) != 0 )
+		++rv;
+
+	/* print summary */
+	print_message("[==========] %u test(s) run.\n",
+		tests_executed);
+	print_error("[  PASSED  ] %u test(s).\n",
+		tests_executed - tests_failed);
+
+	if (tests_failed > 0u)
+	{
+		print_error("[  FAILED  ] %u test(s), listed below:\n",
+			tests_failed);
+		for (i = 0u; i < (size_t)tests_failed; ++i)
+			print_error("[  FAILED  ] %s\n", failed_names[i]);
+		free(failed_names);
+	} else
+		print_error("\n %u FAILED TEST(S)\n", tests_failed);
+
+	return rv;
+}
+#endif /* if defined(NEED_CMOCKA_RUN_GROUP_TESTS) */
+
+/* introduced in cmocka 0.4.0 */
+#if defined(NEED_ASSERT_RETURN_CODE)
+void _assert_return_code(const LargestIntegralType result,
+	size_t rlen,
+	const LargestIntegralType error,
+	const char * const expression,
+	const char * const file,
+	const int line)
+{
+	LargestIntegralType valmax;
+
+	switch (rlen) {
+	case 1:
+		valmax = 255;
+		break;
+	case 2:
+		valmax = 32767;
+		break;
+	case 4:
+		valmax = 2147483647;
+		break;
+	case 8:
+	default:
+		if (rlen > sizeof(valmax)) {
+			valmax = 2147483647;
+		} else {
+			valmax = 9223372036854775807L;
+		}
+		break;
+	}
+
+	if (result > valmax - 1) {
+		if (error > 0) {
+			print_error("%s < 0, errno(%llu): %s\n",
+				expression, error, strerror((int)error));
+		} else {
+			print_error("%s < 0\n", expression);
+		}
+		_fail(file, line);
+	}
+}
+#endif /* if defined(need_assert_return_code) */

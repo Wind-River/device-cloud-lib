@@ -32,22 +32,6 @@ mkdir -p "$DEPS_DIR"
 mkdir -p "$DEPS_DIR/include"
 mkdir -p "$DEPS_DIR/lib"
 
-# cmocka
-wget https://cmocka.org/files/1.1/cmocka-1.1.1.tar.xz
-tar -xvf cmocka-1.1.1.tar.xz
-if [ -e cmocka-1.1.1 ]; then
-cd cmocka-1.1.1
-if [ ! -e cmake_build ]; then
-mkdir cmake_build
-fi
-cd cmake_build
-cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" ..
-make
-make install
-cd ../..
-rm -rf cmocka-1.1.1
-fi
-
 # jsmn
 git clone https://github.com/zserge/jsmn.git jsmn
 cd jsmn

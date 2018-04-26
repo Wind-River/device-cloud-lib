@@ -1106,10 +1106,10 @@ static void test_iot_config_set_raw_overwrite_data( void **state )
 	assert_int_equal( lib.options_config->option[0].data.type, IOT_TYPE_RAW );
 	assert_non_null( lib.options_config->option[0].data.value.raw.ptr );
 	assert_int_equal( lib.options_config->option[0].data.has_value, IOT_TRUE );
-#endif
 
 	/* clean up */
 	os_free( opt.data.heap_storage );
+#endif
 }
 
 static void test_iot_config_set_raw_overwrite_null( void **state )
