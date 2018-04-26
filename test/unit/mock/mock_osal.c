@@ -24,6 +24,7 @@
 
 #include <os.h>
 #include <string.h>
+#include <test_support.h>
 
 /* mock definitions */
 void *__wrap_os_calloc( size_t nmemb, size_t size );
@@ -214,7 +215,10 @@ size_t __wrap_os_file_read( void *ptr, size_t size, size_t nmemb, os_file_t stre
 {
 	size_t result = mock_type( size_t );
 	if ( result != 0u )
+	{
 		result = size * nmemb;
+		test_generate_random_string( ptr, result );
+	}
 	return result;
 }
 

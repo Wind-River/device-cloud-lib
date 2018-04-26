@@ -543,20 +543,24 @@ iot_status_t iot_base_device_id_set(
 			if ( fd  != OS_FILE_INVALID )
 			{
 				/* read uuid from the file */
+				size_t i = 0u;
 				device_id_len =
 					os_file_read( device_id, sizeof(char),
 						IOT_ID_MAX_LEN, fd );
 				os_file_close( fd );
-				if( device_id_len >= IOT_ID_MAX_LEN )
+				if ( device_id_len >= IOT_ID_MAX_LEN )
 					device_id_len = IOT_ID_MAX_LEN;
-				if ( device_id_len > 0u &&
-					device_id[device_id_len] == '\n' )
-					--device_id_len;
+				/* ensure device id only contains
+				 * "printable" characters */
+				while ( i < device_id_len &&
+					device_id[i] >= ' ' &&
+					device_id[i] <= '~')
+					++i;
+				device_id_len = i;
 				device_id[device_id_len] = '\0';
 				if ( device_id_len > 0u )
 					IOT_LOG( NULL, IOT_LOG_INFO,
-						"Device id: %s\n",
-						device_id );
+						"Device id: %s", device_id );
 			}
 
 			if ( device_id_len == 0u )
