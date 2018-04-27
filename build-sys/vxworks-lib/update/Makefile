@@ -24,16 +24,16 @@ BUILD_ALL_OBJS = TRUE
 DEVICE_CLOUD_LIB_DIR = $(VSB_DIR)/3pp/HDC_DEVICE_CLOUD_LIB/device_cloud_lib_repo
 
 SRC_DIRS = \
-        $(DEVICE_CLOUD_LIB_DIR)/src/software-update
+        $(DEVICE_CLOUD_LIB_DIR)/src/update
 
 SRC_FILES = \
-        $(DEVICE_CLOUD_LIB_DIR)/src/software-update/iot_update.c \
-        $(DEVICE_CLOUD_LIB_DIR)/src/software-update/iot_update_main.c
+        $(DEVICE_CLOUD_LIB_DIR)/src/update/update.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/update/update_main.c
 
 OBJS = $(addsuffix .o, $(notdir $(basename $(SRC_FILES))))
 
 EXTRA_INCLUDE += -I$(DEVICE_CLOUD_LIB_DIR)/src \
-                 -I$(DEVICE_CLOUD_LIB_DIR)/src/software-update
+                 -I$(DEVICE_CLOUD_LIB_DIR)/src/update
 
 ADDED_CFLAGS += $(C_COMPILER_FLAGS_C99)
 

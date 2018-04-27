@@ -43,7 +43,7 @@
  * @retval IOT_STATUS_FAILURE          failed to start file download
  */
 static iot_status_t device_manager_ota( iot_action_request_t *request,
-					 void *user_data );
+	void *user_data );
 /**
  * @brief Function to pull data from a read archive and write it to a write handle
  *
@@ -386,7 +386,7 @@ iot_status_t device_manager_ota_install_execute(
 	if ( device_manager_info && package_path && package_path[0] != '\0' &&
 		file_name && file_name[0] != '\0')
 	{
-		char iot_update_dup_path[PATH_MAX + 1u] = { 0 };
+		char update_dup_path[PATH_MAX + 1u] = { 0 };
 		char command_with_params[PATH_MAX + 1u] = { 0 };
 		iot_t *const iot_lib = device_manager_info->iot_lib;
 
@@ -398,12 +398,12 @@ iot_status_t device_manager_ota_install_execute(
 				file_name);
 		if ( result ==IOT_STATUS_SUCCESS )
 		{
-			char iot_update_path[PATH_MAX + 1u];
+			char update_path[PATH_MAX + 1u];
 			char exec_dir[PATH_MAX + 1u];
 
 			result = IOT_STATUS_EXECUTION_ERROR;
 			app_path_executable_directory_get(exec_dir, PATH_MAX);
-			if ( app_path_which( iot_update_path, PATH_MAX, exec_dir, IOT_TARGET_UPDATE) )
+			if ( app_path_which( update_path, PATH_MAX, exec_dir, IOT_TARGET_UPDATE) )
 			{
 				/**
 				  * IDP system Truested Path Execution (TPE) protection
@@ -416,36 +416,36 @@ iot_status_t device_manager_ota_install_execute(
 				  * It is also applicable to other systems execpt for Android dut to it has
 				  * other permission restriction.
 				  */
-				const char *iot_update_dup_dir = NULL;
+				const char *update_dup_dir = NULL;
 				os_status_t osal_status = OS_STATUS_FAILURE;
 #ifdef  __ANDROID__
 				char temp_dir[PATH_MAX + 1];
-				iot_update_dup_dir = os_directory_get_temp_dir(
+				update_dup_dir = os_directory_get_temp_dir(
 					temp_dir, PATH_MAX );
 #else
-				iot_update_dup_dir = exec_dir;
+				update_dup_dir = exec_dir;
 #endif /* #ifdef __ANDROID__*/
 				if ( OS_STATUS_SUCCESS == os_make_path(
-					iot_update_dup_path,
+					update_dup_path,
 					PATH_MAX,
-					iot_update_dup_dir,
+					update_dup_dir,
 					IOT_TARGET_UPDATE"-copy"IOT_EXE_SUFFIX,
 					NULL ) )
 				{
 					osal_status = os_file_copy(
-						iot_update_path,
-						iot_update_dup_path );
-					os_file_sync( iot_update_dup_path );
+						update_path,
+						update_dup_path );
+					os_file_sync( update_dup_path );
 					printf("file copy status %d\n", (int)osal_status);
 				}
 
 				if (osal_status == OS_STATUS_SUCCESS )
 				{
-					if ( os_file_exists( iot_update_dup_path ) )
+					if ( os_file_exists( update_dup_path ) )
 						os_snprintf( command_with_params,
 							PATH_MAX,
 							"\"%s\" --path \"%s\"",
-							iot_update_dup_path,
+							update_dup_path,
 							package_path );
 				}
 				else
@@ -453,7 +453,7 @@ iot_status_t device_manager_ota_install_execute(
 					os_snprintf( command_with_params,
 						PATH_MAX,
 						"\"%s\" --path \"%s\"",
-						iot_update_path,
+						update_path,
 						package_path );
 				}
 			}
@@ -482,9 +482,9 @@ iot_status_t device_manager_ota_install_execute(
 				result = IOT_STATUS_EXECUTION_ERROR;
 		}
 
-		if ( ( iot_update_dup_path[0] != '\0' ) &&
-		     ( os_file_exists( iot_update_dup_path ) != IOT_FALSE ) )
-			os_file_delete( iot_update_dup_path );
+		if ( ( update_dup_path[0] != '\0' ) &&
+		     ( os_file_exists( update_dup_path ) != IOT_FALSE ) )
+			os_file_delete( update_dup_path );
 	}
 
 	return result;

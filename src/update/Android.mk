@@ -29,8 +29,8 @@ LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs
 LOCAL_MODULE := iot-update
 
 LOCAL_SRC_FILES := \
-	./iot_update.c \
-	./iot_update_main.c \
+	./update.c \
+	./update_main.c \
 
 include $(BUILD_EXECUTABLE)
 

@@ -14,12 +14,12 @@
 set( TARGET "${IOT_TARGET_UPDATE}" )
 
 set( IOT_HDRS_C ${IOT_HDRS_C}
-	"iot_update_main.h"
+	"update_main.h"
 )
 
 set( IOT_SRCS_C ${IOT_SRCS_C}
-	"iot_update.c"
-	"iot_update_main.c"
+	"update.c"
+	"update_main.c"
 )
 
 if ( WIN32 )
@@ -41,8 +41,8 @@ add_executable( ${TARGET}
 )
 
 target_link_libraries( ${TARGET}
-	iotutils
 	iot
+	iotutils
 )
 
 if( MSVC )

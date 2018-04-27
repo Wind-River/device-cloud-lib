@@ -2,7 +2,7 @@
  * @file
  * @brief Main source file for the Wind River IoT software update application
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  * OR CONDITIONS OF ANY KIND, either express or implied."
  */
 
-#ifndef IOT_UPDATE_MAIN_H
-#define IOT_UPDATE_MAIN_H
+#ifndef UPDATE_MAIN_H
+#define UPDATE_MAIN_H
 
 /**
  * @brief Main entry-point for the application
@@ -29,7 +29,7 @@
  * @retval EXIT_SUCCESS      application completed successfully
  * @retval EXIT_FAILURE      application encountered an error
  */
-int iot_update_main( int argc, char* argv[] );
+int update_main( int argc, char* argv[] );
 
-#endif /* ifndef IOT_UPDATE_MAIN_H */
+#endif /* ifndef UPDATE_MAIN_H */
 
