@@ -77,22 +77,7 @@ unsigned long __wrap_os_strtoul( const char *str, char **endptr );
 int __wrap_os_system_error_last( void );
 const char *__wrap_os_system_error_string( int error_number );
 os_uint32_t __wrap_os_system_pid( void );
-os_status_t __wrap_os_system_run(
-	const char *command,
-	int *exit_status,
-	os_bool_t privileged,
-	int priority,
-	size_t stack_size,
-	os_file_t pipe_files[2u] );
-os_status_t __wrap_os_system_run_wait(
-	const char *command,
-	int *exit_status,
-	os_bool_t privileged,
-	int priority,
-	size_t stack_size,
-	char *out_buf[2u],
-	size_t out_len[2u],
-	os_millisecond_t max_time_out );
+os_status_t __wrap_os_system_run( os_system_run_args_t *args );
 os_bool_t __wrap_os_terminal_vt100_support( os_file_t stream );
 #ifdef IOT_THREAD_SUPPORT
 os_status_t __wrap_os_thread_condition_broadcast( os_thread_condition_t *cond );
@@ -673,46 +658,27 @@ os_uint32_t __wrap_os_system_pid( void )
 }
 
 os_status_t __wrap_os_system_run(
-	const char *command,
-	int *exit_status,
-	os_bool_t privileged,
-	int priority,
-	size_t stack_size,
-	os_file_t pipe_files[2u] )
+	os_system_run_args_t *args )
 {
+	char *std_err;
+	char *std_out;
 	/* ensure this function is called meeting pre-requirements */
-	assert_non_null( command );
-	check_expected( command );
-	assert_non_null( exit_status );
+	assert_non_null( args );
+	assert_non_null( args->cmd );
+	check_expected( args->cmd );
 
-	if ( exit_status )
-		*exit_status = mock_type( int );
-	return mock_type( os_status_t );
-}
-
-os_status_t __wrap_os_system_run_wait(
-	const char *command,
-	int *exit_status,
-	os_bool_t privileged,
-	int priority,
-	size_t stack_size,
-	char *out_buf[2u],
-	size_t out_len[2u],
-	os_millisecond_t max_time_out )
-{
-	/* ensure this function is called meeting pre-requirements */
-	assert_non_null( command );
-	check_expected( command );
-	assert_non_null( exit_status );
-	assert_non_null( out_buf );
-	assert_non_null( out_len );
-
-	if ( exit_status )
-		*exit_status = mock_type( int );
-	if ( out_buf[0u] )
-		strncpy( out_buf[0u], mock_type( char * ), out_len[0u] );
-	if ( out_buf[1u] )
-		strncpy( out_buf[1u], mock_type( char * ), out_len[1u] );
+	args->return_code = mock_type( int );
+	std_out = mock_type( char * );
+	std_err = mock_type( char * );
+	if ( args->block == OS_TRUE )
+	{
+		if ( args->opts.block.std_out.buf && std_out )
+			strncpy( args->opts.block.std_out.buf,
+				std_out, args->opts.block.std_out.len );
+		if ( args->opts.block.std_err.buf && std_err )
+			strncpy( args->opts.block.std_err.buf,
+				std_err, args->opts.block.std_err.len );
+	}
 	return mock_type( os_status_t );
 }
 

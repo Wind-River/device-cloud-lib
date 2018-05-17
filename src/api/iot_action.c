@@ -501,8 +501,7 @@ iot_status_t iot_action_execute_command(
 		const char *const command_path = action->command;
 		if ( command_path )
 		{
-			char *buf[2u];
-			size_t buf_len[2u];
+			os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 			char buf_stderr[ IOT_ACTION_COMMAND_OUTPUT_MAX_LEN ];
 			char buf_stdout[ IOT_ACTION_COMMAND_OUTPUT_MAX_LEN ];
 			char command_with_params[PATH_MAX + 1u];
@@ -512,7 +511,6 @@ iot_status_t iot_action_execute_command(
 				IOT_ACTION_COMMAND_STDERR,
 			};
 			os_status_t system_res;
-			int system_ret;
 
 			os_memzero( command_with_params, PATH_MAX + 1u );
 			os_strncpy( command_with_params, command_path,
@@ -688,19 +686,13 @@ iot_status_t iot_action_execute_command(
 				}
 			}
 
-			for ( i = 0u; i < 2u; ++i )
-			{
-				buf[i] = NULL;
-				buf_len[i] = 0u;
-			}
-
 			/* script is returnable, set the output buffers */
 			if ( !( action->flags & IOT_ACTION_NO_RETURN ) )
 			{
-				buf[0] = buf_stdout;
-				buf_len[0] = IOT_ACTION_COMMAND_OUTPUT_MAX_LEN;
-				buf[1] = buf_stderr;
-				buf_len[1] = IOT_ACTION_COMMAND_OUTPUT_MAX_LEN;
+				args.opts.block.std_out.buf = buf_stdout;
+				args.opts.block.std_out.len = IOT_ACTION_COMMAND_OUTPUT_MAX_LEN;
+				args.opts.block.std_err.buf = buf_stderr;
+				args.opts.block.std_err.len = IOT_ACTION_COMMAND_OUTPUT_MAX_LEN;
 			}
 
 			/* base64 encoded string, may contain "\r\n" characters.
@@ -724,9 +716,10 @@ iot_status_t iot_action_execute_command(
 				max_time_out = action->time_limit;
 			}
 
-			system_res = os_system_run_wait( command_with_params,
-				&system_ret, OS_FALSE, 0, 0u,
-				buf, buf_len, max_time_out );
+			args.cmd = command_with_params;
+			args.block = OS_TRUE;
+			args.opts.block.max_wait_time = max_time_out;
+			system_res = os_system_run( &args );
 			if ( system_res == OS_STATUS_SUCCESS )
 			{
 				if ( !( action->flags & IOT_ACTION_NO_RETURN ) )
@@ -734,25 +727,28 @@ iot_status_t iot_action_execute_command(
 					/* return the return code from the script */
 					iot_action_request_parameter_set( request,
 						IOT_ACTION_COMMAND_RETVAL,
-						IOT_TYPE_INT32, system_ret );
+						IOT_TYPE_INT32, args.return_code );
 					/* if stdout or stderr contained data update
 					   the output parameters */
 					for ( i = 0u; i < 2u; ++i )
 					{
-						if ( buf[i] && buf[i][0] != '\0' )
+						char *buf = args.opts.block.std_out.buf;
+						if ( i != 0u )
+							buf = args.opts.block.std_err.buf;
+						if ( buf && buf[0] != '\0' )
 						{
 							iot_action_request_parameter_set(
 								request,
 								output_params[i],
 								IOT_TYPE_STRING,
-								buf[i] );
+								buf );
 						}
 					}
 				}
 				IOT_LOG( action->lib, IOT_LOG_INFO,
 					"Command \"%s\", exited with: %d",
-					action->name, system_ret );
-				if ( system_ret != 0 )
+					action->name, args.return_code );
+				if ( args.return_code != 0 )
 					result = IOT_STATUS_EXECUTION_ERROR;
 				else
 					result = IOT_STATUS_SUCCESS;

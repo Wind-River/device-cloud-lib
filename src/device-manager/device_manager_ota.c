@@ -1,8 +1,8 @@
 /**
  * @file
- * @brief Source file for service handling in the IoT control application
+ * @brief Source file for OTA support in the device-manager application
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -396,7 +396,7 @@ iot_status_t device_manager_ota_install_execute(
 				"software update package_path: %s, file_name: %s",
 				package_path,
 				file_name);
-		if ( result ==IOT_STATUS_SUCCESS )
+		if ( result == IOT_STATUS_SUCCESS )
 		{
 			char update_path[PATH_MAX + 1u];
 			char exec_dir[PATH_MAX + 1u];
@@ -461,24 +461,23 @@ iot_status_t device_manager_ota_install_execute(
 
 		if ( command_with_params[0] != '\0' )
 		{
-			char buf[1u] = "\0";
-			char *out_buf[2u] = { buf, buf };
-			size_t out_len[2u] = { 1u, 1u };
-			int system_ret = 1;
+			os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 
 			IOT_LOG( iot_lib, IOT_LOG_TRACE,
 				"Executing command: %s", command_with_params );
 
-			result = IOT_STATUS_SUCCESS;
-			os_system_run_wait( command_with_params,
-				&system_ret, OS_FALSE, 0, 0u,
-				out_buf, out_len, 0U );
+			result = IOT_STATUS_EXECUTION_ERROR;
+
+			args.cmd = command_with_params;
+			args.block = OS_TRUE;
+			if ( os_system_run( &args ) == OS_STATUS_SUCCESS )
+				result = IOT_STATUS_SUCCESS;
 
 			IOT_LOG( iot_lib, IOT_LOG_TRACE,
 				"Completed executing OTA script with result: %i",
-				system_ret );
+				args.return_code );
 
-			if ( system_ret != 0 )
+			if ( args.return_code != 0 )
 				result = IOT_STATUS_EXECUTION_ERROR;
 		}
 

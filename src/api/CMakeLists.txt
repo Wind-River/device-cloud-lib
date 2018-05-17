@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,13 +67,15 @@ add_library( "${IOT_LIBRARY_NAME}"
 	${API_SRCS_C}
 )
 
-target_link_libraries( "${IOT_LIBRARY_NAME}" "dl" "m"
+target_link_libraries( "${IOT_LIBRARY_NAME}"
 	${CMAKE_THREAD_LIBS_INIT}
 	${JSON_LIBRARIES}
 	${MQTT_LIBRARIES}
 	${OSAL_LIBRARIES}
 	${PLUGIN_BUILTIN_LIBS}
 	${LibArchive_LIBRARIES}
+	${CMAKE_THREAD_LIBS_INIT}
+	${CMAKE_DL_LIBS} "m"
 )
 
 set_target_properties( "${IOT_LIBRARY_NAME}" PROPERTIES

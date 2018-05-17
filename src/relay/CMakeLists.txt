@@ -57,7 +57,7 @@ target_link_libraries( ${TARGET}
 	${OPENSSL_LIBRARIES}
 	${OSAL_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
-	dl
+	${CMAKE_DL_LIBS} "m"
 )
 
 # Installation instructions

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,12 +63,8 @@ add_executable( ${TARGET}
 
 # Required libraries
 target_link_libraries( ${TARGET}
+	${IOT_LIBRARY_NAME}
 	iotutils
-	iot
-	${JSMN_LIBRARIES}
-	${OSAL_LIBRARIES}
-	${CMAKE_THREAD_LIBS_INIT}
-	dl
 )
 
 # Installation instructions

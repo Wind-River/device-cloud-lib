@@ -1648,30 +1648,24 @@ iot_status_t device_manager_run_os_command( const char *cmd,
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( cmd )
 	{
-		char buf[1] = "\0";
-		char *out_buf[2u] = { buf, buf };
-		size_t out_len[2u] = { 1u, 1u };
 		int retval = -1;
+		os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 
-		if ( blocking_action == IOT_FALSE )
-		{
-			size_t i;
-			for ( i = 0u; i < 2u; ++i )
-			{
-				out_buf[i] = NULL;
-				out_len[i] = 0u;
-			}
-		}
-		if ( os_system_run_wait( cmd, &retval, OS_FALSE, 0, 0u,
-			out_buf, out_len, 0u ) == IOT_STATUS_SUCCESS &&
-			     retval >= 0 )
+		args.cmd = cmd;
+		args.privileged = OS_FALSE;
+		args.block = OS_FALSE;
+		if ( blocking_action != IOT_FALSE )
+			args.block = OS_TRUE;
+
+		if ( os_system_run( &args ) == IOT_STATUS_SUCCESS &&
+			args.return_code >= 0 )
 			result = IOT_STATUS_SUCCESS;
 		else
 		{
 			result = IOT_STATUS_FAILURE;
 			IOT_LOG( APP_DATA.iot_lib, IOT_LOG_INFO,
-				"OS cmd (%s): return value %d",
-				cmd, retval );
+				"OS Command: \"%s\" returned: %d",
+				cmd, args.return_code );
 		}
 	}
 	return result;
@@ -1914,6 +1908,7 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		     && protocol_in && *protocol_in != '\0'
 		     && url_in && *url_in != '\0' )
 		{
+			os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 			os_status_t run_status;
 
 #if defined( __VXWORKS__ )
@@ -1937,10 +1932,13 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 			IOT_LOG( iot_lib, IOT_LOG_TRACE, "Remote login cmd: %s",
 				relay_cmd );
 
-			run_status = os_system_run( relay_cmd, NULL, OS_FALSE,
-				0, 0u, out_files);
+			args.cmd = relay_cmd;
+			args.opts.nonblock.std_out = out_files[0];
+			args.opts.nonblock.std_err = out_files[1];
+
+			run_status = os_system_run( &args );
 			IOT_LOG( iot_lib, IOT_LOG_TRACE,
-				"System Run returned %d", result );
+				"System Run returned: %d", run_status );
 			os_time_sleep( 10, IOT_FALSE );
 
 			/* remote login protocol requires us to return
@@ -1951,7 +1949,6 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 			if ( run_status == OS_STATUS_SUCCESS ||
 			     run_status == OS_STATUS_INVOKED )
 				result = IOT_STATUS_SUCCESS;
-
 		}
 	}
 	return result;

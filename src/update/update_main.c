@@ -47,13 +47,13 @@
 #define IOT_UPDATE_TIMESTAMP_LENGTH 16u
 
 /**
- * @def PRIVLEDGE_MODE
+ * @def PRIVLEGE_MODE
  * @brief designates the run-level for certain commands
  */
 #if defined( __unix__ ) && !defined( __ANDROID__ )
-#	define PRIVILEDGE_MODE     OS_TRUE
+#	define PRIVILEGE_MODE     OS_TRUE
 #else
-#	define PRIVILEDGE_MODE     OS_FALSE
+#	define PRIVILEGE_MODE     OS_FALSE
 #endif
 
 /** @brief iot update log output */
@@ -250,8 +250,13 @@ iot_status_t update(
 
 		if ( result == IOT_STATUS_SUCCESS )
 		{
+			/* attempt to connect */
+#if defined( _VXWORKS )
 			iot_lib = iot_initialize( IOT_TARGET_UPDATE, NULL, 0 );
 			result = iot_connect( iot_lib, 0u );
+			iot_terminate(iot_lib, 0u);
+#else /* if defined( _VXWORKS ) */
+#endif /* else if defined( _VXWORKS ) */
 		}
 
 		if ( result == IOT_STATUS_SUCCESS && iot_lib )
@@ -342,7 +347,6 @@ iot_status_t update(
 			{
 				size_t i;
 				size_t j;
-				int exit_status;
 				/*
 				 * execute install scripts/commands
 				 */
@@ -354,6 +358,8 @@ iot_status_t update(
 					if ( update_install[i].script[0] != '\0' &&
 						os_strcmp( update_install[i].script, " " ) != 0)
 					{
+						os_system_run_args_t args =
+							OS_SYSTEM_RUN_ARGS_INIT;
 						char *param = update_install[i].script ;
 						size_t  param_length =
 							os_strlen( update_install[i].script );
@@ -384,7 +390,6 @@ iot_status_t update(
 								out_buf[j], 0,out_len[j] );
 							}
 						}
-						exit_status = -1;
 						update_log( log_fd,
 							IOT_UPDATE_LOG_FILE_CLOUD,
 							"Executing %s (%s) ... Start!",
@@ -392,11 +397,14 @@ iot_status_t update(
 							update_install[i].script );
 
 						result = IOT_STATUS_FAILURE;
-						if ( os_system_run_wait(
-							update_install[i].script,
-							&exit_status, OS_FALSE,
-							0, 0u, out_buf, out_len,
-							0 ) == OS_STATUS_SUCCESS )
+						args.cmd = update_install[i].script;
+						args.block = OS_TRUE;
+						args.opts.block.std_out.buf = out_buf[0];
+						args.opts.block.std_out.len = out_len[0];
+						args.opts.block.std_err.buf = out_buf[1];
+						args.opts.block.std_err.len = out_len[1];
+						if ( os_system_run( &args )
+							== OS_STATUS_SUCCESS )
 							result = IOT_STATUS_SUCCESS;
 
 						for ( j = 0u; j < 2u; ++j )
@@ -411,7 +419,7 @@ iot_status_t update(
 							}
 						}
 
-						if ( result != IOT_STATUS_SUCCESS || exit_status != 0 )
+						if ( result != IOT_STATUS_SUCCESS || args.return_code != 0 )
 						{
 							update_log( log_fd,
 								IOT_UPDATE_LOG_FILE_CLOUD,
@@ -428,10 +436,9 @@ iot_status_t update(
 									update_install[OTA_PHASE_ERROR].name,
 									update_install[OTA_PHASE_ERROR].script);
 
-								if ( os_system_run_wait(
-									update_install[OTA_PHASE_ERROR].script,
-									&exit_status, OS_FALSE, 0, 0u,
-									out_buf, out_len, 0 ) == OS_STATUS_SUCCESS )
+								args.cmd = update_install[OTA_PHASE_ERROR].script;
+								if ( os_system_run( &args )
+									== OS_STATUS_SUCCESS )
 									result = IOT_STATUS_SUCCESS;
 
 								if ( result == IOT_STATUS_SUCCESS )
@@ -557,15 +564,16 @@ iot_status_t update(
 			/* reboot after 1 minute */
 			os_system_shutdown( IOT_TRUE, 1u );
 #else /* if defined( _WIN32 ) */
-			char *buf[2] = { NULL, NULL };
-			size_t buf_len[2] = { 0u, 0u };
+			os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 			char command_with_params[ 32u ];
 			os_strncpy( command_with_params,
 				"iot-control --reboot 1",
 				31u );
 			command_with_params[31u] = '\0';
-			os_system_run_wait( command_with_params,
-				NULL, OS_TRUE, 0, 0u, buf, buf_len, 0u );
+			args.cmd = command_with_params;
+			args.block = OS_TRUE;
+			args.privileged = OS_TRUE;
+			os_system_run( &args );
 #endif /* else if defined( _WIN32 ) */
 		}
 	}
@@ -575,10 +583,8 @@ iot_status_t update(
 iot_status_t update_mec_enable(
 	enum update_mec_enable enable )
 {
-	char *buf[2] = { NULL, NULL };
-	size_t buf_len[2] = { 0u, 0u };
+	os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 	char command [32u];
-	int exit_status = 0;
 	iot_status_t result = IOT_STATUS_FAILURE;
 
 	if ( enable == IOT_UPDATE_MEC_ENABLE )
@@ -586,11 +592,13 @@ iot_status_t update_mec_enable(
 	else
 		os_snprintf( command, 31u, "sadmin bu" );
 
-	if ( os_system_run_wait( command, &exit_status,
-		PRIVILEDGE_MODE, 0, 0u, buf, buf_len, 0 ) == OS_STATUS_SUCCESS )
+	args.cmd = command;
+	args.block = OS_TRUE;
+	args.privileged = PRIVILEGE_MODE;
+	if ( os_system_run( &args ) == OS_STATUS_SUCCESS )
 		result = IOT_STATUS_SUCCESS;
 
-	if ( result == IOT_STATUS_SUCCESS && exit_status == 0 )
+	if ( result == IOT_STATUS_SUCCESS && args.return_code == 0 )
 	{
 		enum update_mec_status mec_status;
 		result = IOT_STATUS_FAILURE;
@@ -622,25 +630,24 @@ enum update_mec_available update_mec_is_available( void )
 }
 enum update_mec_status update_mec_status( void )
 {
-	char *out_buf[2u];
-	size_t out_len[2u];
-	char buf_stderr[ IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN + 1u ];
-	char buf_stdout[ IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN + 1u ];
-	int exit_status = 0;
+	os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
+	char buf_stderr[ IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN ];
+	char buf_stdout[ IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN ];
 	os_status_t result = OS_STATUS_FAILURE;
 	enum update_mec_status mec_status = IOT_UPDATE_MEC_STATUS_UNKNOWN;
 
-	out_buf[0] = buf_stdout;
-	out_len[0] = IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN;
-	out_buf[1] = buf_stderr;
-	out_len[1] = IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN;
+	args.cmd = "sadmin status";
+	args.privileged = PRIVILEGE_MODE;
+	args.block = OS_TRUE;
+	args.opts.block.std_out.buf = buf_stdout;
+	args.opts.block.std_out.len = IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN;
+	args.opts.block.std_err.buf = buf_stderr;
+	args.opts.block.std_err.len = IOT_UPDATE_COMMAND_OUTPUT_MAX_LEN;
+	result = os_system_run( &args );
 
-	result = os_system_run_wait( "sadmin status", &exit_status,
-		PRIVILEDGE_MODE, 0, 0u, out_buf, out_len, 0 );
-
-	if ( result == OS_STATUS_SUCCESS && exit_status == 0 )
+	if ( result == OS_STATUS_SUCCESS && args.return_code == 0 )
 	{
-		if ( os_strstr( out_buf[0], "enable" ) != NULL )
+		if ( os_strstr( args.opts.block.std_out.buf, "enable" ) != NULL )
 			mec_status = IOT_UPDATE_MEC_STATUS_ENABLED;
 		else
 			mec_status = IOT_UPDATE_MEC_STATUS_NOT_ENABLED;

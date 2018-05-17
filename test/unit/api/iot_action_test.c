@@ -2493,10 +2493,11 @@ static void test_iot_action_process_command_no_return( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
 	strncpy( lib.request_queue_wait[0]->name, "action name", IOT_NAME_MAX_LEN );
-	expect_string( __wrap_os_system_run_wait, command, "script_path" );
-	will_return( __wrap_os_system_run_wait, 0u ); /* IOT_STATUS_INVOKED ); */
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_INVOKED );
-	/*will_return( __wrap_os_system_run_wait, IOT_STATUS_INVOKED );*/
+	expect_string( __wrap_os_system_run, args->cmd, "script_path" );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, NULL ); /* stdout */
+	will_return( __wrap_os_system_run, NULL ); /* stderr */
+	will_return( __wrap_os_system_run, IOT_STATUS_INVOKED );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_action_process( &lib, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -2583,11 +2584,11 @@ static void test_iot_action_process_command_parameter_bool( void **state )
 	lib.request_queue_wait[0]->parameter[0].data.type = IOT_TYPE_BOOL;
 	lib.request_queue_wait[0]->parameter[0].data.value.boolean = IOT_TRUE;
 	lib.request_queue_wait[0]->parameter[0].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command, "script_path --bool=1" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	expect_string( __wrap_os_system_run, args->cmd, "script_path --bool=1" );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -2702,12 +2703,12 @@ static void test_iot_action_process_command_parameter_float( void **state )
 	lib.request_queue_wait[0]->parameter[1].data.type = IOT_TYPE_FLOAT64;
 	lib.request_queue_wait[0]->parameter[1].data.value.float64 = 64.64;
 	lib.request_queue_wait[0]->parameter[1].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --float32=32.320000 --float64=64.640000" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -2836,12 +2837,12 @@ static void test_iot_action_process_command_parameter_int( void **state )
 	lib.request_queue_wait[0]->parameter[3].data.type = IOT_TYPE_INT64;
 	lib.request_queue_wait[0]->parameter[3].data.value.int64 = 64;
 	lib.request_queue_wait[0]->parameter[3].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --int8=8 --int16=16 --int32=32 --int64=64" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -2966,12 +2967,12 @@ static void test_iot_action_process_command_parameter_location( void **state )
 	lib.request_queue_wait[0]->parameter[0].data.heap_storage = loc;
 	lib.request_queue_wait[0]->parameter[0].data.value.location = loc;
 	lib.request_queue_wait[0]->parameter[0].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --param=[40.446195,-79.982195]" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3081,11 +3082,12 @@ static void test_iot_action_process_command_parameter_null( void **state )
 	strncpy( lib.request_queue_wait[0]->parameter[0].name, "param", IOT_NAME_MAX_LEN );
 	lib.request_queue_wait[0]->parameter[0].data.type = IOT_TYPE_NULL;
 	lib.request_queue_wait[0]->parameter[0].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command, "script_path --param=[NULL]" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	expect_string( __wrap_os_system_run, args->cmd,
+		"script_path --param=[NULL]" );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3209,17 +3211,17 @@ static void test_iot_action_process_command_parameter_raw( void **state )
 #endif
 	lib.request_queue_wait[0]->parameter[0].data.has_value = IOT_TRUE;
 #ifdef IOT_STACK_ONLY
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --param=" );
 #else
 	will_return( __wrap_iot_base64_encode, 8u );
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --param=bbbbbbbb" );
 #endif
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3349,12 +3351,12 @@ static void test_iot_action_process_command_parameter_string( void **state )
 	         "string\r\n \\ \"value\"",
 	         25 );
 	lib.request_queue_wait[0]->parameter[0].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --param=\"string \\\\ \\\"value\\\"\"" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3493,11 +3495,11 @@ static void test_iot_action_process_command_parameter_string_max_len( void **sta
 		lib.request_queue_wait[0]->parameter[0].data.value.string,
 		lib.request_queue_wait[0]->parameter[0].data.value.string );
 	expected_path[ PATH_MAX ] = '\0';
-	expect_string( __wrap_os_system_run_wait, command, expected_path );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	expect_string( __wrap_os_system_run, args->cmd, expected_path );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3629,12 +3631,12 @@ static void test_iot_action_process_command_parameter_uint( void **state )
 	lib.request_queue_wait[0]->parameter[3].data.type = IOT_TYPE_UINT64;
 	lib.request_queue_wait[0]->parameter[3].data.value.uint64 = 64u;
 	lib.request_queue_wait[0]->parameter[3].data.has_value = IOT_TRUE;
-	expect_string( __wrap_os_system_run_wait, command,
+	expect_string( __wrap_os_system_run, args->cmd,
 		"script_path --uint8=8 --uint16=16 --uint32=32 --uint64=64" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3709,11 +3711,11 @@ static void test_iot_action_process_command_script_return_fail( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
 	strncpy( lib.request_queue_wait[0]->name, "action name", IOT_NAME_MAX_LEN );
-	expect_string( __wrap_os_system_run_wait, command, "script_path" );
-	will_return( __wrap_os_system_run_wait, 1u ); /* script exit status */
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	expect_string( __wrap_os_system_run, args->cmd, "script_path" );
+	will_return( __wrap_os_system_run, 1u ); /* script exit status */
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
@@ -3784,11 +3786,11 @@ static void test_iot_action_process_command_system_run_fail( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
 	strncpy( lib.request_queue_wait[0]->name, "action name", IOT_NAME_MAX_LEN );
-	expect_string( __wrap_os_system_run_wait, command, "script_path" );
-	will_return( __wrap_os_system_run_wait, -1 );
-	will_return( __wrap_os_system_run_wait, "\0" );
-	will_return( __wrap_os_system_run_wait, "\0" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_NOT_EXECUTABLE );
+	expect_string( __wrap_os_system_run, args->cmd, "script_path" );
+	will_return( __wrap_os_system_run, -1 );
+	will_return( __wrap_os_system_run, "\0" );
+	will_return( __wrap_os_system_run, "\0" );
+	will_return( __wrap_os_system_run, IOT_STATUS_NOT_EXECUTABLE );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_action_process( &lib, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -3846,11 +3848,11 @@ static void test_iot_action_process_command_valid( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
 	strncpy( lib.request_queue_wait[0]->name, "action name", IOT_NAME_MAX_LEN );
-	expect_string( __wrap_os_system_run_wait, command, "script_path" );
-	will_return( __wrap_os_system_run_wait, 0u );
-	will_return( __wrap_os_system_run_wait, "this is stdout" );
-	will_return( __wrap_os_system_run_wait, "this is stderr" );
-	will_return( __wrap_os_system_run_wait, IOT_STATUS_SUCCESS );
+	expect_string( __wrap_os_system_run, args->cmd, "script_path" );
+	will_return( __wrap_os_system_run, 0u );
+	will_return( __wrap_os_system_run, "this is stdout" );
+	will_return( __wrap_os_system_run, "this is stderr" );
+	will_return( __wrap_os_system_run, IOT_STATUS_SUCCESS );
 #ifndef IOT_STACK_ONLY
 	/* add parameter: retval */
 	will_return( __wrap_os_realloc, 1 ); /* increase parameter array */
