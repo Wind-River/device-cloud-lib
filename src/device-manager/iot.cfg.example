@@ -12,6 +12,12 @@
 		"dump_log_files": True,
 		"remote_login" : True 
 	},
-	"upload_remove_on_success": True
+	"upload_remove_on_success": True,
+	"remote_access_support":[
+		{ "name": "Telnet", "port":"23", "session_timeout":"120" },
+		{ "name": "SSH",    "port":"22", "session_timeout":"120" },
+		{ "name": "VNC",    "port":"5900" },
+		{ "name": "HTTP",   "port":"80" }
+	]
 }
 

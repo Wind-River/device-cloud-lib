@@ -20,6 +20,7 @@
 
 #include "os.h"
 #include "device_manager_file.h"
+#include "iot_json.h"                 /* for json */
 #include <iot.h>
 
 /**
@@ -103,7 +104,7 @@ struct device_manager_info
 	/** @brief run time directory */
 	char runtime_dir[PATH_MAX + 1u];
 	/** @brief valid remote login protocols */
-	char remote_login_protocols[REMOTE_LOGIN_PROTOCOL_MAX];
+	iot_json_encoder_t* remote_login_protocols;
 	/** @brief number of loops main loop has gone through */
 	size_t loop_count;
 	/** @brief log level */

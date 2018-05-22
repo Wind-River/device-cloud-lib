@@ -69,14 +69,6 @@
 extern struct device_manager_info APP_DATA;
 struct device_manager_info APP_DATA;
 
-/**
- * @brief Structure defining information about remote login protocols
- */
-struct remote_login_protocol
-{
-	const char *name;           /**< @brief protocol name */
-	iot_uint16_t port;          /**< @brief protocol port */
-};
 
 /**
  * @brief Sets the basic details of an action initially in the device manager
@@ -134,6 +126,18 @@ static iot_status_t device_manager_actions_register(
 static iot_status_t device_manager_config_read(
 	struct device_manager_info *device_manager_info,
 	const char *app_path, const char *config_file );
+
+/**
+ * @brief Checks if port is actively listened to on a host
+ *
+ * @param[in]  port        port number to check
+ *
+ * @retval IOT_STATUS_SUCCESS          port was active
+ * @retval IOT_STATUS_FAILURE          port was inactive or invalid host
+ */
+static iot_status_t check_listening_port(
+	const char *port );
+
 
 /**
  * @brief Callback function to download a file from the cloud
@@ -853,7 +857,6 @@ iot_status_t device_manager_config_read(
 				char err_msg[1024u];
 				const char *temp = NULL;
 				size_t temp_len = 0u;
-
 #ifdef IOT_STACK_ONLY
 				char buffer[1024u];
 				json = iot_json_decode_initialize(
@@ -873,6 +876,10 @@ iot_status_t device_manager_config_read(
 						iot_json_decode_object_find(
 							json, json_root,
 							"actions_enabled" );
+					const iot_json_item_t *const j_ra_support =
+						iot_json_decode_object_find(
+							json, json_root,
+							"remote_access_support" );
 
 					/* handle all the boolean default actions */
 					IOT_LOG( NULL, IOT_LOG_INFO, "%s",
@@ -946,6 +953,122 @@ iot_status_t device_manager_config_read(
 						IOT_LOG( NULL, IOT_LOG_INFO,
 							"  * log_level = %s",
 							device_manager_info->log_level );
+					}
+
+					/* Get the remote access support list
+					 * Need to create a json object to publish e.g.:
+					 * {"remote_access_support": [{"VNC":"5900"}, {"HTTP":"80"}]
+					 */
+					if ( j_ra_support )
+					{
+						iot_json_encoder_t *json_enc;
+						/* remote_access related */
+						const iot_json_array_iterator_t * j_itr;
+
+						/* iterate through JSON array of supported protocols */
+						j_itr  =
+							iot_json_decode_array_iterator( json, j_ra_support );
+
+						/* Encode new JSON object while we filter for valid protocols */
+#ifdef IOT_STACK_ONLY
+						json_enc = iot_json_encode_initialize(
+								buffer, 1024u, 0u );
+#else
+						json_enc = iot_json_encode_initialize(
+								NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+						/* Publish remote access object with updated list of protocols */
+#endif
+
+						iot_json_encode_array_start( json_enc, NULL );
+
+
+						/* Parse login protocols from JSON array */
+						while ( j_itr != NULL )
+						{
+							const iot_json_item_t *j_temp;
+							char *name;
+							char *port;
+							char *session_timeout;
+
+							name = NULL;
+							port = NULL;
+							session_timeout = NULL;
+
+							iot_json_decode_array_iterator_value( json,
+								j_ra_support, j_itr, &j_action_top );
+
+							/* parse name, port, and session timeout (optional) */
+							j_temp = iot_json_decode_object_find( json, j_action_top,
+								"name" );
+							iot_json_decode_string( json, j_temp,
+								&temp, &temp_len );
+
+							if ( temp && temp[0] != '\0' )
+							{
+								/* encode new (valid) protocol */
+								name = os_malloc( temp_len + 1 );
+								if ( name != NULL )
+								{
+									os_strncpy( name, temp, temp_len );
+									name[temp_len] = '\0';
+								}
+							}
+
+							/* parse port num */
+							j_temp = iot_json_decode_object_find( json, j_action_top,
+								"port" );
+							iot_json_decode_string( json, j_temp, &temp, &temp_len );
+
+							if ( temp && temp[0] != '\0' )
+							{
+								port = os_malloc( temp_len	+ 1 );
+								if ( port != NULL )
+								{
+									os_strncpy( port, temp, temp_len );
+									port[temp_len] = '\0';
+								}
+							}
+
+							/* parse out session time_out */
+							j_temp = iot_json_decode_object_find( json, j_action_top,
+								"session_timeout" );
+							iot_json_decode_string( json, j_temp, &temp, &temp_len );
+
+							if ( temp && temp[0] != '\0' )
+							{
+								session_timeout = os_malloc( temp_len + 1 );
+								if ( session_timeout )
+								{
+									os_strncpy( session_timeout, temp, temp_len );
+									session_timeout[temp_len] = '\0';
+								}
+							}
+							/* check listening port */
+							/* if active, then add back to json list */
+							if ( port && name )
+							{
+								if ( check_listening_port( port ) == 0 )
+								{
+									/* encode_json */
+									iot_json_encode_object_start( json_enc, NULL );
+									iot_json_encode_string( json_enc, "name", name );
+									iot_json_encode_string( json_enc, "port", port );
+									os_free( name );
+									os_free( port );
+									if ( session_timeout && session_timeout[0] != '\0' )
+									{
+										iot_json_encode_string( json_enc, "session_timeout", session_timeout );
+										os_free( session_timeout );
+									}
+									iot_json_encode_object_end( json_enc );
+								} else
+									iot_json_encode_object_cancel( json_enc );
+							}
+							j_itr = iot_json_decode_array_iterator_next( json, j_ra_support, j_itr );
+						}
+						IOT_LOG( NULL, IOT_LOG_DEBUG, "  * remote_login_protocols: %s",
+							iot_json_encode_dump( json_enc ) );
+						device_manager_info->remote_login_protocols = json_enc;
 					}
 				}
 				else
@@ -1118,6 +1241,27 @@ void device_manager_file_progress(
 		iot_error( status ),
 		( complete == IOT_FALSE ? "no" : "yes" ),
 		(double)percent );
+}
+
+
+iot_status_t check_listening_port(
+	const char *port )
+{
+	os_socket_t *socket;
+	iot_status_t status = IOT_STATUS_FAILURE;
+	char localhost_addr[15];
+	iot_uint16_t port_num = (iot_uint16_t)os_atoi(port);
+
+	if ( port_num <= 0 ||
+		os_get_host_address( "localhost", 0, localhost_addr, 15, AF_INET ) != 0 )
+
+	if ( os_socket_open( &socket, localhost_addr, port_num,
+		SOCK_STREAM, 0u, 1000u ) == OS_STATUS_SUCCESS )
+	{
+		if ( os_socket_connect( socket ) == OS_STATUS_SUCCESS )
+			status = IOT_STATUS_SUCCESS;
+	}
+	return status;
 }
 
 iot_status_t device_manager_initialize( const char *app_path,
@@ -1334,6 +1478,20 @@ int device_manager_main( int argc, char *argv[] )
 						"platform",
 						os.system_platform );
 				}
+
+				/* Publish JSON of login_protocols */
+				if ( APP_DATA.remote_login_protocols )
+				{
+					iot_json_encoder_t *login_protocols =
+						APP_DATA.remote_login_protocols;
+
+					iot_attribute_publish_string(
+						APP_DATA.iot_lib,
+						NULL, NULL,
+						"remote_access_support",
+						iot_json_encode_dump( login_protocols ) );
+				}
+
 
 				/* FIXME: github issue #27 */
 				/* obtain MAC addresses */
