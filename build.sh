@@ -23,6 +23,9 @@
 #  $ ./build.sh
 # --------------------------------------------------------------------
 
+# exit on error
+set -e
+
 # Required system dependencies:
 #    See README.md for list of dependencies from the build host
 #
