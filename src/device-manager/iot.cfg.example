@@ -2,22 +2,22 @@
 	"runtime_dir": "",
 	"log_level": "INFO",
 	"actions_enabled": {
-		"shutdown_device": True,
-		"reboot_device": True,
-		"reset_agent": True,
-		"file_transfers": True,
-		"software_update": True,
-		"restore_factory_images": True,
-		"decommission_device": True,
-		"dump_log_files": True,
-		"remote_login" : True 
+		"shutdown_device": true,
+		"reboot_device": true,
+		"reset_agent": true,
+		"file_transfers": true,
+		"software_update": true,
+		"restore_factory_images": true,
+		"decommission_device": true,
+		"dump_log_files": true,
+		"remote_login" : true
 	},
-	"upload_remove_on_success": True,
 	"remote_access_support":[
 		{ "name": "Telnet", "port":"23", "session_timeout":"120" },
 		{ "name": "SSH",    "port":"22", "session_timeout":"120" },
 		{ "name": "VNC",    "port":"5900" },
-		{ "name": "HTTP",   "port":"80" }
+		{ "name": "HTTP",   "port":"80" },
+		{ "name": "RDP",    "port":"3389" }
 	]
 }
 
