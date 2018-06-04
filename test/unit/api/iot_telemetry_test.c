@@ -30,7 +30,7 @@ static void test_iot_telemetry_allocate_empty( void **state )
 	char name[] = "telemetry";
 	iot_telemetry_t *result = NULL;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 0u;
@@ -61,7 +61,7 @@ static void test_iot_telemetry_allocate_full( void **state )
 	stack_telemetry = (iot_telemetry_t *)test_calloc( IOT_TELEMETRY_MAX - IOT_TELEMETRY_STACK_MAX,
 	                                                  sizeof( iot_telemetry_t ) );
 	assert_non_null( stack_telemetry );
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_MAX; i++ )
 	{
 		if ( i < IOT_TELEMETRY_STACK_MAX )
@@ -90,7 +90,7 @@ static void test_iot_telemetry_allocate_stack_full( void **state )
 
 	t_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_TELEMETRY_STACK_MAX );
 	assert_non_null( t_names );
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 	{
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
@@ -142,7 +142,7 @@ static void test_iot_telemetry_allocate_null_name( void **state )
 	iot_t lib;
 	iot_telemetry_t *result = NULL;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 0u;
@@ -162,7 +162,7 @@ static void test_iot_telemetry_allocate_valid( void **state )
 	t_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_TELEMETRY_STACK_MAX );
 	assert_non_null( t_names );
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 	{
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
@@ -195,7 +195,7 @@ static void test_iot_telemetry_option_get_not_found( void **state )
 
 	a_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_OPTION_MAX );
 	assert_non_null( a_names );
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
 	telemetry.option = attrs;
 	telemetry.option_count = IOT_OPTION_MAX;
 	for ( i = 0u; i < IOT_OPTION_MAX; i++ )
@@ -225,8 +225,8 @@ static void test_iot_telemetry_option_get_null_name( void **state )
 
 	a_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_OPTION_MAX );
 	assert_non_null( a_names );
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
-	bzero( &attrs, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
+	memset( &attrs, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	telemetry.option = attrs;
 	telemetry.option_count = IOT_OPTION_MAX;
 	for ( i = 0u; i < IOT_OPTION_MAX; i++ )
@@ -266,8 +266,8 @@ static void test_iot_telemetry_option_get_valid( void **state )
 
 	a_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_OPTION_MAX );
 	assert_non_null( a_names );
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
-	bzero( &attrs, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
+	memset( &attrs, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	telemetry.option = attrs;
 	telemetry.option_count = IOT_OPTION_MAX;
 	for ( i = 0u; i < IOT_OPTION_MAX; i++ )
@@ -296,8 +296,8 @@ static void test_iot_telemetry_option_set_add( void **state )
 	iot_status_t result;
 	iot_telemetry_t telemetry;
 
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
-	bzero( &attrs, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
+	memset( &attrs, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	telemetry.option = attrs;
 #ifndef IOT_STACK_ONLY
 	attrs[0].name = attr0_name;
@@ -331,8 +331,8 @@ static void test_iot_telemetry_option_set_full( void **state )
 
 	a_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_OPTION_MAX );
 	assert_non_null( a_names );
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
-	bzero( &attrs, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
+	memset( &attrs, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	telemetry.option = attrs;
 	telemetry.option_count = IOT_OPTION_MAX;
 	for ( i = 0u; i < IOT_OPTION_MAX; i++ )
@@ -368,8 +368,8 @@ static void test_iot_telemetry_option_set_update( void **state )
 
 	a_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * IOT_OPTION_MAX );
 	assert_non_null( a_names );
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
-	bzero( &attrs, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
+	memset( &attrs, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	telemetry.option = attrs;
 	telemetry.option_count = IOT_OPTION_MAX;
 	for ( i = 0u; i < IOT_OPTION_MAX; i++ )
@@ -402,8 +402,8 @@ static void test_iot_telemetry_option_set_raw_valid( void **state )
 
 	a_names = test_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) * 2u );
 	assert_non_null( a_names );
-	bzero( &telemetry, sizeof( iot_telemetry_t ) );
-	bzero( &attrs, sizeof( struct iot_option ) * 2u );
+	memset( &telemetry, 0, sizeof( iot_telemetry_t ) );
+	memset( &attrs, 0, sizeof( struct iot_option ) * 2u );
 	telemetry.option = attrs;
 	telemetry.option_count = 1u;
 #ifndef IOT_STACK_ONLY
@@ -440,7 +440,7 @@ static void test_iot_telemetry_deregister_not_registered( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -460,7 +460,7 @@ static void test_iot_telemetry_deregister_null_lib( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -488,7 +488,7 @@ static void test_iot_telemetry_deregister_transmit_fail( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -509,7 +509,7 @@ static void test_iot_telemetry_deregister_valid( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -533,7 +533,7 @@ static void test_iot_telemetry_free_options( void **state )
 	struct iot_option _option[IOT_OPTION_MAX];
 #endif
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 2u;
@@ -547,7 +547,7 @@ static void test_iot_telemetry_free_options( void **state )
 	telemetry->option = os_malloc( sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	assert_non_null( telemetry->option );
 #endif
-	bzero( telemetry->option, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( telemetry->option, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	for ( i = 0u; i < IOT_OPTION_MAX; i++ )
 	{
 		telemetry->option[i].data.type = IOT_TYPE_RAW;
@@ -579,7 +579,7 @@ static void test_iot_telemetry_free_null_telemetry( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 2u;
@@ -600,7 +600,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	iot_telemetry_t *telemetry;
 
 	/* UINT8 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -612,7 +612,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* UINT16 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -624,7 +624,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* UINT32 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -636,7 +636,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* UINT64 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -648,7 +648,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* INT8 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -660,7 +660,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* INT16 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -672,7 +672,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* INT32 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -684,7 +684,7 @@ static void test_iot_telemetry_publish_number_types( void **state )
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 
 	/* INT64 */
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -713,7 +713,7 @@ static void test_iot_telemetry_publish_location( void **state )
 	iot_float64_t speed = 789.012;
 	char tag[] = "somelocation";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -751,7 +751,7 @@ static void test_iot_telemetry_publish_location_no_memory( void **state )
 	iot_float64_t speed = 789.012;
 	char tag[] = "somelocation";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -779,7 +779,7 @@ static void test_iot_telemetry_publish_null_lib( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -805,7 +805,7 @@ static void test_iot_telemetry_publish_null_type( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -825,7 +825,7 @@ static void test_iot_telemetry_publish_string( void **state )
 	iot_telemetry_t *telemetry;
 	char data[] = "some text";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -845,7 +845,7 @@ static void test_iot_telemetry_publish_string_no_memory( void **state )
 	iot_telemetry_t *telemetry;
 	char data[] = "some text";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -864,7 +864,7 @@ static void test_iot_telemetry_publish_string_null( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -884,7 +884,7 @@ static void test_iot_telemetry_publish_raw_no_memory( void **state )
 	iot_telemetry_t *telemetry;
 	char data[] = "some text";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -904,7 +904,7 @@ static void test_iot_telemetry_publish_raw_null( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -924,7 +924,7 @@ static void test_iot_telemetry_publish_raw_valid( void **state )
 	iot_telemetry_t *telemetry;
 	char data[] = "some text";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -944,7 +944,7 @@ static void test_iot_telemetry_register_null_lib( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -971,7 +971,7 @@ static void test_iot_telemetry_register_transmit_fail( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -991,7 +991,7 @@ static void test_iot_telemetry_register_valid( void **state )
 	iot_t lib;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;
@@ -1017,7 +1017,7 @@ static void test_iot_telemetry_timestamp_set_valid( void **state )
 	iot_status_t result;
 	iot_telemetry_t *telemetry;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_TELEMETRY_STACK_MAX; i++ )
 		lib.telemetry_ptr[i] = &lib.telemetry[i];
 	lib.telemetry_count = 1u;

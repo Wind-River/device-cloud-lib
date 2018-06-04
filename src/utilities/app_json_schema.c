@@ -1004,7 +1004,7 @@ int app_json_schema_integer(
 		}
 		else
 		{
-			long int_value = 0;
+			iot_int64_t int_value = 0L;
 
 			/* convert value to integer */
 			while ( result == IOT_TRUE && value_len > 0u )
@@ -1072,7 +1072,7 @@ int app_json_schema_integer(
 				if ( j_item && app_json_decode_type( schema->decoder, j_item ) ==
 					APP_JSON_TYPE_INTEGER )
 				{
-					long maximum = 0;
+					iot_int64_t maximum = 0L;
 					app_json_decode_integer( schema->decoder, j_item, &maximum );
 					if ( (int_value > maximum) ||
 					     (exclusive_maximum != IOT_FALSE && int_value == maximum) )
@@ -1096,7 +1096,7 @@ int app_json_schema_integer(
 				if ( j_item && app_json_decode_type( schema->decoder, j_item ) ==
 					APP_JSON_TYPE_INTEGER )
 				{
-					long minimum = 0;
+					iot_int64_t minimum = 0L;
 					app_json_decode_integer( schema->decoder, j_item, &minimum );
 					if ( (int_value < minimum) ||
 					     (exclusive_minimum != IOT_FALSE && int_value == minimum) )
@@ -1120,9 +1120,9 @@ int app_json_schema_integer(
 				if ( j_item && app_json_decode_type( schema->decoder, j_item ) ==
 					APP_JSON_TYPE_INTEGER )
 				{
-					long multiple_of = 0;
+					iot_int64_t multiple_of = 0L;
 					app_json_decode_integer( schema->decoder, j_item, &multiple_of );
-					if ( int_value % multiple_of != 0 )
+					if ( int_value % multiple_of != 0L )
 					{
 						if ( error_msg )
 							*error_msg =  "value is not a valid multiple";
@@ -1569,7 +1569,7 @@ int app_json_schema_string(
 		app_json_schema_type( schema, item ) == APP_JSON_TYPE_STRING )
 	{
 		const app_json_item_t *j_item;
-		long length;
+		iot_int64_t length;
 
 		result = IOT_TRUE;
 
@@ -1698,7 +1698,7 @@ int app_json_schema_string(
 			}
 
 			/* maxLength */
-			length = 0u;
+			length = 0L;
 			j_item = app_json_decode_object_find(
 				schema->decoder, i->item,
 				APP_JSON_SCHEMA_KEYWORDS[ APP_JSON_SCHEMA_KEYWORD_MAXIMUM_LENGTH] );
@@ -1720,14 +1720,14 @@ int app_json_schema_string(
 			}
 
 			/* minLength */
-			length = 0u;
+			length = 0L;
 			j_item = app_json_decode_object_find(
 				schema->decoder, i->item,
 				APP_JSON_SCHEMA_KEYWORDS[ APP_JSON_SCHEMA_KEYWORD_MINIMUM_LENGTH] );
 			if ( j_item && app_json_decode_integer(
 				schema->decoder, j_item, &length ) == IOT_STATUS_SUCCESS )
 			{
-				if ( length < 0 || value_len < (size_t)length )
+				if ( length < 0L || value_len < (size_t)length )
 				{
 					if ( error_msg )
 						*error_msg =  "string is too short";

@@ -26,6 +26,10 @@
 #include <string.h>
 #include <test_support.h>
 
+#if defined(_WIN32)
+#	include <Strsafe.h>
+#endif /* if defined(_WIN32) */
+
 /* mock definitions */
 void *__wrap_os_calloc( size_t nmemb, size_t size );
 os_status_t __wrap_os_directory_current( char *buffer, size_t size );
@@ -872,7 +876,7 @@ int __wrap_os_vfprintf( os_file_t stream, const char *format, va_list args )
 	assert_non_null( format );
 
 #ifdef _WIN32
-	if ( StringCchVPrintfEx( str, 1024u, &str_end, NULL, 0,
+	if ( StringCchVPrintfExA( str, 1024u, &str_end, NULL, 0,
 		format, args ) == S_OK )
 	{
 		DWORD numberOfBytesWritten;

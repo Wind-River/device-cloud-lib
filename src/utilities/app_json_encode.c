@@ -590,7 +590,7 @@ app_json_encoder_t *app_json_encode_initialize(
 iot_status_t app_json_encode_integer(
 	app_json_encoder_t *encoder,
 	const char *key,
-	long value )
+	iot_int64_t value )
 {
 	iot_status_t result;
 #if defined( IOT_JSON_JANSSON )

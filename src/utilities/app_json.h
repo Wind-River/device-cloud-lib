@@ -274,7 +274,7 @@ app_json_decoder_t *app_json_decode_initialize(
 iot_status_t app_json_decode_integer(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	long *value );
+	iot_int64_t *value );
 
 /**
  * @brief Returns the associated integer or real number value
@@ -295,7 +295,7 @@ iot_status_t app_json_decode_integer(
 iot_status_t app_json_decode_number(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	double *value );
+	iot_float64_t *value );
 
 /**
  * @brief Returns the item mathcing the given key in an object
@@ -493,7 +493,7 @@ iot_status_t app_json_decode_parse(
 iot_status_t app_json_decode_real(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	double *value );
+	iot_float64_t *value );
 
 /**
  * @brief Returns the associated string value
@@ -681,7 +681,7 @@ app_json_encoder_t *app_json_encode_initialize(
 iot_status_t app_json_encode_integer(
 	app_json_encoder_t *encoder,
 	const char *key,
-	long value );
+	iot_int64_t value );
 
 /**
  * @brief Cancels the encoding of a JSON object
@@ -779,7 +779,7 @@ iot_status_t app_json_encode_object_start(
 iot_status_t app_json_encode_real(
 	app_json_encoder_t *encoder,
 	const char *key,
-	double value );
+	iot_float64_t value );
 
 /**
  * @brief Encodes a string

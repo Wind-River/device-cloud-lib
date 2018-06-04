@@ -1,0 +1,36 @@
+From 484e8ce07c097a6ce91512076229b244f0668905 Mon Sep 17 00:00:00 2001
+From: Keith Holman <keith.holman@windriver.com>
+Date: Fri, 3 Feb 2017 13:03:02 -0500
+Subject: [PATCH] pthreads-w32 patch to build on visual studio 2015
+
+Microsoft Visual Studio 2015 includes a new runtime library system.
+This new system defines a "struct timespec" structure, which causes
+conflicts with the one defined in the header file.  This fix checks the
+version being compiled and uses the system one if it is defined.  The
+work for this patch was provided by:
+
+http://www.neff.co.at/2015/10/09/Pthreads-Win32-and-Visual-Studio-2015.html
+
+Signed-off-by: Keith Holman <keith.holman@windriver.com>
+---
+ pthread.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/pthread.h b/pthread.h
+index b4072f7..97624eb 100644
+--- a/pthread.h
++++ b/pthread.h
+@@ -205,6 +205,10 @@
+ typedef unsigned long DWORD_PTR;
+ typedef unsigned long ULONG_PTR;
+ #endif
++
++#if defined(_MSC_VER) && _MSC_VER >= 1900 && !defined(_CRT_NO_TIME_T)
++#define _TIMESPEC_DEFINED
++#endif
+ /*
+  * -----------------
+  * autoconf switches
+-- 
+2.9.3
+

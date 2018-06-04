@@ -21,7 +21,7 @@
 #include "api/shared/iot_types.h"
 #include "iot_build.h"
 
-#include <strings.h> /* for bzero */
+#include <string.h> /* for memset */
 
 static void test_iot_attribute_publish_string_null_lib( void **state )
 {
@@ -37,7 +37,7 @@ static void test_iot_attribute_publish_string_null_key( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_attribute_publish_string(
 		&lib, NULL, NULL, NULL, "value" );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -48,7 +48,7 @@ static void test_iot_attribute_publish_string_null_value( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_attribute_publish_string(
 		&lib, NULL, NULL, "key", NULL );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -60,8 +60,8 @@ static void test_iot_attribute_publish_string_time_out( void **state )
 	struct iot_options opts;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
-	bzero( &opts, sizeof( struct iot_options ) );
+	memset( &lib, 0, sizeof( struct iot ) );
+	memset( &opts, 0, sizeof( struct iot_options ) );
 	opts.lib = &lib;
 	opts.option = test_malloc( sizeof( struct iot_option ) );
 	assert_non_null( opts.option );
@@ -92,7 +92,7 @@ static void test_iot_attribute_publish_string_transmit_fail( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_FAILURE );
 	result = iot_attribute_publish_string(
 		&lib, NULL, NULL, "key", "value" );
@@ -104,7 +104,7 @@ static void test_iot_attribute_publish_string_valid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_attribute_publish_string(
 		&lib, NULL, NULL, "key", "value" );

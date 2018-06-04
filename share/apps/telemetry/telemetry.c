@@ -336,7 +336,7 @@ void do_sleep( unsigned int delay )
 	/* hide the ifdefs in a function for readability */
 #ifdef _WIN32
 	/* windows sleep is milliseconds */
-	Sleep( delay * MILLISECONDS_IN_SECOND );
+	Sleep( delay * 1000u );
 #else
 	sleep( delay );
 #endif

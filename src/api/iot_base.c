@@ -332,7 +332,7 @@ iot_status_t iot_base_configuration_read(
 							IOT_READ_BLOCK_SIZE, fd );
 						if ( bytes == 0u )
 						{
-							if ( !os_file_eof( fd ) )
+							if ( os_file_eof( fd ) == OS_FALSE )
 								result = IOT_STATUS_FAILURE;
 							more_to_read = IOT_FALSE;
 						}

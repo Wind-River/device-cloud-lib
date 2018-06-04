@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ function( ADD_IOT_PLUGIN PLUGIN_NAME )
 	endif()
 	add_library( "${PLUGIN_NAME}" ${PLUGIN_LIBRARY_TYPE} ${PLUGIN_SRCS} )
 	target_link_libraries( "${PLUGIN_NAME}" ${PLUGIN_LIBS} )
+	add_definitions("-Diot_EXPORTS=1")
 
 	if( PLUGIN_BUILTIN )
 		set( PLUGIN_BUILTIN_LIBS ${PLUGIN_BUILTIN_LIBS}
@@ -59,13 +60,12 @@ function( ADD_IOT_PLUGIN PLUGIN_NAME )
 			COMPONENT plugins
 		)
 	endif()
-	add_definitions( "-fPIC" )
+	if ( NOT WIN32 )
+		add_definitions( "-fPIC" )
+	endif ( NOT WIN32 )
 endfunction( ADD_IOT_PLUGIN )
 
-#add_subdirectory( "device_manager" )
-#add_subdirectory( "saf" )
 add_subdirectory( "tr50" )
-#add_subdirectory( "udmp" )
 
 set( IOT_PLUGIN_BUILTIN_ENABLE )
 set( IOT_PLUGIN_BUILTIN_INCS )
@@ -77,7 +77,7 @@ foreach( PLUGIN_BUILTIN_NAME ${PLUGIN_BUILTIN_LIBS} )
  @retval           IOT_TRUE            successfully loaded plug-in
  @retval           IOT_FALSE           failed to load plug-in
  */
-iot_bool_t ${PLUGIN_BUILTIN_NAME}_load( iot_plugin_t *p );
+IOT_API iot_bool_t ${PLUGIN_BUILTIN_NAME}_load( iot_plugin_t *p );
 "
 	)
 	set( IOT_PLUGIN_BUILTIN_IMPL "${PLUGIN_BUILTIN_IMPL}/* ${PLUGIN_BUILTIN_NAME} */

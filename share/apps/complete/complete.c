@@ -38,11 +38,11 @@
 #endif /* if !defined( M_PI ) */
 
 /** @brief maximum value of json integer in range [-(2**53)+1, (2**53)-1] */
-#define MAX_JSON_INT 9007199254740991u
+#define MAX_JSON_INT 9007199254740991L
 /** @brief Default maximum number of iterations before stopping telemetry */
 #define MAX_LOOP_ITERATIONS 360
 /** @brief minimum value of json integer in range [-(2**53)+1, (2**53)-1] */
-#define MIN_JSON_INT -9007199254740991
+#define MIN_JSON_INT -9007199254740991L
 /** @brief Default wait time between sending samples */
 #define POLL_INTERVAL_SEC 10u
 /** @brief max path length */
@@ -804,8 +804,8 @@ void send_telemetry_sample( iot_t *iot_lib )
 	(void)iot_lib;
 
 	srand( (unsigned int)time( NULL ) );
-	int_test = (iot_int64_t)random_int( MIN_JSON_INT, MAX_JSON_INT );
-	uint_test = (iot_uint64_t)random_int( 0, MAX_JSON_INT );
+	int_test = (iot_int64_t)random_int( (long)MIN_JSON_INT, (long)MAX_JSON_INT );
+	uint_test = (iot_uint64_t)random_int( 0, (long)MAX_JSON_INT );
 	light = random_dbl( 100.0, 1000.0 );
 	temperature = (iot_float32_t)random_dbl( 1.0, 45.0 );
 	sample_size = (size_t)random_int( 0, MAX_TEXT_SIZE - 1 );

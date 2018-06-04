@@ -73,14 +73,16 @@ IOT_SECTION size_t app_path_make_absolute( char *path, size_t path_max,
  * @brief Get the path to runtime/config directory
  *
  * @param[in]      type                type of iot directory
- * @param[out]     path                buffer to put path to executable's directory
- * @param[in]      size                size of the buffer
+ * @param[out]     buf                 buffer to put path to executable's directory
+ * @param[in]      buf_len             size of the buffer
  *
  * @retval 0u      path buffer is too small
  * @retval >0u     number characters in path
  */
 IOT_SECTION size_t app_path_directory_name_get(
-	iot_dir_type_t type, char *path, const size_t size );
+	iot_dir_type_t type,
+	char *buf,
+	size_t buf_len );
 
 /**
  * @brief Function very similar to the 'which' command on Linux/Unix, with

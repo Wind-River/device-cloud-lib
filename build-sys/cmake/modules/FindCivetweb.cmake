@@ -5,6 +5,7 @@
 # - CIVETWEB_ROOT_DIR, specified an explicit root path to test
 #
 # If found the following will be defined:
+# - CIVETWEB_DEFINITIONS, defintions to add to use the library
 # - CIVETWEB_FOUND, If false, do not try to use civetweb library
 # - CIVETWEB_INCLUDE_DIR, path where to find civetweb.h
 # - CIVETWEB_LIBRARY_DIR, path where to find libcivetweb.a
@@ -50,6 +51,11 @@ find_library( CIVETWEB_LIBRARIES
 	PATHS "${CIVETWEB_ROOT_DIR}/lib${LIB_SUFFIX}"
 	      "${CIVETWEB_ROOT_DIR}/lib"
 )
+
+if ( CIVETWEB_LIBRARIES AND WIN32 )
+	set( CIVETWEB_DEFINITIONS "-DCIVETWEB_DLL_IMPORTS=1"
+		CACHE INTERNAL "" FORCE )
+endif ( CIVETWEB_LIBRARIES AND WIN32 )
 
 find_program( CIVETWEB_EXECUTABLE
 	NAMES civetweb

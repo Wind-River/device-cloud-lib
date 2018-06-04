@@ -1,0 +1,32 @@
+From 8491d0efac57dceaef8fe8ea537d61c5cdf86d14 Mon Sep 17 00:00:00 2001
+From: Keith Holman <keith.holman@windriver.com>
+Date: Mon, 13 Feb 2017 14:33:46 -0500
+Subject: [PATCH] mosquitto_passwd: add symbols defined in windows.h
+
+Mosquitto passwd is failing to build on Windows with Visual Studio 2015.
+This is due to undefined symbols in Windows.  The symbols in question
+are defined in the Windows SDK header files.  This patch includes the
+header file so that the symbols are no defined.
+
+Signed-off-by: Keith Holman <keith.holman@windriver.com>
+---
+ src/mosquitto_passwd.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/mosquitto_passwd.c b/src/mosquitto_passwd.c
+index de9a719..afb3ab3 100644
+--- a/src/mosquitto_passwd.c
++++ b/src/mosquitto_passwd.c
+@@ -24,7 +24,8 @@ Contributors:
+ #include <stdlib.h>
+ #include <string.h>
+ #ifdef WIN32
+-#  include <process.h>
++#	include <windows.h>
++#	include <process.h>
+ #	ifndef __cplusplus
+ #		define bool char
+ #		define true 1
+-- 
+2.9.3
+

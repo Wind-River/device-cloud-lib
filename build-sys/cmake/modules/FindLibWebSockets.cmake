@@ -11,7 +11,7 @@
 # - LIBWEBSOCKETS_LIBRARIES, the library to link against
 # - LIBWEBSOCKETS_VERSION, update libwebsockets to display version
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,13 +25,6 @@
 #
 
 include( FindPackageHandleStandardArgs )
-
-# Try and find paths
-set( LIB_SUFFIX "" )
-get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
-if( LIB64 )
-	set( LIB_SUFFIX 64 )
-endif()
 
 # Allow the ability to specify a global dependency root directory
 if ( NOT LIBWEBSOCKETS_ROOT_DIR )
@@ -47,7 +40,7 @@ find_path( LIBWEBSOCKETS_INCLUDE_DIR
 find_library( LIBWEBSOCKETS_LIBRARIES
 	NAMES websockets
 	DOC "Required libwebsockets libraries"
-	PATHS "${LIBWEBSOCKETS_ROOT_DIR}/lib${LIB_SUFFIX}"
+	PATHS "${LIBWEBSOCKETS_ROOT_DIR}/lib"
 )
 
 get_filename_component( LIBWEBSOCKETS_LIBRARY_DIR

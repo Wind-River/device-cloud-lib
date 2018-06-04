@@ -7,6 +7,7 @@
 #
 # If found the following will be defined:
 # - OSAL_FOUND, If false, do not try to use osal
+# - OSAL_DEFINITIONS, any definitions required to use correctly
 # - OSAL_INCLUDE_DIR, path where to find osal include files
 # - OSAL_LIBRARIES, the library to link against
 # - OSAL_VERSION, update osal to display version
@@ -28,21 +29,18 @@ include( FindPackageHandleStandardArgs )
 
 set( _PROGRAMFILES     "ProgramFiles" )
 set( _PROGRAMFILES_X86 "ProgramFiles(x86)" )
-set( OSAL_LIBS
-	${CMAKE_SHARED_LIBRARY_PREFIX}osal${CMAKE_SHARED_LIBRARY_SUFFIX}
-	${CMAKE_STATIC_LIBRARY_PREFIX}osal${CMAKE_STATIC_LIBRARY_SUFFIX}
-)
+if ( WIN32 )
+	set( OSAL_LIBS  "osal" ) # "osal-static"
+else()
+	set( OSAL_LIBS
+		${CMAKE_SHARED_LIBRARY_PREFIX}osal${CMAKE_SHARED_LIBRARY_SUFFIX}
+		${CMAKE_STATIC_LIBRARY_PREFIX}osal${CMAKE_STATIC_LIBRARY_SUFFIX}
+	)
+endif( WIN32 )
 
 if ( OSAL_PREFER_STATIC )
 	list( REVERSE OSAL_LIBS )
 endif( OSAL_PREFER_STATIC )
-
-# Try and find paths
-set( LIB_SUFFIX "" )
-get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
-if( LIB64 )
-	set( LIB_SUFFIX 64 )
-endif()
 
 # Allow the ability to specify a global dependency root directory
 if ( NOT OSAL_ROOT_DIR )
@@ -60,10 +58,25 @@ find_path( OSAL_INCLUDE_DIR
 find_library( OSAL_LIBRARIES
 	NAMES ${OSAL_LIBS}
 	DOC "Required osal libraries"
-	PATHS "${OSAL_ROOT_DIR}/lib${LIB_SUFFIX}"
+	PATHS "${OSAL_ROOT_DIR}/lib"
 	      "$ENV{${_PROGRAMFILES}}/osal/lib"
 	      "$ENV{${_PROGRAMFILES_X86}}/osal/lib"
 )
+
+# determine if static library, if so then add definiton
+set( OSAL_DEFINITIONS "" CACHE INTERNAL "" FORCE )
+if ( OSAL_LIBRARIES )
+	get_filename_component( LIB_FILE_NAME "${OSAL_LIBRARIES}" NAME )
+	if ( LIB_FILE_NAME MATCHES ".a" OR LIB_FILE_NAME MATCHES "-static" )
+		set( OSAL_DEFINITIONS "-DOSAL_STATIC=1" CACHE INTERNAL "" FORCE )
+		if ( WIN32 )
+			set( OSAL_LIBRARIES ${OSAL_LIBRARIES} version Iphlpapi Rpcrt4 Shlwapi Ws2_32 )
+		else()
+			set( OSAL_LIBRARIES ${OSAL_LIBRARIES} m )
+		endif( WIN32 )
+		set( OSAL_LIBRARIES ${OSAL_LIBRARIES} ${CMAKE_DL_LIBS} )
+	endif ( LIB_FILE_NAME MATCHES ".a" OR LIB_FILE_NAME MATCHES "-static" )
+endif ( OSAL_LIBRARIES )
 
 # determine version
 if ( OSAL_INCLUDE_DIR AND EXISTS "${OSAL_INCLUDE_DIR}/os.h" )

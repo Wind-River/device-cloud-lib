@@ -42,6 +42,15 @@ set( API_SRCS_C ${API_SRCS_C}
 	CACHE INTERNAL "" FORCE
 )
 
+# Resource files
+if ( WIN32 )
+	configure_file(
+		"${PROJECT_RESOURCE_PATH_WIN32}/version.rc.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/version.rc"
+		@ONLY )
+	set( IOT_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/version.rc" )
+endif ( WIN32 )
+
 include_directories( SYSTEM
 	"${JSON_INCLUDE_DIR}"
 	"${MQTT_INCLUDE_DIR}"
@@ -58,6 +67,7 @@ add_library( "${IOT_LIBRARY_NAME}"
 	${IOT_API_LIBRARY_TYPE}
 	${API_HDRS_C}
 	${API_SRCS_C}
+	${IOT_RESOURCE_FILES}
 )
 
 target_link_libraries( "${IOT_LIBRARY_NAME}"
@@ -69,8 +79,12 @@ target_link_libraries( "${IOT_LIBRARY_NAME}"
 	${PLUGIN_BUILTIN_LIBS}
 	${LibArchive_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
-	${CMAKE_DL_LIBS} "m"
 )
+if ( WIN32 )
+	target_link_libraries( "${IOT_LIBRARY_NAME}" "Ws2_32" )
+else ()
+	target_link_libraries( "${IOT_LIBRARY_NAME}" dl m )
+endif ( WIN32 )
 
 set_target_properties( "${IOT_LIBRARY_NAME}" PROPERTIES
 	SOVERSION ${IOT_VERSION_MAJOR}

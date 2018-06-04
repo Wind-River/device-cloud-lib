@@ -1,0 +1,40 @@
+From 561dd50c7be7d9970a7ca3c203e29634e2cde350 Mon Sep 17 00:00:00 2001
+From: Keith Holman <keith.holman@windriver.com>
+Date: Fri, 23 Sep 2016 19:44:50 -0400
+Subject: [PATCH] cmocka: patch to build on visual studio 2011
+
+The source code contains a C constructs that are available only in
+visual studio 2012 or later.   This patch is a fix using the old
+style syntax to allow the code to compile in earlier versions of
+visual studio.
+
+Signed-off-by: Keith Holman <keith.holman@windriver.com>
+---
+ src/cmocka.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/cmocka.c b/src/cmocka.c
+index 3fd1af8..016caa9 100644
+--- a/src/cmocka.c
++++ b/src/cmocka.c
+@@ -2799,11 +2799,17 @@ int _cmocka_run_group_tests(const char *group_name,
+             (tests[i].test_func != NULL
+              || tests[i].setup_func != NULL
+              || tests[i].teardown_func != NULL)) {
++#if _MSC_VER <= 1700
++            cm_tests[i].test = &tests[i];
++            cm_tests[i].status = CM_TEST_NOT_STARTED;
++            cm_tests[i].state = NULL;
++#else
+             cm_tests[i] = (struct CMUnitTestState) {
+                 .test = &tests[i],
+                 .status = CM_TEST_NOT_STARTED,
+                 .state = NULL,
+             };
++#endif
+             total_tests++;
+         }
+     }
+-- 
+2.7.1.windows.2
+

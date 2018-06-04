@@ -2025,7 +2025,7 @@ iot_status_t on_action_remote_login_update( iot_action_request_t* request,
 						{
 							char port_str[12u];
 							char *name = service_name;
-							long timeout = 0L;
+							iot_int64_t timeout = 0L;
 							iot_json_encode_object_start( json_enc, NULL );
 
 							/* name */
@@ -2072,7 +2072,7 @@ iot_status_t on_action_remote_login_update( iot_action_request_t* request,
 								char timeout_str[32u];
 								os_snprintf( timeout_str,
 									sizeof(timeout_str),
-									"%ld", timeout );
+									"%ld", (long int)timeout );
 								timeout_str[sizeof(timeout_str) - 1u] = '\0';
 								iot_json_encode_string( json_enc,
 									"session_timeout", timeout_str );

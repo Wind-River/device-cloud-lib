@@ -7,37 +7,40 @@
 #
 #    http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software  distributed
-# under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
-# OR CONDITIONS OF ANY KIND, either express or implied.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #
 set( TARGET "${IOT_TARGET_UPDATE}" )
 
+# Header files
 set( IOT_HDRS_C ${IOT_HDRS_C}
 	"update_main.h"
 )
 
+# Source files
 set( IOT_SRCS_C ${IOT_SRCS_C}
 	"update.c"
 	"update_main.c"
 )
 
+# Resource files
 if ( WIN32 )
-	set( PROJECT_ICON ${PROJECT_BUILD_WIN_PATH}/iot.ico )
+	set( PROJECT_ICON "${PROJECT_RESOURCE_PATH_WIN32}/iot.ico" )
 
 	configure_file(
-		${PROJECT_BUILD_WIN_PATH}/version.rc.in
-		${CMAKE_CURRENT_BINARY_DIR}/version.rc
+		"${PROJECT_RESOURCE_PATH_WIN32}/version.rc.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/version.rc"
 		@ONLY )
-	list( APPEND IOT_VERSION_FILES ${CMAKE_CURRENT_BINARY_DIR}/version.rc )
-endif()
+	set( IOT_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/version.rc" )
+endif ( WIN32 )
 
 add_executable( ${TARGET}
 	${IOT_HDRS_C}
 	${IOT_HDRS_CXX}
 	${IOT_SRCS_C}
 	${IOT_SRCS_CXX}
-	${IOT_VERSION_FILES}
+	${IOT_RESOURCE_FILES}
 )
 
 target_link_libraries( ${TARGET}
