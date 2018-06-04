@@ -47,7 +47,7 @@ static void test_iot_config_get_not_found( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -165,7 +165,7 @@ static void test_iot_config_get_null_name( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_config_get( &lib, NULL, IOT_FALSE,
 		IOT_TYPE_BOOL, &data.value.boolean );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -220,7 +220,7 @@ static void test_iot_config_get_valid( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
@@ -268,7 +268,7 @@ static void test_iot_config_get_valid_convert_int32( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -345,7 +345,7 @@ static void test_iot_config_get_wrong_type( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -386,7 +386,7 @@ static void test_iot_config_get_raw_not_found( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -435,7 +435,7 @@ static void test_iot_config_get_raw_null_name( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_config_get_raw( &lib, NULL,
 		IOT_FALSE, &length, &data );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -447,7 +447,7 @@ static void test_iot_config_get_raw_null_data( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_config_get_raw( &lib, "opt_name",
 		IOT_FALSE, &length, NULL );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -466,7 +466,7 @@ static void test_iot_config_get_raw_valid( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -512,7 +512,7 @@ static void test_iot_config_get_raw_wrong_type( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -557,7 +557,7 @@ static void test_iot_config_set_full( void **state )
 	raw_data.ptr = str_data;
 	raw_data.length = strlen( str_data );
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 
 	/* setup option */
 	opts.lib = &lib;
@@ -688,7 +688,7 @@ static void test_iot_config_set_null_name( void **state )
 	raw_data.ptr = data;
 	raw_data.length = strlen( data );
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_config_set( &lib, NULL, IOT_TYPE_BOOL, IOT_FALSE );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 	result = iot_config_set( &lib, NULL, IOT_TYPE_FLOAT32, 3.2 );
@@ -730,7 +730,7 @@ static void test_iot_config_set_null_data( void **state )
 #endif
 
 	/* add raw option item */
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* option array */
 	will_return( __wrap_os_malloc, 1 ); /* option name */
@@ -814,7 +814,7 @@ static void test_iot_config_set_overwrite( void **state )
 	raw_data.ptr = data;
 	raw_data.length = strlen( data );
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -942,7 +942,7 @@ static void test_iot_config_set_valid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
@@ -979,7 +979,7 @@ static void test_iot_config_set_raw_full( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 
 	/* setup option */
 	opts.lib = &lib;
@@ -1023,7 +1023,7 @@ static void test_iot_config_set_raw_null_name( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_config_set_raw( &lib, NULL,
 		strlen( data ), data );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -1034,7 +1034,7 @@ static void test_iot_config_set_raw_null_data( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
@@ -1068,7 +1068,7 @@ static void test_iot_config_set_raw_overwrite_data( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -1123,7 +1123,7 @@ static void test_iot_config_set_raw_overwrite_null( void **state )
 	struct iot_options *opts_arr[1];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	opt.name = name;
 #endif
@@ -1159,7 +1159,7 @@ static void test_iot_config_set_raw_valid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* new options list object */
 	will_return( __wrap_os_realloc, 1 ); /* extend array holding options lists */
@@ -1211,7 +1211,7 @@ static void test_iot_configuration_file_set_null_path( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_configuration_file_set( &lib, NULL );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }
@@ -1221,7 +1221,7 @@ static void test_iot_configuration_file_set_no_memory( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 0u );
 #endif
@@ -1239,7 +1239,7 @@ static void test_iot_configuration_file_set_valid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u );
 #endif
@@ -1257,7 +1257,7 @@ static void test_iot_connect_configuration_fail_to_parse( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	/* iot-connect.cfg */
 	will_return( __wrap_os_file_exists, OS_TRUE );
@@ -1284,9 +1284,9 @@ static void test_iot_connect_configuration_fail_to_read( void **state )
 	struct iot_option opt;
 	struct iot_options opts;
 
-	bzero( &lib, sizeof( struct iot ) );
-	bzero( &opt, sizeof( struct iot_option ) );
-	bzero( &opts, sizeof( struct iot_options ) );
+	memset( &lib, 0, sizeof( struct iot ) );
+	memset( &opt, 0, sizeof( struct iot_option ) );
+	memset( &opts, 0, sizeof( struct iot_options ) );
 	lib.id = test_malloc( 5u );
 	assert_non_null( lib.id );
 	strncpy( lib.id, "test", 5u );
@@ -1334,9 +1334,9 @@ static void test_iot_connect_configuration_no_memory( void **state )
 	struct iot_option opt;
 	struct iot_options opts;
 
-	bzero( &lib, sizeof( struct iot ) );
-	bzero( &opt, sizeof( struct iot_option ) );
-	bzero( &opts, sizeof( struct iot_options ) );
+	memset( &lib, 0, sizeof( struct iot ) );
+	memset( &opt, 0, sizeof( struct iot_option ) );
+	memset( &opts, 0, sizeof( struct iot_options ) );
 	lib.id = test_malloc( 5u );
 	assert_non_null( lib.id );
 	strncpy( lib.id, "test", 5u );
@@ -1382,7 +1382,7 @@ static void test_iot_connect_configuration_not_found( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 
 	/* iot-connect.cfg */
 	will_return( __wrap_os_file_exists, OS_FALSE );
@@ -1419,9 +1419,9 @@ static void test_iot_connect_plugin_connect_fail( void **state )
 	struct iot_option opt;
 	struct iot_options opts;
 
-	bzero( &lib, sizeof( struct iot ) );
-	bzero( &opt, sizeof( struct iot_option ) );
-	bzero( &opts, sizeof( struct iot_options ) );
+	memset( &lib, 0, sizeof( struct iot ) );
+	memset( &opt, 0, sizeof( struct iot_option ) );
+	memset( &opts, 0, sizeof( struct iot_options ) );
 	lib.id = test_malloc( 5u );
 	assert_non_null( lib.id );
 	strncpy( lib.id, "test", 5u );
@@ -1475,7 +1475,7 @@ static void test_iot_connect_single_thread( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	/* iot-connect.cfg */
 	will_return( __wrap_os_file_exists, OS_FALSE );
@@ -1492,7 +1492,7 @@ static void test_iot_connect_threads_fail( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	/* iot-connect.cfg */
 	will_return( __wrap_os_file_exists, OS_FALSE );
 	/* app_id.cfg */
@@ -1518,7 +1518,7 @@ static void test_iot_connect_threads_main_loop_fail( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.cfg_file_path = test_malloc( 50u );
 	assert_non_null( lib.cfg_file_path );
 	strncpy( lib.cfg_file_path, "/explicit/path/to/file.cfg", 50u );
@@ -1633,7 +1633,7 @@ static void test_iot_connect_threads_success( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 
 	/* iot-connect.cfg */
 	will_return( __wrap_os_file_exists, OS_FALSE );
@@ -1727,7 +1727,7 @@ static void test_iot_disconnect_single_thread( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_disconnect( &lib, 0u );
@@ -1739,7 +1739,7 @@ static void test_iot_disconnect_valid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_disconnect( &lib, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -1807,7 +1807,7 @@ static void test_iot_id_null_id( void **state )
 	struct iot lib;
 	const char *result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.id = NULL;
 	result = iot_id( &lib );
 	assert_null( result );
@@ -1818,7 +1818,7 @@ static void test_iot_id_valid( void **state )
 	struct iot lib;
 	const char *result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.id = test_malloc( 25u );
 	assert_non_null( lib.id );
 	strncpy( lib.id, "some_device_id", 25u );
@@ -1922,7 +1922,7 @@ static void test_iot_log_invalid_level( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.logger_level = IOT_LOG_ALL;
 	result = iot_log( &lib, IOT_LOG_ALL, "func", __FILE__, __LINE__, "invalid log level" );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -1933,7 +1933,7 @@ static void test_iot_log_null_callback( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.logger_level = IOT_LOG_ALL;
 	result = iot_log( &lib, IOT_LOG_ERROR, "func", __FILE__, __LINE__, "null log callback" );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -1951,7 +1951,7 @@ static void test_iot_log_with_callback( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.logger_level = IOT_LOG_ALL;
 	lib.logger = &test_log_callback;
 	lib.logger_user_data = &lib;
@@ -1968,7 +1968,7 @@ static void test_iot_log_callback_set_null_callback( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.logger = &test_log_callback;
 	result = iot_log_callback_set( &lib, NULL, NULL );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -1988,7 +1988,7 @@ static void test_iot_log_callback_set_valid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_log_callback_set( &lib, &test_log_callback, &lib );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_ptr_equal( lib.logger, &test_log_callback );
@@ -2001,7 +2001,7 @@ static void test_iot_log_level_set_invalid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.logger_level = IOT_LOG_ERROR;
 	result = iot_log_level_set( &lib, ( iot_log_level_t )( IOT_LOG_ALL + 1 ) );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -2036,7 +2036,7 @@ static void test_iot_log_level_set_valid( void **state )
 		IOT_LOG_ALL,
 	};
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	for ( i = 0u; i < sizeof( log_levels ) / sizeof( iot_log_level_t ); ++i )
 	{
 		result = iot_log_level_set( &lib, log_levels[i] );
@@ -2051,7 +2051,7 @@ static void test_iot_log_level_set_string_invalid( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_log_level_set_string( &lib, "error" );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 }
@@ -2069,7 +2069,7 @@ static void test_iot_log_level_set_string_null_str( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_log_level_set_string( &lib, NULL );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }
@@ -2101,7 +2101,7 @@ static void test_iot_log_level_set_string_valid( void **state )
 		{ IOT_LOG_ALL, "ALL" },
 	};
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	for ( i = 0u; i < sizeof( log_levels ) / sizeof( struct iot_log_level_map ); ++i )
 	{
 		struct iot_log_level_map log_level = log_levels[i];
@@ -2124,7 +2124,7 @@ static void test_iot_loop_forever_single_thread( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.to_quit = IOT_FALSE;
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
@@ -2146,7 +2146,7 @@ static void test_iot_loop_iteration_single_thread( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	will_return( __wrap_iot_action_process, IOT_STATUS_SUCCESS );
@@ -2159,7 +2159,7 @@ static void test_iot_loop_iteration_threads( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 #ifndef IOT_THREAD_SUPPORT
 	will_return( __wrap_iot_action_process, IOT_STATUS_SUCCESS );
@@ -2181,7 +2181,7 @@ static void test_iot_loop_start_single_thread( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	lib.to_quit = IOT_TRUE;
 	result = iot_loop_start( &lib );
@@ -2194,7 +2194,7 @@ static void test_iot_loop_start_threads_fail( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.to_quit = IOT_TRUE;
 #ifdef IOT_THREAD_SUPPORT
 	will_return( __wrap_os_thread_create, IOT_STATUS_FAILURE );
@@ -2219,7 +2219,7 @@ static void test_iot_loop_start_threads_success( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.to_quit = IOT_TRUE;
 #ifdef IOT_THREAD_SUPPORT
 	will_return( __wrap_os_thread_create, IOT_STATUS_SUCCESS );
@@ -2248,7 +2248,7 @@ static void test_iot_loop_start_threads_twice( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.to_quit = IOT_TRUE;
 #ifdef IOT_THREAD_SUPPORT
 	will_return( __wrap_os_thread_create, IOT_STATUS_SUCCESS );
@@ -2287,7 +2287,7 @@ static void test_iot_loop_stop_single_thread( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	lib.flags = IOT_FLAG_SINGLE_THREAD;
 	result = iot_loop_stop( &lib, IOT_TRUE );
 	assert_int_equal( result, IOT_STATUS_NOT_SUPPORTED );
@@ -2302,7 +2302,7 @@ static void test_iot_loop_stop_threads_force( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifdef IOT_THREAD_SUPPORT
 	lib.main_thread = (os_thread_t)1234;
 	for ( i = 0u; i < IOT_WORKER_THREADS; ++i )
@@ -2326,7 +2326,7 @@ static void test_iot_loop_stop_threads_no_force( void **state )
 	struct iot lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 #ifdef IOT_THREAD_SUPPORT
 	lib.main_thread = (os_thread_t)1234;
 	for ( i = 0u; i < IOT_WORKER_THREADS; ++i )
@@ -2351,8 +2351,8 @@ static void test_iot_terminate_action( void **state )
 
 	will_return( __wrap_os_malloc, 1 );
 	lib = os_malloc( sizeof( struct iot ) );
-	bzero( lib, sizeof( struct iot ) );
-	bzero( &action, sizeof( struct iot_action ) );
+	memset( lib, 0, sizeof( struct iot ) );
+	memset( &action, 0, sizeof( struct iot_action ) );
 	lib->action_count = 1u;
 	lib->action_ptr[0] = &action;
 
@@ -2386,8 +2386,8 @@ static void test_iot_terminate_alarm( void **state )
 
 	will_return( __wrap_os_malloc, 1 );
 	lib = os_malloc( sizeof( struct iot ) );
-	bzero( lib, sizeof( struct iot ) );
-	bzero( &alarm, sizeof( struct iot_alarm ) );
+	memset( lib, 0, sizeof( struct iot ) );
+	memset( &alarm, 0, sizeof( struct iot_alarm ) );
 	lib->alarm_count = 1u;
 	lib->alarm_ptr[0] = &alarm;
 
@@ -2411,7 +2411,7 @@ static void test_iot_terminate_blank( void **state )
 
 	will_return( __wrap_os_malloc, 1u );
 	lib = os_malloc( sizeof( struct iot ) );
-	bzero( lib, sizeof( struct iot ) );
+	memset( lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_terminate( lib, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -2439,13 +2439,13 @@ static void test_iot_terminate_option( void **state )
 
 	will_return( __wrap_os_malloc, 1u );
 	lib = os_malloc( sizeof( struct iot ) );
-	bzero( lib, sizeof( struct iot ) );
+	memset( lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_os_malloc, 1u );
 	opt = os_malloc( sizeof( struct iot_option )  );
-	bzero( opt, sizeof( struct iot_option ) );
+	memset( opt, 0, sizeof( struct iot_option ) );
 	will_return( __wrap_os_malloc, 1u );
 	opts = os_malloc( sizeof( struct iot_options ) );
-	bzero( opts, sizeof( struct iot_options ) );
+	memset( opts, 0, sizeof( struct iot_options ) );
 	will_return( __wrap_os_malloc, 1u );
 	opts_ptr = os_malloc( sizeof( struct iot_options * ) );
 
@@ -2489,8 +2489,8 @@ static void test_iot_terminate_telemetry( void **state )
 
 	will_return( __wrap_os_malloc, 1 );
 	lib = os_malloc( sizeof( struct iot ) );
-	bzero( lib, sizeof( struct iot ) );
-	bzero( &telemetry, sizeof( struct iot_telemetry ) );
+	memset( lib, 0, sizeof( struct iot ) );
+	memset( &telemetry, 0, sizeof( struct iot_telemetry ) );
 	lib->telemetry_count = 1u;
 	lib->telemetry_ptr[0] = &telemetry;
 
@@ -2522,7 +2522,7 @@ static void test_iot_transaction_status_bad( void **state )
 	iot_status_t result;
 	iot_transaction_t txn = 1u;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_EXECUTION_ERROR );
 	result = iot_transaction_status( &lib, &txn, 0u );
 	assert_int_equal( result, IOT_STATUS_EXECUTION_ERROR );
@@ -2534,7 +2534,7 @@ static void test_iot_transaction_status_good( void **state )
 	iot_status_t result;
 	iot_transaction_t txn = 2u;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	will_return( __wrap_iot_plugin_perform, IOT_STATUS_SUCCESS );
 	result = iot_transaction_status( &lib, &txn, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -2554,7 +2554,7 @@ static void test_iot_transaction_status_null_txn( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	result = iot_transaction_status( &lib, NULL, 0u );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }

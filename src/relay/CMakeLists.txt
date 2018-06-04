@@ -28,6 +28,17 @@ set( IOT_SRCS_C ${IOT_SRCS_C}
 	"relay_main.c"
 )
 
+# Resource files
+if ( WIN32 )
+	set( PROJECT_ICON "${PROJECT_RESOURCE_PATH_WIN32}/iot.ico" )
+
+	configure_file(
+		"${PROJECT_RESOURCE_PATH_WIN32}/version.rc.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/version.rc"
+		@ONLY )
+	set( IOT_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/version.rc" )
+endif ( WIN32 )
+
 # System include directories
 include_directories( SYSTEM
 	${WEBSOCKET_INCLUDE_DIR}
@@ -40,16 +51,21 @@ add_executable( ${TARGET}
 	${IOT_HDRS_CXX}
 	${IOT_SRCS_C}
 	${IOT_SRCS_CXX}
-	${IOT_VERSION_FILES}
+	${IOT_RESOURCE_FILES}
 )
 
 # Required libraries
 target_link_libraries( ${TARGET}
 	iotutils
-	${WEBSOCKET_LIBRARIES}
 	${OSAL_LIBRARIES}
+	${OPENSSL_LIBRARIES}
+	${WEBSOCKET_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
+	${CMAKE_DL_LIBS}
 )
+if ( NOT WIN32 )
+	target_link_libraries( ${TARGET} "m" )
+endif( NOT WIN32 )
 
 # Installation instructions
 install( TARGETS ${TARGET}

@@ -534,7 +534,7 @@ iot_status_t control_config_schema_integer(
 				app_json_schema_integer( schema, obj, input, in_len,
 					&error_msg ) != IOT_FALSE )
 			{
-				value = atol( input );
+				value = os_atol( input );
 				result = app_json_encode_integer( encoder,
 					key, value );
 			}
@@ -570,18 +570,12 @@ iot_status_t control_config_schema_real(
 					os_strlen( input ),
 					&error_msg ) != IOT_FALSE )
 			{
-				iot_float64_t value = 0.0;
-				if ( sscanf( input, "%lf", &value ) == EOF )
-				{
-					error_msg = "invalid number";
-					result = IOT_STATUS_BAD_REQUEST;
-				}
-				else
-				{
-					result = app_json_encode_real( encoder,
-						key, value );
-				}
+				iot_float64_t value = os_atof( input );
+				result = app_json_encode_real( encoder,
+					key, value );
 			}
+			else if ( result == IOT_STATUS_SUCCESS )
+				result = IOT_STATUS_BAD_REQUEST;
 
 			if ( result != IOT_STATUS_SUCCESS )
 				os_fprintf( OS_STDERR, "Error: %s\n", error_msg );

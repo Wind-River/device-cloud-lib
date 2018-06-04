@@ -10,7 +10,7 @@
 # - JSMN_INCLUDE_DIR, path where to find jsmn include files
 # - JSMN_LIBRARIES, the library to link against
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,13 +24,6 @@
 #
 
 include( FindPackageHandleStandardArgs )
-
-# Try and find paths
-set( LIB_SUFFIX "" )
-get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
-if( LIB64 )
-	set( LIB_SUFFIX 64 )
-endif()
 
 # Allow the ability to specify a global dependency root directory
 if ( NOT JSMN_ROOT_DIR )
@@ -46,15 +39,29 @@ find_path( JSMN_INCLUDE_DIR
 find_library( JSMN_LIBRARIES
 	NAMES jsmn
 	DOC "Required jsmn libraries"
-	PATHS "${JSMN_ROOT_DIR}/lib${LIB_SUFFIX}"
+	PATHS "${JSMN_ROOT_DIR}/lib"
 )
 
 if( JSMN_INCLUDE_DIR AND JSMN_LIBRARIES )
+	set( TEST_JSMN_LIBRARIES ${JSMN_LIBRARIES} )
+	if ( WIN32 )
+		# We don't use CMAKE_SHARED_LIBRARY_SUFFIX because it is ".dll"
+		# in Windows (when we want the object library i.e. the ".lib"
+		# for the "dll"
+		# NOTE: CMAKE_SHARED_LIBRARY_SUFFIX = ".o", ".dll"
+		#       CMAKE_STATIC_LIBRARY_SUFFIX = ".a", ".lib"
+		string( REPLACE
+			"jsmn${CMAKE_STATIC_LIBRARY_SUFFIX}"
+			"jsmn-static${CMAKE_STATIC_LIBRARY_SUFFIX}"
+			TEST_JSMN_LIBRARIES "${JSMN_LIBRARIES}" )
+		if ( NOT EXISTS "${TEST_JSMN_LIBRARIES}" )
+			set( TEST_JSMN_LIBRARIES "${JSMN_LIBRARIES}" )
+		endif ( NOT EXISTS "${TEST_JSMN_LIBRARIES}" )
+	endif( WIN32 )
 	# Determine flags JSMN was compiled with
 	set( JSMN_TEST_OUT_FILE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/jsmn_test.c" )
 	file( WRITE "${JSMN_TEST_OUT_FILE}"
-		"#define JSMN_PARENT_LINKS\n"
-		"#ifdef __clang__\n"
+		"#define JSMN_PARENT_LINKS\n" "#ifdef __clang__\n"
 		"#pragma clang diagnostic push\n"
 		"#pragma clang diagnostic ignored \"-Wreserved-id-macro\"\n"
 		"#endif /* ifdef __clang__ */\n"
@@ -79,11 +86,12 @@ if( JSMN_INCLUDE_DIR AND JSMN_LIBRARIES )
 		"${CMAKE_BINARY_DIR}" "${JSMN_TEST_OUT_FILE}"
 		CMAKE_FLAGS
 			"-DINCLUDE_DIRECTORIES:STRING=${JSMN_INCLUDE_DIR}"
-			"-DLINK_LIBRARIES:STRING=${JSMN_LIBRARIES}"
+			"-DLINK_LIBRARIES:STRING=${TEST_JSMN_LIBRARIES}"
 		COMPILE_OUTPUT_VARIABLE JSMN_COMPILE
 		RUN_OUTPUT_VARIABLE JSMN_DEFINES )
 	string( STRIP "${JSMN_DEFINES}" JSMN_DEFINES )
 	string( REPLACE "\n" ";" JSMN_DEFINES "${JSMN_DEFINES}" )
+	string( REPLACE "\r" "" JSMN_DEFINES "${JSMN_DEFINES}" )
 	if( NOT JSMN_COMPILE_RESULT )
 		message( FATAL_ERROR "Failed to compile simple JSMN application:\n${JSMN_COMPILE}" )
 	endif( NOT JSMN_COMPILE_RESULT )

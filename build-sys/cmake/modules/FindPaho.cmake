@@ -66,13 +66,6 @@ foreach( _LIB_TYPE ${PAHO_LIB_TYPES} )
 	endif()
 endforeach( _LIB_TYPE )
 
-# Try and find paths
-set( LIB_SUFFIX "" )
-get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
-if( LIB64 )
-	set( LIB_SUFFIX 64 )
-endif()
-
 # Allow the ability to specify a global dependency root directory
 if ( NOT PAHO_ROOT_DIR )
 	set( PAHO_ROOT_DIR "${DEPENDS_ROOT_DIR}" )
@@ -87,7 +80,7 @@ foreach( _LIB_TYPE ${PAHO_LIB_TYPES} )
 	find_library( PAHO_${_LIB_TYPE}_LIBRARIES NAMES
 		${PAHO_${_LIB_TYPE}_LIBS}
 		DOC "Required paho ${_LIB_TYPE_LC} libraries"
-		PATHS "${PAHO_ROOT_DIR}/lib${LIB_SUFFIX}" )
+		PATHS "${PAHO_ROOT_DIR}/lib" )
 endforeach( _LIB_TYPE )
 
 set( PAHO_TYPE "${PAHO_${PAHO_LIB}_TYPE}" )

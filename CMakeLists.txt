@@ -33,6 +33,7 @@ version_split( IOT_VERSION "${IOT_VERSION}" )
 
 # Project information
 set( PROJECT_NAME                      "${CMAKE_PROJECT_NAME}" )
+set( PROJECT_RESOURCE_PATH_WIN32       "${CMAKE_SOURCE_DIR}/build-sys/windows")
 
 # Device manager
 set( IOT_DEVICE_MANAGER_TARGET         "iot-device-manager" )
@@ -140,9 +141,8 @@ else()
 endif()
 
 if ( IOT_WEBSOCKET_LIBRARY STREQUAL "civetweb" )
-	set( CIVETWEB_ROOT_DIR "/home/kholman/work/civetweb/output/out" )
 	find_package( Civetweb REQUIRED )
-	add_definitions( "-DIOT_WEBSOCKET_CIVETWEB" )
+	add_definitions( "-DIOT_WEBSOCKET_CIVETWEB" ${CIVETWEB_DEFINITIONS} )
 	set( WEBSOCKET_INCLUDE_DIR "${CIVETWEB_INCLUDE_DIR}" )
 	set( WEBSOCKET_LIBRARIES "${CIVETWEB_LIBRARIES}" )
 else()
@@ -153,6 +153,7 @@ endif()
 
 set( OSAL_PREFER_STATIC ON )
 find_package( Osal REQUIRED )
+add_definitions( ${OSAL_DEFINITIONS} )
 include_directories( SYSTEM
 	"${OSAL_INCLUDE_DIR}"
 )

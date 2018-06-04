@@ -38,7 +38,7 @@ static void test_iot_action_allocate_existing( void **state )
 	char _name[IOT_ACTION_STACK_MAX][ IOT_NAME_MAX_LEN + 1u ];
 #endif
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		lib.action_ptr[i] = &lib.action[i];
@@ -78,7 +78,7 @@ static void test_iot_action_allocate_first( void **state )
 	char action_name[ IOT_NAME_MAX_LEN + 2u ];
 	iot_t lib;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	test_generate_random_string( action_name, IOT_NAME_MAX_LEN + 2u );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
@@ -115,7 +115,7 @@ static void test_iot_action_allocate_full( void **state )
 	                                             sizeof( iot_action_t ) );
 	assert_non_null( stack_actions );
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_MAX; ++i )
 	{
 		if ( i < IOT_ACTION_STACK_MAX )
@@ -152,7 +152,7 @@ static void test_iot_action_allocate_stack_full( void **state )
 	char _name[IOT_ACTION_STACK_MAX][ IOT_NAME_MAX_LEN + 1u ];
 #endif
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		lib.action_ptr[i] = &lib.action[i];
@@ -228,7 +228,7 @@ static void test_iot_action_allocate_no_memory( void **state )
 	struct iot lib;
 	iot_action_t *result;
 
-	bzero( &lib, sizeof( struct iot ) );
+	memset( &lib, 0, sizeof( struct iot ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		lib.action_ptr[i] = &lib.action[i];
@@ -250,7 +250,7 @@ static void test_iot_action_deregister_deregistered( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -277,7 +277,7 @@ static void test_iot_action_deregister_null_lib( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -296,7 +296,7 @@ static void test_iot_action_deregister_transmit_fail( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -316,7 +316,7 @@ static void test_iot_action_deregister_valid( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -342,7 +342,7 @@ static void test_iot_action_flags_set_valid( void **state )
 	iot_action_t action;
 	iot_status_t result;
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	result = iot_action_flags_set( &action, 5 );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
 	assert_int_equal( action.flags, 5 );
@@ -355,7 +355,7 @@ static void test_iot_action_free_options( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		lib.action_ptr[i] = &lib.action[i];
@@ -381,7 +381,7 @@ static void test_iot_action_free_options( void **state )
 #else
 	will_return( __wrap_os_malloc, 1 );
 	action->option = os_malloc( sizeof( struct iot_option ) * IOT_OPTION_MAX );
-	bzero( action->option, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( action->option, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	will_return( __wrap_os_malloc, 1 );
 	action->option[0].name = os_malloc( sizeof( char ) + ( IOT_NAME_MAX_LEN + 1u ) );
 #endif
@@ -454,8 +454,8 @@ static void test_iot_action_free_not_found( void **state )
 	iot_action_t action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		lib.action_ptr[i] = &lib.action[i];
@@ -516,7 +516,7 @@ static void test_iot_action_free_null_handle( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		lib.action_ptr[i] = &lib.action[i];
@@ -559,7 +559,7 @@ static void test_iot_action_free_parameters( void **state )
 	iot_action_t *action;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -568,7 +568,7 @@ static void test_iot_action_free_parameters( void **state )
 #else
 		will_return( __wrap_os_malloc, 1u );
 		lib.action_ptr[i] = os_malloc( sizeof ( struct iot_action ) );
-		bzero( lib.action_ptr[i], sizeof( struct iot_action ) );
+		memset( lib.action_ptr[i], 0, sizeof( struct iot_action ) );
 		lib.action_ptr[i]->is_in_heap = IOT_TRUE;
 		will_return( __wrap_os_malloc, 1u );
 		lib.action_ptr[i]->name = os_malloc( sizeof( char ) * ( IOT_NAME_MAX_LEN + 1u ) );
@@ -659,13 +659,13 @@ static void test_iot_action_free_transmit_fail( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_MAX; ++i )
 	{
 		if ( i < IOT_ACTION_STACK_MAX )
 		{
 			lib.action_ptr[i] = &lib.action[i];
-			bzero( lib.action_ptr[i], sizeof( struct iot_action ) );
+			memset( lib.action_ptr[i], 0, sizeof( struct iot_action ) );
 		}
 		else
 #ifdef IOT_STACK_ONLY
@@ -674,7 +674,7 @@ static void test_iot_action_free_transmit_fail( void **state )
 		{
 			will_return( __wrap_os_malloc, 1 );
 			lib.action_ptr[i] = os_malloc( sizeof( struct iot_action ) );
-			bzero( lib.action_ptr[i], sizeof( struct iot_action ) );
+			memset( lib.action_ptr[i], 0, sizeof( struct iot_action ) );
 			lib.action_ptr[i]->is_in_heap = IOT_TRUE;
 		}
 #endif
@@ -727,7 +727,7 @@ static void test_iot_action_option_get_not_there( void **state )
 	size_t i;
 #endif
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 #ifdef IOT_STACK_ONLY
 	action.option = action._option;
 #else
@@ -781,7 +781,7 @@ static void test_iot_action_option_get_null_name( void **state )
 	size_t i;
 #endif
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 #ifdef IOT_STACK_ONLY
 	action.option = action._option;
 #else
@@ -816,7 +816,7 @@ static void test_iot_action_option_get_valid( void **state )
 	iot_status_t result;
 	iot_int32_t data = 0;
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 #ifdef IOT_STACK_ONLY
 	action.option = action._option;
 #else
@@ -846,7 +846,7 @@ static void test_iot_action_option_set_add( void **state )
 	iot_action_t action;
 	iot_status_t result;
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 #ifdef IOT_STACK_ONLY
 	action.option = action._option;
 #else
@@ -884,8 +884,8 @@ static void test_iot_action_option_set_full( void **state )
 #endif
 	struct iot_option _options[IOT_OPTION_MAX];
 
-	bzero( &action, sizeof( iot_action_t ) );
-	bzero( _options, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( &action, 0, sizeof( iot_action_t ) );
+	memset( _options, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	action.option = _options;
 	for ( i = 0u; i < IOT_OPTION_MAX; ++i )
 	{
@@ -908,7 +908,7 @@ static void test_iot_action_option_set_no_memory_data( void **state )
 	struct iot_action act;
 	iot_status_t result;
 
-	bzero( &act, sizeof( struct iot_action ) );
+	memset( &act, 0, sizeof( struct iot_action ) );
 
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 0 ); /* for data */
@@ -922,7 +922,7 @@ static void test_iot_action_option_set_no_memory_array( void **state )
 	struct iot_action act;
 	iot_status_t result;
 
-	bzero( &act, sizeof( struct iot_action ) );
+	memset( &act, 0, sizeof( struct iot_action ) );
 
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for data */
@@ -937,7 +937,7 @@ static void test_iot_action_option_set_no_memory_name( void **state )
 	struct iot_action act;
 	iot_status_t result;
 
-	bzero( &act, sizeof( struct iot_action ) );
+	memset( &act, 0, sizeof( struct iot_action ) );
 
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for data */
@@ -967,7 +967,7 @@ static void test_iot_action_option_set_null_data( void **state )
 	char opt_name[IOT_NAME_MAX_LEN + 2u ];
 	iot_status_t result;
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	test_generate_random_string( opt_name, IOT_NAME_MAX_LEN + 2u );
 	action.option_count = 0u;
 #ifdef IOT_STACK_ONLY
@@ -995,14 +995,14 @@ static void test_iot_action_option_set_update( void **state )
 	iot_action_t action;
 	iot_status_t result;
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 #ifdef IOT_STACK_ONLY
 	action.option = action._option;
 #else
 	/* allocate space for option array */
 	will_return( __wrap_os_malloc, 1 );
 	action.option = os_malloc( sizeof( struct iot_option ) );
-	bzero( action.option, sizeof( struct iot_option ) );
+	memset( action.option, 0, sizeof( struct iot_option ) );
 	/* allocate space for option name */
 	will_return( __wrap_os_malloc, 1 );
 	action.option[0].name = os_malloc(
@@ -1037,7 +1037,7 @@ static void test_iot_action_option_set_raw_add( void **state )
 	char opt_name[IOT_NAME_MAX_LEN + 2u ];
 	iot_status_t result;
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	test_generate_random_string( opt_name, IOT_NAME_MAX_LEN + 2u );
 #ifdef IOT_STACK_ONLY
 	action.option = action._option;
@@ -1046,7 +1046,7 @@ static void test_iot_action_option_set_raw_add( void **state )
 	/* allocate space for option array */
 	will_return( __wrap_os_malloc, 1 );
 	action.option = os_malloc( sizeof( struct iot_option ) );
-	bzero( action.option, sizeof( struct iot_option ) );
+	memset( action.option, 0, sizeof( struct iot_option ) );
 	/* allocate space for option name */
 	will_return( __wrap_os_malloc, 1 );
 	action.option[0].name = os_malloc(
@@ -1088,8 +1088,8 @@ static void test_iot_action_parameter_add_bad_name( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	action.lib = &lib;
 	action.parameter_count = 0u;
 	result = iot_action_parameter_add(
@@ -1105,8 +1105,8 @@ static void test_iot_action_parameter_add_long_name( void **state )
 	char param_name[ IOT_NAME_MAX_LEN + 2u ];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	test_generate_random_string( param_name, IOT_NAME_MAX_LEN + 2u );
 	action.lib = &lib;
 	action.parameter_count = 0u;
@@ -1144,7 +1144,7 @@ static void test_iot_action_parameter_add_exists( void **state )
 	iot_action_t *action;
 	char name[IOT_NAME_MAX_LEN];
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -1197,8 +1197,8 @@ static void test_iot_action_parameter_add_no_memory( void **state )
 	char param_name[ IOT_NAME_MAX_LEN + 2u ];
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	test_generate_random_string( param_name, IOT_NAME_MAX_LEN + 2u );
 	action.lib = &lib;
 	action.parameter_count = 0u;
@@ -1224,7 +1224,7 @@ static void test_iot_action_parameter_add_null_action( void **state )
 	iot_status_t result;
 	iot_t lib;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	result =
 	    iot_action_parameter_add( NULL, "new parameter",
 		IOT_PARAMETER_IN, IOT_TYPE_INT32, 0u );
@@ -1238,7 +1238,7 @@ static void test_iot_action_parameter_add_null_name( void **state )
 	iot_t lib;
 	iot_action_t *action;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -1257,7 +1257,7 @@ static void test_iot_action_parameter_add_parameters_empty( void **state )
 	iot_t lib;
 	iot_action_t *action;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -1292,7 +1292,7 @@ static void test_iot_action_parameter_add_parameters_full( void **state )
 	iot_action_t *action;
 	char name[IOT_NAME_MAX_LEN];
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -1346,7 +1346,7 @@ static void test_iot_action_parameter_add_parameters_half_full( void **state )
 	iot_action_t *action;
 	char name[IOT_NAME_MAX_LEN];
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -1407,7 +1407,7 @@ static void test_iot_action_parameter_get_not_found( void **state )
 	iot_uint8_t arg;
 
 	arg = 0u;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1446,7 +1446,7 @@ static void test_iot_action_parameter_get_no_parameters( void **state )
 	iot_uint8_t arg;
 
 	arg = 0u;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 0u;
 	result = iot_action_parameter_get( &request,
 		"param2", IOT_FALSE, IOT_TYPE_UINT8, &arg );
@@ -1462,7 +1462,7 @@ static void test_iot_action_parameter_get_null_name( void **state )
 	iot_uint8_t arg;
 
 	arg = 0u;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1514,7 +1514,7 @@ static void test_iot_action_parameter_get_valid( void **state )
 	iot_uint8_t arg;
 
 	arg = 0u;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1555,7 +1555,7 @@ static void test_iot_action_parameter_get_raw_null_data( void **state )
 	const char data[10] = "some text\0";
 
 	length = 0u;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1596,7 +1596,7 @@ static void test_iot_action_parameter_get_raw_null_length( void **state )
 	const char data[10] = "some text\0";
 
 	arg = NULL;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1639,7 +1639,7 @@ static void test_iot_action_parameter_get_raw_valid( void **state )
 
 	arg = NULL;
 	length = 0u;
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1678,7 +1678,7 @@ static void test_iot_action_parameter_set_long_name( void **state )
 	iot_action_request_t request;
 	char param_name[ IOT_NAME_MAX_LEN + 2u ];
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	test_generate_random_string( param_name, IOT_NAME_MAX_LEN + 2u );
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1702,7 +1702,7 @@ static void test_iot_action_parameter_set_invalid_name( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1735,7 +1735,7 @@ static void test_iot_action_parameter_set_max_parameters( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = IOT_PARAMETER_MAX;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1773,7 +1773,7 @@ static void test_iot_action_parameter_set_new_parameter( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1815,7 +1815,7 @@ static void test_iot_action_parameter_set_no_memory( void **state )
 	iot_action_request_t request;
 	char param_name[ IOT_NAME_MAX_LEN + 2u ];
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	test_generate_random_string( param_name, IOT_NAME_MAX_LEN + 2u );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u );
@@ -1837,7 +1837,7 @@ static void test_iot_action_parameter_set_null_name( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1877,7 +1877,7 @@ static void test_iot_action_parameter_set_type_null( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1916,7 +1916,7 @@ static void test_iot_action_parameter_set_type_wrong( void **state )
 	iot_action_request_t request;
 	const iot_int32_t data = 1234;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1953,7 +1953,7 @@ static void test_iot_action_parameter_set_valid( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -1991,7 +1991,7 @@ static void test_iot_action_parameter_set_raw_max_parameters( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = IOT_PARAMETER_MAX;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2031,7 +2031,7 @@ static void test_iot_action_parameter_set_raw_new_parameter( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2041,7 +2041,7 @@ static void test_iot_action_parameter_set_raw_new_parameter( void **state )
 	will_return( __wrap_os_malloc, 1 );
 	request.parameter = os_malloc( request.parameter_count *
 		sizeof( struct iot_action_parameter )  );
-	bzero( request.parameter, request.parameter_count *
+	memset( request.parameter, 0, request.parameter_count *
 		sizeof( struct iot_action_parameter ) );
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
@@ -2094,7 +2094,7 @@ static void test_iot_action_parameter_set_raw_null_data( void **state )
 	iot_status_t result;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2129,7 +2129,7 @@ static void test_iot_action_parameter_set_raw_null_name( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2171,7 +2171,7 @@ static void test_iot_action_parameter_set_raw_type_null( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2181,7 +2181,7 @@ static void test_iot_action_parameter_set_raw_type_null( void **state )
 	will_return( __wrap_os_malloc, 1 );
 	request.parameter = os_malloc( request.parameter_count *
 		sizeof( struct iot_action_parameter )  );
-	bzero( request.parameter, request.parameter_count *
+	memset( request.parameter, 0, request.parameter_count *
 		sizeof( struct iot_action_parameter ) );
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
@@ -2228,7 +2228,7 @@ static void test_iot_action_parameter_set_raw_type_wrong( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2265,7 +2265,7 @@ static void test_iot_action_parameter_set_raw_valid( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -2275,7 +2275,7 @@ static void test_iot_action_parameter_set_raw_valid( void **state )
 	will_return( __wrap_os_malloc, 1 );
 	request.parameter = os_malloc( request.parameter_count *
 		sizeof( struct iot_action_parameter )  );
-	bzero( request.parameter, request.parameter_count *
+	memset( request.parameter, 0, request.parameter_count *
 		sizeof( struct iot_action_parameter ) );
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
@@ -2321,7 +2321,7 @@ static void test_iot_action_process_actions_empty( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 0u;
@@ -2355,7 +2355,7 @@ static void test_iot_action_process_actions_full( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -2409,7 +2409,7 @@ static void test_iot_action_process_actions_not_found( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -2460,7 +2460,7 @@ static void test_iot_action_process_command_no_return( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -2520,7 +2520,7 @@ static void test_iot_action_process_command_parameter_bool( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -2539,7 +2539,7 @@ static void test_iot_action_process_command_parameter_bool( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -2574,7 +2574,7 @@ static void test_iot_action_process_command_parameter_bool( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter[0].name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
@@ -2628,7 +2628,7 @@ static void test_iot_action_process_command_parameter_float( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -2647,7 +2647,7 @@ static void test_iot_action_process_command_parameter_float( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -2686,7 +2686,7 @@ static void test_iot_action_process_command_parameter_float( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 2u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 2u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 2u );
 	for ( i = 0u; i < 2u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -2748,7 +2748,7 @@ static void test_iot_action_process_command_parameter_int( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -2767,7 +2767,7 @@ static void test_iot_action_process_command_parameter_int( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -2812,7 +2812,7 @@ static void test_iot_action_process_command_parameter_int( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 4u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -2886,7 +2886,7 @@ static void test_iot_action_process_command_parameter_location( void **state )
 #endif
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -2905,7 +2905,7 @@ static void test_iot_action_process_command_parameter_location( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -2944,7 +2944,7 @@ static void test_iot_action_process_command_parameter_location( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 1u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -2961,7 +2961,7 @@ static void test_iot_action_process_command_parameter_location( void **state )
 	will_return( __wrap_os_malloc, 1 );
 	loc = os_malloc( sizeof( struct iot_location ) );
 #endif
-	bzero( loc, sizeof( struct iot_location ) );
+	memset( loc, 0, sizeof( struct iot_location ) );
 	loc->longitude = 40.446195;
 	loc->latitude = -79.982195;
 	lib.request_queue_wait[0]->parameter[0].data.heap_storage = loc;
@@ -3012,7 +3012,7 @@ static void test_iot_action_process_command_parameter_null( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -3031,7 +3031,7 @@ static void test_iot_action_process_command_parameter_null( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -3070,7 +3070,7 @@ static void test_iot_action_process_command_parameter_null( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 1u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -3127,7 +3127,7 @@ static void test_iot_action_process_command_parameter_raw( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -3146,7 +3146,7 @@ static void test_iot_action_process_command_parameter_raw( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -3185,7 +3185,7 @@ static void test_iot_action_process_command_parameter_raw( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 1u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -3265,7 +3265,7 @@ static void test_iot_action_process_command_parameter_string( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -3284,7 +3284,7 @@ static void test_iot_action_process_command_parameter_string( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -3324,7 +3324,7 @@ static void test_iot_action_process_command_parameter_string( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 1u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -3403,7 +3403,7 @@ static void test_iot_action_process_command_parameter_string_max_len( void **sta
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -3422,7 +3422,7 @@ static void test_iot_action_process_command_parameter_string_max_len( void **sta
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -3462,7 +3462,7 @@ static void test_iot_action_process_command_parameter_string_max_len( void **sta
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 1u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -3539,7 +3539,7 @@ static void test_iot_action_process_command_parameter_uint( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -3558,7 +3558,7 @@ static void test_iot_action_process_command_parameter_uint( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 		for ( j = 0u; j < IOT_PARAMETER_MAX; ++j )
 		{
@@ -3606,7 +3606,7 @@ static void test_iot_action_process_command_parameter_uint( void **state )
 	lib.request_queue_wait[0]->name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc( sizeof( struct iot_action_parameter ) * 4u );
-	bzero( lib.request_queue_wait[0]->parameter, sizeof( struct iot_action_parameter ) * 4u );
+	memset( lib.request_queue_wait[0]->parameter, 0, sizeof( struct iot_action_parameter ) * 4u );
 	for ( i = 0u; i < 4u; ++i )
 	{
 		will_return( __wrap_os_malloc, 1 );
@@ -3676,7 +3676,7 @@ static void test_iot_action_process_command_script_return_fail( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -3751,7 +3751,7 @@ static void test_iot_action_process_command_system_run_fail( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -3813,7 +3813,7 @@ static void test_iot_action_process_command_valid( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -3888,7 +3888,7 @@ static void test_iot_action_process_exclusive( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -3940,7 +3940,7 @@ static void test_iot_action_process_lib_to_quit( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -3991,7 +3991,7 @@ static void test_iot_action_process_no_handler( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4055,7 +4055,7 @@ static void test_iot_action_process_options( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4131,7 +4131,7 @@ static void test_iot_action_process_parameters_bad_type( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -4236,7 +4236,7 @@ static void test_iot_action_process_parameters_missing_required( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 		size_t j;
@@ -4324,7 +4324,7 @@ static void test_iot_action_process_parameters_undeclared( void **state )
 	char value_str[ IOT_NAME_MAX_LEN + 1u ];
 #endif
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4407,7 +4407,7 @@ static void test_iot_action_process_parameters_unknown_out( void **state )
 	char str[ IOT_NAME_MAX_LEN + 1u ];
 #endif
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4492,7 +4492,7 @@ static void test_iot_action_process_parameters_required_out( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4588,7 +4588,7 @@ static void test_iot_action_process_parameters_valid( void **state )
 	char value_str[ IOT_NAME_MAX_LEN + 1u ];
 #endif
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4601,12 +4601,12 @@ static void test_iot_action_process_parameters_valid( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter = os_malloc(
 			sizeof( struct iot_action_parameter ) * 1u );
-		bzero( lib.action[i].parameter,
+		memset( lib.action[i].parameter, 0,
 			sizeof( struct iot_action_parameter ) * 1u );
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].parameter[0].name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
-		bzero( lib.action[i].name, IOT_NAME_MAX_LEN + 1u );
+		memset( lib.action[i].name, 0, IOT_NAME_MAX_LEN + 1u );
 		lib.action_ptr[i] = &lib.action[i];
 	}
 	lib.action_count = IOT_ACTION_STACK_MAX - 1u;
@@ -4642,7 +4642,7 @@ static void test_iot_action_process_parameters_valid( void **state )
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter = os_malloc(
 		sizeof( struct iot_action_parameter ) * 1u );
-	bzero( lib.request_queue_wait[0]->parameter,
+	memset( lib.request_queue_wait[0]->parameter, 0,
 		sizeof( struct iot_action_parameter ) * 1u );
 	will_return( __wrap_os_malloc, 1 );
 	lib.request_queue_wait[0]->parameter[0].name =
@@ -4688,7 +4688,7 @@ static void test_iot_action_process_valid( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4697,7 +4697,7 @@ static void test_iot_action_process_valid( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.action[i].name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
-		bzero( lib.action[i].name, IOT_NAME_MAX_LEN + 1u );
+		memset( lib.action[i].name, 0, IOT_NAME_MAX_LEN + 1u );
 		lib.action_ptr[i] = &lib.action[i];
 	}
 	lib.action_count = 1u;
@@ -4718,7 +4718,7 @@ static void test_iot_action_process_valid( void **state )
 		will_return( __wrap_os_malloc, 1 );
 		lib.request_queue[i].name = os_malloc( IOT_NAME_MAX_LEN + 1u );
 #endif
-		bzero( lib.request_queue[i].name, IOT_NAME_MAX_LEN + 1u );
+		memset( lib.request_queue[i].name, 0, IOT_NAME_MAX_LEN + 1u );
 		lib.request_queue_wait[i] = &lib.request_queue[i];
 	}
 	strncpy( lib.request_queue_wait[0]->name, "action name", IOT_NAME_MAX_LEN );
@@ -4742,7 +4742,7 @@ static void test_iot_action_process_wait_queue_empty( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4780,7 +4780,7 @@ static void test_iot_action_process_wait_queue_full( void **state )
 	iot_t lib;
 	iot_status_t result;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 	{
 #ifdef IOT_STACK_ONLY
@@ -4850,7 +4850,7 @@ static void test_iot_action_register_callback_null_lib( void **state )
 	iot_action_t action;
 	char data[10] = "some text\0";
 
-	bzero( &action, sizeof( iot_action_t ) );
+	memset( &action, 0, sizeof( iot_action_t ) );
 	action.state = IOT_ITEM_DEREGISTERED;
 	action.lib = NULL;
 	result = iot_action_register_callback( &action, &test_callback_func, (void *)data, NULL, 0u );
@@ -4869,7 +4869,7 @@ static void test_iot_action_register_callback_transmit_fail( void **state )
 	iot_action_t *action;
 	char data[10] = "some text\0";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -4893,7 +4893,7 @@ static void test_iot_action_register_callback_valid( void **state )
 	iot_action_t *action;
 	char data[10] = "some text\0";
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -4924,7 +4924,7 @@ static void test_iot_action_register_command_null_lib( void **state )
 	iot_t lib;
 	iot_action_t *action;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -4942,7 +4942,7 @@ static void test_iot_action_register_command_transmit_fail( void **state )
 	iot_t lib;
 	iot_action_t *action;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -4974,7 +4974,7 @@ static void test_iot_action_register_command_valid( void **state )
 	iot_t lib;
 	iot_action_t *action;
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -5011,7 +5011,7 @@ static void test_iot_action_register_command_valid_long_path( void **state )
 	assert_non_null( script_path );
 	test_generate_random_string( script_path, PATH_MAX + 2u );
 
-	bzero( &lib, sizeof( iot_t ) );
+	memset( &lib, 0, sizeof( iot_t ) );
 	for ( i = 0u; i < IOT_ACTION_STACK_MAX; ++i )
 		lib.action_ptr[i] = &lib.action[i];
 	lib.action_count = 1u;
@@ -5049,7 +5049,7 @@ static void test_iot_action_request_allocate_bad_name( void **state )
 {
 	struct iot iot_lib;
 	struct iot_action_request *result;
-	bzero( &iot_lib, sizeof( struct iot ) );
+	memset( &iot_lib, 0, sizeof( struct iot ) );
 	result = iot_action_request_allocate( &iot_lib, NULL, "fake_source" );
 	assert_null( result );
 }
@@ -5061,7 +5061,7 @@ static void test_iot_action_request_allocate_long_name_and_source( void **state 
 	struct iot_action_request req;
 	char action_name[IOT_NAME_MAX_LEN + 2u];
 	char source_name[IOT_ID_MAX_LEN + 2u];
-	bzero( &iot_lib, sizeof( struct iot ) );
+	memset( &iot_lib, 0, sizeof( struct iot ) );
 	iot_lib.request_queue_free[0u] = &req;
 	test_generate_random_string( action_name, IOT_NAME_MAX_LEN + 2u );
 	test_generate_random_string( source_name, IOT_ID_MAX_LEN + 2u);
@@ -5082,7 +5082,7 @@ static void test_iot_action_request_allocate_no_free_slots( void **state )
 	struct iot iot_lib;
 	struct iot_action_request *result;
 	struct iot_action_request req;
-	bzero( &iot_lib, sizeof( struct iot ) );
+	memset( &iot_lib, 0, sizeof( struct iot ) );
 	iot_lib.request_queue_free[0u] = &req;
 	iot_lib.request_queue_free_count = IOT_ACTION_QUEUE_MAX;
 	result = iot_action_request_allocate( &iot_lib, "my_action", "fake_source" );
@@ -5094,7 +5094,7 @@ static void test_iot_action_request_allocate_no_memory( void **state )
 	struct iot iot_lib;
 	struct iot_action_request *result;
 	struct iot_action_request req;
-	bzero( &iot_lib, sizeof( struct iot ) );
+	memset( &iot_lib, 0, sizeof( struct iot ) );
 	iot_lib.request_queue_free[0u] = &req;
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 0 ); /* for names */
@@ -5114,7 +5114,7 @@ static void test_iot_action_request_allocate_valid( void **state )
 	struct iot iot_lib;
 	struct iot_action_request *result;
 	struct iot_action_request req;
-	bzero( &iot_lib, sizeof( struct iot ) );
+	memset( &iot_lib, 0, sizeof( struct iot ) );
 	iot_lib.request_queue_free[0u] = &req;
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_malloc, 1 ); /* for names */
@@ -5135,7 +5135,7 @@ static void test_iot_action_request_option_get_not_found( void **state )
 	const char *value = NULL;
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_option_get( &req, "not_found", IOT_TRUE,
 		IOT_TYPE_STRING, &value );
 
@@ -5149,7 +5149,7 @@ static void test_iot_action_request_option_get_null_name( void **state )
 	const char *value = NULL;
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_option_get( &req, NULL, IOT_TRUE,
 		IOT_TYPE_STRING, &value );
 
@@ -5179,7 +5179,7 @@ static void test_iot_action_request_option_get_valid( void **state )
 	char opt_value[IOT_OPTION_MAX][IOT_NAME_MAX_LEN];
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.option_count = IOT_OPTION_MAX;
 	req.option = &opt[0u];
 	for ( i = 0u; i < req.option_count; ++i )
@@ -5216,7 +5216,7 @@ static void test_iot_action_request_option_get_wrong_type( void **state )
 	char opt_value[IOT_OPTION_MAX][IOT_NAME_MAX_LEN];
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.option_count = IOT_OPTION_MAX;
 	req.option = &opt[0u];
 	for ( i = 0u; i < req.option_count; ++i )
@@ -5254,7 +5254,7 @@ static void test_iot_action_request_option_set_bad_name( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_option_set( &req, NULL,
 		IOT_TYPE_BOOL, IOT_TRUE );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -5264,7 +5264,7 @@ static void test_iot_action_request_option_set_no_memory_array( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 0 );  /* for option array */
 #endif
@@ -5282,7 +5282,7 @@ static void test_iot_action_request_option_set_no_memory_name( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifdef IOT_STACK_ONLY
 	req.option = req._option;
 #else
@@ -5313,7 +5313,7 @@ static void test_iot_action_request_option_set_valid( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifdef IOT_STACK_ONLY
 	req.option = req._option;
 #else
@@ -5343,7 +5343,7 @@ static void test_iot_action_request_option_set_valid_long_name( void **state )
 	char option_name[ IOT_NAME_MAX_LEN + 2u ];
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	test_generate_random_string( option_name, IOT_NAME_MAX_LEN + 2u );
 #ifdef IOT_STACK_ONLY
 	req.option = req._option;
@@ -5373,7 +5373,7 @@ static void test_iot_action_request_option_set_overwrite( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifdef IOT_STACK_ONLY
 	req.option = req._option;
 #else
@@ -5419,7 +5419,7 @@ static void test_iot_action_request_option_set_raw_bad_name( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_option_set_raw( &req, NULL, 5u, "test" );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }
@@ -5428,7 +5428,7 @@ static void test_iot_action_request_option_set_raw_no_memory_data( void **state 
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 0 ); /* for raw data */
 #endif
@@ -5441,7 +5441,7 @@ static void test_iot_action_request_option_set_raw_no_memory_array( void **state
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for raw data */
 	will_return( __wrap_os_realloc, 0 );  /* for option array */
@@ -5455,7 +5455,7 @@ static void test_iot_action_request_option_set_raw_no_memory_name( void **state 
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for raw data */
 	will_return( __wrap_os_realloc, 1 );  /* for option array */
@@ -5475,7 +5475,7 @@ static void test_iot_action_request_option_set_raw_valid( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for raw data */
 	will_return( __wrap_os_realloc, 1 );  /* for option array */
@@ -5513,7 +5513,7 @@ static void test_iot_action_request_option_set_raw_valid_long_name( void **state
 	char option_name[ IOT_NAME_MAX_LEN + 2u ];
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	test_generate_random_string( option_name, IOT_NAME_MAX_LEN + 2u );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for raw data */
@@ -5548,7 +5548,7 @@ static void test_iot_action_request_option_set_raw_overwrite( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1 ); /* for option array */
 	will_return( __wrap_os_malloc, 1 );  /* for option name */
@@ -5604,9 +5604,9 @@ static void test_iot_action_request_copy_raw( void **state )
 		( sizeof( struct iot_action_parameter ) * 3u );
 	void *data_dest = test_malloc( data_dest_size );
 
-	bzero( data_dest, data_dest_size );
-	bzero( &dest, sizeof( iot_action_request_t ) );
-	bzero( &src, sizeof( iot_action_request_t ) );
+	memset( data_dest, 0, data_dest_size );
+	memset( &dest, 0, sizeof( iot_action_request_t ) );
+	memset( &src, 0, sizeof( iot_action_request_t ) );
 	src.parameter_count = 3u;
 #ifdef IOT_STACK_ONLY
 	src.name = src._name;
@@ -5617,7 +5617,7 @@ static void test_iot_action_request_copy_raw( void **state )
 	src.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 	assert_non_null( src.parameter );
-	bzero( src.parameter, sizeof( struct iot_action_parameter ) *
+	memset( src.parameter, 0, sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 #endif
 	strncpy( src.name, "thisisarequest", IOT_NAME_MAX_LEN );
@@ -5660,9 +5660,9 @@ static void test_iot_action_request_copy_raw_too_big( void **state )
 	char data6[50] = "grteksxdvfhwjbyrheuknguitrmnuyhtnirsuibgrseukgrfe\0";
 	void *data_dest = test_malloc( sizeof( char ) * 600 );
 
-	bzero( &dest, sizeof( iot_action_request_t ) );
-	bzero( &src, sizeof( iot_action_request_t ) );
-	bzero( data_dest, sizeof( char ) * 600 );
+	memset( &dest, 0, sizeof( iot_action_request_t ) );
+	memset( &src, 0, sizeof( iot_action_request_t ) );
+	memset( data_dest, 0, sizeof( char ) * 600 );
 	src.parameter_count = 6u;
 #ifdef IOT_STACK_ONLY
 	src.name = src._name;
@@ -5674,7 +5674,7 @@ static void test_iot_action_request_copy_raw_too_big( void **state )
 	src.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 	assert_non_null( src.parameter );
-	bzero( src.parameter, sizeof( struct iot_action_parameter ) *
+	memset( src.parameter, 0, sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 #endif
 	strncpy( src.name, "thisisarequest", IOT_NAME_MAX_LEN );
@@ -5738,9 +5738,9 @@ static void test_iot_action_request_copy_string( void **state )
 	void *data_dest = test_malloc( data_dest_size );
 	assert_non_null( data_dest );
 
-	bzero( data_dest, data_dest_size );
-	bzero( &dest, sizeof( iot_action_request_t ) );
-	bzero( &src, sizeof( iot_action_request_t ) );
+	memset( data_dest, 0, data_dest_size );
+	memset( &dest, 0, sizeof( iot_action_request_t ) );
+	memset( &src, 0, sizeof( iot_action_request_t ) );
 	src.parameter_count = 3u;
 #ifdef IOT_STACK_ONLY
 	src.name = src._name;
@@ -5751,7 +5751,7 @@ static void test_iot_action_request_copy_string( void **state )
 	src.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 	assert_non_null( src.parameter );
-	bzero( src.parameter, sizeof( struct iot_action_parameter ) *
+	memset( src.parameter, 0, sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 #endif
 	strncpy( src.name, "thisisarequest", IOT_NAME_MAX_LEN );
@@ -5790,9 +5790,9 @@ static void test_iot_action_request_copy_string_too_big( void **state )
 	void *data_dest = test_malloc( sizeof( char ) * 200 );
 	assert_non_null( data_dest );
 
-	bzero( &dest, sizeof( iot_action_request_t ) );
-	bzero( &src, sizeof( iot_action_request_t ) );
-	bzero( data_dest, sizeof( char ) * 200 );
+	memset( &dest, 0, sizeof( iot_action_request_t ) );
+	memset( &src, 0, sizeof( iot_action_request_t ) );
+	memset( data_dest, 0, sizeof( char ) * 200 );
 	src.parameter_count = 6u;
 #ifdef IOT_STACK_ONLY
 	src.name = src._name;
@@ -5803,7 +5803,7 @@ static void test_iot_action_request_copy_string_too_big( void **state )
 	src.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 	assert_non_null( src.parameter );
-	bzero( src.parameter, sizeof( struct iot_action_parameter ) *
+	memset( src.parameter, 0, sizeof( struct iot_action_parameter ) *
 		src.parameter_count );
 #endif
 	strncpy( src.name, "thisisarequest", IOT_NAME_MAX_LEN );
@@ -5841,7 +5841,7 @@ static void test_iot_action_request_copy_size_no_parameters( void **state )
 	size_t size;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 0u;
 	size = iot_action_request_copy_size( &request );
 	assert_int_equal( size, 0u );
@@ -5852,7 +5852,7 @@ static void test_iot_action_request_copy_size_no_pointers( void **state )
 	size_t size;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -5860,7 +5860,7 @@ static void test_iot_action_request_copy_size_no_pointers( void **state )
 	request.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 	assert_non_null( request.parameter );
-	bzero( request.parameter, sizeof( struct iot_action_parameter ) *
+	memset( request.parameter, 0, sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 #endif
 	request.parameter[0].data.value.uint8 = 4u;
@@ -5888,7 +5888,7 @@ static void test_iot_action_request_copy_size_no_values( void **state )
 	size_t size;
 	iot_action_request_t request;
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -5896,7 +5896,7 @@ static void test_iot_action_request_copy_size_no_values( void **state )
 	request.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 	assert_non_null( request.parameter );
-	bzero( request.parameter, sizeof( struct iot_action_parameter ) *
+	memset( request.parameter, 0, sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 #endif
 	request.parameter[0].data.has_value = IOT_FALSE;
@@ -5929,7 +5929,7 @@ static void test_iot_action_request_copy_size_raw( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -5937,7 +5937,7 @@ static void test_iot_action_request_copy_size_raw( void **state )
 	request.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 	assert_non_null( request.parameter );
-	bzero( request.parameter, sizeof( struct iot_action_parameter ) *
+	memset( request.parameter, 0, sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 #endif
 	request.parameter[0].data.has_value = IOT_FALSE;
@@ -5965,7 +5965,7 @@ static void test_iot_action_request_copy_size_string( void **state )
 	iot_action_request_t request;
 	const char data[10] = "some text\0";
 
-	bzero( &request, sizeof( iot_action_request_t ) );
+	memset( &request, 0, sizeof( iot_action_request_t ) );
 	request.parameter_count = 2u;
 #ifdef IOT_STACK_ONLY
 	request.parameter = request._parameter;
@@ -5973,7 +5973,7 @@ static void test_iot_action_request_copy_size_string( void **state )
 	request.parameter = test_malloc( sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 	assert_non_null( request.parameter );
-	bzero( request.parameter, sizeof( struct iot_action_parameter ) *
+	memset( request.parameter, 0, sizeof( struct iot_action_parameter ) *
 		request.parameter_count );
 #endif
 	request.parameter[0].data.has_value = IOT_FALSE;
@@ -5998,7 +5998,7 @@ static void test_iot_action_request_execute_invalid_request( void **state )
 {
 	struct iot_action_request req;
 	iot_status_t result;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_execute( &req, 0u );
 	assert_int_equal( result, IOT_STATUS_NOT_INITIALIZED );
 }
@@ -6008,8 +6008,8 @@ static void test_iot_action_request_execute_full_queue( void **state )
 	struct iot lib;
 	struct iot_action_request req;
 	iot_status_t result;
-	bzero( &lib, sizeof( struct iot ) );
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &lib, 0, sizeof( struct iot ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 
 	/* sets the queue to full */
 	lib.request_queue_wait_count = IOT_ACTION_QUEUE_MAX;
@@ -6033,8 +6033,8 @@ static void test_iot_action_request_execute_success( void **state )
 	struct iot lib;
 	struct iot_action_request req;
 	iot_status_t result;
-	bzero( &lib, sizeof( struct iot ) );
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &lib, 0, sizeof( struct iot ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.lib = &lib;
 	result = iot_action_request_execute( &req, 0u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );
@@ -6053,14 +6053,14 @@ static void test_iot_action_request_free_valid_req( void **state )
 	struct iot_action_request req;
 	struct iot iot_lib;
 	size_t i;
-	bzero( &req, sizeof( struct iot_action_request ) );
-	bzero( &iot_lib, sizeof( struct iot ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
+	memset( &iot_lib, 0, sizeof( struct iot ) );
 	req.lib = &iot_lib;
 #ifdef IOT_STACK_ONLY
 	req.option = &req._option[0u];
-	bzero( req.option, sizeof( struct iot_option ) * IOT_OPTION_MAX );
+	memset( req.option, 0, sizeof( struct iot_option ) * IOT_OPTION_MAX );
 	req.parameter = &req._parameter[0u];
-	bzero( req.parameter, sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
+	memset( req.parameter, 0, sizeof( struct iot_action_parameter ) * IOT_PARAMETER_MAX );
 	for ( i = 0u; i < IOT_PARAMETER_MAX; ++i )
 	{
 		req.parameter[i].name = req.parameter[i]._name;
@@ -6118,7 +6118,7 @@ static void test_iot_action_request_parameter_iterator_bad_iter( void **state )
 {
 	iot_status_t result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_parameter_iterator( &req, IOT_PARAMETER_OUT, NULL );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }
@@ -6138,7 +6138,7 @@ static void test_iot_action_request_parameter_iterator_no_items( void **state )
 	struct iot_action_request req;
 	iot_action_request_parameter_iterator_t iter = 0u;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_parameter_iterator(
 		&req, IOT_PARAMETER_OUT, &iter );
 	assert_int_equal( result, IOT_STATUS_NOT_FOUND );
@@ -6159,7 +6159,7 @@ static void test_iot_action_request_parameter_iterator_not_found( void **state )
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6195,7 +6195,7 @@ static void test_iot_action_request_parameter_iterator_valid( void **state )
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6240,7 +6240,7 @@ static void test_iot_action_request_parameter_iterator_data_type_valid( void **s
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6293,7 +6293,7 @@ static void test_iot_action_request_parameter_iterator_get_valid( void **state )
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6354,7 +6354,7 @@ static void test_iot_action_request_parameter_iterator_get_raw_valid( void **sta
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6411,7 +6411,7 @@ static void test_iot_action_request_parameter_iterator_name_valid( void **state 
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6445,7 +6445,7 @@ static void test_iot_action_request_parameter_iterator_next_bad_iter( void **sta
 	iot_status_t result;
 	struct iot_action_request req;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_parameter_iterator_next( &req, NULL );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
 }
@@ -6472,7 +6472,7 @@ static void test_iot_action_request_parameter_iterator_next_valid( void **state 
 
 	struct iot_action_parameter param[IOT_PARAMETER_MAX];
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.parameter_count = IOT_PARAMETER_MAX;
 	req.parameter = &param[0];
 	for ( i = 0u; i < req.parameter_count; ++i )
@@ -6520,7 +6520,7 @@ static void test_iot_action_request_parameter_set_bad_name( void **state )
 	struct iot_action_request req;
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_parameter_set( &req,
 		NULL, IOT_TYPE_STRING, "blah" );
 	assert_int_equal( result, IOT_STATUS_BAD_PARAMETER );
@@ -6531,7 +6531,7 @@ static void test_iot_action_request_parameter_set_bad_type( void **state )
 	struct iot_action_request req;
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u );
@@ -6559,7 +6559,7 @@ static void test_iot_action_request_parameter_set_no_memory_array( void **state 
 	struct iot_action_request req;
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 0u );
@@ -6581,7 +6581,7 @@ static void test_iot_action_request_parameter_set_no_memory_name( void **state )
 	struct iot_action_request req;
 	iot_status_t result;
 
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 
 #ifndef IOT_STACK_ONLY
 	will_return( __wrap_os_realloc, 1u );
@@ -6609,7 +6609,7 @@ static void test_iot_action_request_source_no_source_set( void **state )
 {
 	const char *result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	result = iot_action_request_source( &req );
 	assert_null( result );
 }
@@ -6619,7 +6619,7 @@ static void test_iot_action_request_source_valid_source( void **state )
 	char source[10u];
 	const char *result;
 	struct iot_action_request req;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	strncpy( source, "my_source", 10u );
 	req.source = source;
 	result = iot_action_request_source( &req );
@@ -6642,7 +6642,7 @@ static void test_iot_action_request_status_req_error( void **state )
 	const char *msg = NULL;
 	struct iot_action_request req;
 	iot_status_t result;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	req.result = IOT_STATUS_NO_MEMORY;
 	will_return( __wrap_iot_error, "no more memory" );
 	result = iot_action_request_status( &req, &msg );
@@ -6656,7 +6656,7 @@ static void test_iot_action_request_status_req_error_with_description( void **st
 	const char *msg = NULL;
 	struct iot_action_request req;
 	iot_status_t result;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	strncpy( err_msg, "this is my error description", 64u );
 	req.result = IOT_STATUS_TIMED_OUT;
 	req.error = err_msg;
@@ -6671,7 +6671,7 @@ static void test_iot_action_request_status_req_success( void **state )
 	const char *msg = NULL;
 	struct iot_action_request req;
 	iot_status_t result;
-	bzero( &req, sizeof( struct iot_action_request ) );
+	memset( &req, 0, sizeof( struct iot_action_request ) );
 	strncpy( err_msg, "this is my error description", 64u );
 	req.result = IOT_STATUS_SUCCESS;
 	req.error = err_msg;
@@ -6692,7 +6692,7 @@ static void test_iot_action_time_limit_set_valid( void **state )
 	struct iot_action act;
 	iot_status_t result;
 
-	bzero( &act, sizeof( struct iot_action ) );
+	memset( &act, 0, sizeof( struct iot_action ) );
 	/* set a time limit */
 	result = iot_action_time_limit_set( &act, 100u );
 	assert_int_equal( result, IOT_STATUS_SUCCESS );

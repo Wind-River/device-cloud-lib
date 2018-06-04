@@ -25,7 +25,6 @@
 #include <os.h>
 #include <errno.h>
 #include <stdarg.h>     /* for va_list, va_start, va_end */
-#include <sys/wait.h>   /* for waitpid */
 
 /*#define UPDATE_DEBUG*/
 
@@ -673,11 +672,11 @@ iot_status_t update_parse_json(
 		if( fd )
 		{
 			long cur_pos = os_file_tell( fd );
-			if ( os_file_seek( fd, 0, SEEK_END ) == 0 )
+			if ( os_file_seek( fd, 0, OS_FILE_SEEK_END ) == 0 )
 			{
 				ssize = os_file_tell( fd );
 				if ( cur_pos != ssize )
-					os_file_seek( fd, cur_pos, SEEK_SET );
+					os_file_seek( fd, cur_pos, OS_FILE_SEEK_START );
 			}
 		}
 		else

@@ -170,13 +170,13 @@ struct iot_plugin
 	IOT_API iot_bool_t x ## _info( const char **name, iot_int32_t *order,\
 		iot_version_t *ver, iot_version_t *min, iot_version_t *max ); \
 	IOT_API iot_bool_t x ## _load( iot_plugin_t *p ); \
-	iot_bool_t x ## _info( const char **name, iot_int32_t *order,\
+	IOT_API iot_bool_t x ## _info( const char **name, iot_int32_t *order,\
 		iot_version_t *ver, iot_version_t *min, iot_version_t *max ) {\
 		if (name) *name = (#x2); if (order) *order = (o);\
 		if (ver) *ver = (v); if (min) *min = (y); if (max) *max = (z);\
 		return IOT_TRUE;\
 	}\
-	iot_bool_t x ## _load( iot_plugin_t *p ) {\
+	IOT_API iot_bool_t x ## _load( iot_plugin_t *p ) {\
 		p->disable = &( x2 ## _disable );\
 		p->enable = &( x2 ## _enable );\
 		p->execute = &( x2 ## _execute );\

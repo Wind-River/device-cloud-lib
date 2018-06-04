@@ -48,19 +48,19 @@
 static iot_status_t app_jsmn_decode_number(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	double *value,
+	iot_float64_t *value,
 	iot_bool_t *is_integer );
 
 iot_status_t app_jsmn_decode_number(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	double *value,
+	iot_float64_t *value,
 	iot_bool_t *is_integer )
 {
 	const jsmntok_t *const cur = (const jsmntok_t *)item;
 	iot_bool_t is_int = IOT_TRUE;
 	iot_status_t result = IOT_STATUS_BAD_REQUEST;
-	double v = 0.0;
+	iot_float64_t v = 0.0;
 
 	if ( cur->type == JSMN_PRIMITIVE )
 	{
@@ -83,7 +83,7 @@ iot_status_t app_jsmn_decode_number(
 					e = (e * 10) + (c - '0');
 				else if ( denom >= 10u )
 				{
-					v = v + (double)((double)(c - '0') / (double)denom);
+					v += (iot_float64_t)((double)(c - '0') / (double)denom);
 					denom *= 10u;
 					++d_count;
 				}
@@ -480,7 +480,7 @@ app_json_decoder_t *app_json_decode_initialize(
 iot_status_t app_json_decode_integer(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	long *value )
+	iot_int64_t *value )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	long v = 0;
@@ -538,10 +538,10 @@ iot_status_t app_json_decode_integer(
 iot_status_t app_json_decode_number(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	double *value )
+	iot_float64_t *value )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	double v = 0.0;
+	iot_float64_t v = 0.0;
 	if ( decoder && item )
 	{
 #if defined( IOT_JSON_JANSSON )
@@ -549,7 +549,7 @@ iot_status_t app_json_decode_number(
 		result = IOT_STATUS_BAD_REQUEST;
 		if ( json_is_number( j ) )
 		{
-			v = (double)json_number_value( j );
+			v = (iot_float64_t)json_number_value( j );
 			result = IOT_STATUS_SUCCESS;
 		}
 #elif defined( IOT_JSON_JSONC )
@@ -1035,10 +1035,10 @@ iot_status_t app_json_decode_parse(
 iot_status_t app_json_decode_real(
 	const app_json_decoder_t *decoder,
 	const app_json_item_t *item,
-	double *value )
+	iot_float64_t *value )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	double v = 0.0;
+	iot_float64_t v = 0.0;
 	if ( decoder && item )
 	{
 #if defined( IOT_JSON_JANSSON )
@@ -1046,7 +1046,7 @@ iot_status_t app_json_decode_real(
 		result = IOT_STATUS_BAD_REQUEST;
 		if ( json_is_real( j ) )
 		{
-			v = (double)json_real_value( j );
+			v = (iot_float64_t)json_real_value( j );
 			result = IOT_STATUS_SUCCESS;
 		}
 #elif defined( IOT_JSON_JSONC )
@@ -1055,7 +1055,7 @@ iot_status_t app_json_decode_real(
 		result = IOT_STATUS_BAD_REQUEST;
 		if ( json_object_is_type( j, json_type_double ) != FALSE )
 		{
-			v = (double)json_object_get_double( j );
+			v = (iot_float64_t)json_object_get_double( j );
 			result = IOT_STATUS_SUCCESS;
 		}
 #else /* defined( IOT_JSON_JSMN ) */

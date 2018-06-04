@@ -36,17 +36,18 @@ add_custom_command( OUTPUT
 	COMMENT "Generating C source & header files from JSON schema"
 )
 
-#################################################
 include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}
+	"${CMAKE_CURRENT_BINARY_DIR}"
 )
 
+# Header files
 set( IOT_HDRS_C ${IOT_HDRS_C}
 	"control_main.h"
 	"control_config.h"
 	"${CMAKE_CURRENT_BINARY_DIR}/${JSON_SCHEMA_HEADER_FILE}"
 )
 
+# Source files
 set( IOT_SRCS_C ${IOT_SRCS_C}
 	"control.c"
 	"control_main.c"
@@ -54,12 +55,23 @@ set( IOT_SRCS_C ${IOT_SRCS_C}
 	"${CMAKE_CURRENT_BINARY_DIR}/${JSON_SCHEMA_SOURCE_FILE}"
 )
 
+# Resource files
+if ( WIN32 )
+	set( PROJECT_ICON "${PROJECT_RESOURCE_PATH_WIN32}/iot.ico" )
+
+	configure_file(
+		"${PROJECT_RESOURCE_PATH_WIN32}/version.rc.in"
+		"${CMAKE_CURRENT_BINARY_DIR}/version.rc"
+		@ONLY )
+	set( IOT_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/version.rc" )
+endif ( WIN32 )
+
 add_executable( "${TARGET}"
 	${IOT_HDRS_C}
 	${IOT_HDRS_CXX}
 	${IOT_SRCS_C}
 	${IOT_SRCS_CXX}
-	${IOT_VERSION_FILES}
+	${IOT_RESOURCE_FILES}
 )
 
 target_link_libraries( "${TARGET}"
@@ -67,8 +79,6 @@ target_link_libraries( "${TARGET}"
 	${JSON_LIBRARIES}
 	${OSAL_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
-	m
-	dl
 )
 
 # Installation instructions
