@@ -1053,10 +1053,10 @@ iot_status_t tr50_connect(
 	iot_bool_t is_reconnect )
 {
 	iot_status_t result = IOT_STATUS_FAILURE;
-	const char *reason = "connect";
+	const char *operation = "connect";
 	if ( is_reconnect != IOT_FALSE )
-		reason = "reconnect";
-	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", reason );
+		operation = "reconnect";
+	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", operation );
 
 	if ( data )
 	{
@@ -1065,6 +1065,7 @@ iot_status_t tr50_connect(
 		iot_mqtt_connect_options_t con_opts = IOT_MQTT_CONNECT_OPTIONS_INIT;
 		const char *host = NULL;
 		const char *proxy_type = NULL;
+		char fail_reason[128u] = { '\0' };
 		iot_int64_t port = 0;
 		iot_mqtt_ssl_t ssl_conf;
 		iot_mqtt_proxy_t proxy_conf;
@@ -1114,7 +1115,7 @@ iot_status_t tr50_connect(
 
 		if ( app_token == NULL )
 			IOT_LOG( lib, IOT_LOG_ERROR, "tr50 %s: %s",
-				reason, "no application token provided" );
+				operation, "no application token provided" );
 
 		os_snprintf( data->thing_key, TR50_THING_KEY_MAX_LEN,
 			"%s-%s", lib->device_id, iot_id( lib ) );
@@ -1129,6 +1130,8 @@ iot_status_t tr50_connect(
 		con_opts.username = data->thing_key;
 		con_opts.password = app_token;
 		con_opts.version = IOT_MQTT_VERSION_3_1_1;
+		con_opts.error_msg = fail_reason;
+		con_opts.error_msg_len = sizeof(fail_reason);
 		if ( is_reconnect == IOT_FALSE )
 		{
 			data->mqtt = iot_mqtt_connect( &con_opts, max_time_out );
@@ -1152,13 +1155,13 @@ iot_status_t tr50_connect(
 				tr50_on_message );
 			iot_mqtt_subscribe( data->mqtt, "reply/#", TR50_MQTT_QOS );
 			IOT_LOG( lib, IOT_LOG_INFO, "tr50 %s: %s",
-				reason, "successfully" );
+				operation, "successfully" );
 			result = tr50_check_mailbox( data, txn );
 		}
 		else if ( is_reconnect == IOT_FALSE ) /* show on connect only */
 		{
 			IOT_LOG( lib, IOT_LOG_ERROR,
-				"tr50: failed to %s", reason );
+				"tr50: failed to connect: %s", fail_reason );
 		}
 	}
 	return result;
@@ -1176,7 +1179,7 @@ iot_status_t tr50_connect_check(
 	{
 		iot_bool_t connected = IOT_TRUE;
 		iot_timestamp_t time_stamp_changed = 0u;
-		 iot_timestamp_t time_stamp_diff;
+		iot_timestamp_t time_stamp_diff;
 
 		/* obtain the current connection status */
 		result = iot_mqtt_connection_status( data->mqtt,

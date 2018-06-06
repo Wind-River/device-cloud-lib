@@ -405,11 +405,13 @@ iot_status_t iot_mqtt_connect_impl(
 #ifdef IOT_MQTT_MOSQUITTO
 		int mosq_res;
 #else /* ifdef IOT_MQTT_MOSQUITTO */
+		int connect_rc = 0;
 		PAHO_OBJ( _connectOptions ) conn_opts =
 			PAHO_OBJ( _connectOptions_initializer );
 		PAHO_OBJ( _SSLOptions ) ssl_opts =
 			PAHO_OBJ( _SSLOptions_initializer );
 #endif /* else ifdef IOT_MQTT_MOSQUITTO */
+		const char *fail_reason;
 		iot_uint16_t port = opts->port;
 		iot_millisecond_t wait_time = 0u; /* time wait so far */
 
@@ -514,18 +516,34 @@ iot_status_t iot_mqtt_connect_impl(
 
 			if ( mosq_res == MOSQ_ERR_SUCCESS )
 			{
+#if !defined(__VXWORKS__)
+				os_status_t wait_result;
 				mosquitto_loop_start( mqtt->mosq );
 
 				/* wait here until connected or timed out! */
 				if ( max_time_out > 0u )
-					os_thread_condition_timed_wait(
+				{
+					wait_result = os_thread_condition_timed_wait(
 						&mqtt->notification_signal,
 						&mqtt->notification_mutex,
 						max_time_out );
+				}
 				else
-					os_thread_condition_wait(
+				{
+					wait_result = os_thread_condition_wait(
 						&mqtt->notification_signal,
 						&mqtt->notification_mutex );
+				}
+
+				if ( wait_result != OS_STATUS_SUCCESS )
+					mosq_res = MOSQ_ERR_ERRNO;
+#else /* if !defined(__VXWORKS__) */
+				/* signals are not received on VxWorks, so
+				 * assume connection is successful. */
+				mosquitto_loop_start( mqtt->mosq );
+				mqtt->is_connected = IOT_TRUE;
+				mqtt->time_stamp_changed = iot_timestamp_now();
+#endif /* else if !defined(__VXWORKS__) */
 			}
 #else /* ifdef IOT_THREAD_SUPPORT */
 			if ( reconnect == IOT_FALSE )
@@ -581,6 +599,10 @@ iot_status_t iot_mqtt_connect_impl(
 			}
 		} while ( mosq_res == MOSQ_ERR_EAI &&
 			( max_time_out == 0u || wait_time < max_time_out ) );
+
+		if ( mqtt->is_connected == IOT_FALSE &&
+			(max_time_out == 0u || wait_time < max_time_out))
+			fail_reason = mosquitto_strerror(mosq_res);
 #else /* ifdef IOT_MQTT_MOSQUITTO */
 		if ( opts->proxy_conf )
 			os_fprintf(OS_STDERR,
@@ -660,33 +682,72 @@ iot_status_t iot_mqtt_connect_impl(
 				wait_interval = max_time_out;
 
 #ifdef IOT_THREAD_SUPPORT
-			if ( MQTTAsync_connect( mqtt->client, &conn_opts )
-				== MQTTASYNC_SUCCESS )
+			connect_rc = MQTTAsync_connect(
+				mqtt->client, &conn_opts );
+			if ( connect_rc == MQTTASYNC_SUCCESS )
 				os_thread_condition_timed_wait(
 					&mqtt->notification_signal,
 					&mqtt->notification_mutex,
 					wait_interval );
 			else
+			{
 				max_time_out = 0u; /* failure, so break loop */
+			}
 #else /* ifdef IOT_THREAD_SUPPORT */
-			if ( MQTTClient_connect( mqtt->client, &conn_opts )
-				== MQTTCLIENT_SUCCESS )
+			connect_rc = MQTTClient_connect(
+				mqtt->client, &conn_opts );
+			if ( connect_rc == MQTTCLIENT_SUCCESS )
 				mqtt->is_connected = IOT_TRUE;
 			else
 				os_time_sleep( wait_interval, IOT_TRUE );
 #endif /* else ifdef IOT_THREAD_SUPPORT */
 			wait_time += wait_interval;
 		}
-#endif /* else ifdef IOT_MQTT_MOSQUITTO */
 
+		switch( connect_rc )
+		{
+		case 0:
+			fail_reason = NULL;
+			break;
+		case 1:
+			fail_reason = "Connection refused: Unacceptable protocol version";
+			break;
+		case 2:
+			fail_reason = "Connection refused: Identifier rejected";
+			break;
+		case 3:
+			fail_reason = "Connection refused: Server unavailable";
+			break;
+		case 4:
+			fail_reason = "Connection refused: Bad user name or password";
+			break;
+		case 5:
+			fail_reason = "Connection refused: Not authorized";
+			break;
+		default:
+			fail_reason = "Connection refused: Unknown reason";
+		}
+#endif /* else ifdef IOT_MQTT_MOSQUITTO */
 		/* if we connected then success */
 		if ( mqtt->is_connected != IOT_FALSE )
+		{
+			fail_reason = "Success";
 			result = IOT_STATUS_SUCCESS;
+		}
+		else if ( !fail_reason )
+			fail_reason = "Timed out";
+
+		if (opts->error_msg && opts->error_msg_len > 0u)
+		{
+			os_strncpy(opts->error_msg, fail_reason,
+				opts->error_msg_len);
+			opts->error_msg[opts->error_msg_len - 1u] = '\0';
+		}
 	}
 	return result;
 }
 
-IOT_API IOT_SECTION iot_status_t iot_mqtt_connection_status(
+iot_status_t iot_mqtt_connection_status(
 	const iot_mqtt_t* mqtt,
 	iot_bool_t *connected,
 	iot_timestamp_t *time_stamp_changed )
@@ -702,7 +763,6 @@ IOT_API IOT_SECTION iot_status_t iot_mqtt_connection_status(
 	}
 	return result;
 }
-
 
 iot_status_t iot_mqtt_disconnect(
 	iot_mqtt_t* mqtt )
@@ -904,6 +964,9 @@ void iot_mqtt_on_failure(
 	iot_mqtt_t *const mqtt = (iot_mqtt_t *)user_data;
 	if ( mqtt && response && response->token == 0u )
 	{
+		if (response->message)
+			os_fprintf( OS_STDERR, "Operation failed: %s\n",
+				response->message );
 		if ( mqtt->is_connected != IOT_FALSE )
 		{
 			mqtt->is_connected = IOT_FALSE;
@@ -940,7 +1003,6 @@ void iot_mqtt_on_success(
 	iot_mqtt_t *const mqtt = (iot_mqtt_t *)user_data;
 	if ( mqtt && response && response->token == 0u )
 	{
-		/* called on a connection */
 		if ( mqtt->is_connected == IOT_FALSE )
 		{
 			mqtt->is_connected = IOT_TRUE;

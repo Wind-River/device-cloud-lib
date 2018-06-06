@@ -122,13 +122,17 @@ typedef struct iot_mqtt_connect_options
 	iot_mqtt_version_t version;
 	/** @brief HTTP to request if using websockets (optional, if NULL: don't use websockets) */
 	const char *websocket_path;
+	/** @brief error message buffer (optional) */
+	char *error_msg;
+	/** @brief length of error message buffer (optional) */
+	size_t error_msg_len;
 } iot_mqtt_connect_options_t;
 
 /**
  * @brief Initializes the @p iot_mqtt_connection_options_t structure
  */
 #define IOT_MQTT_CONNECT_OPTIONS_INIT \
-	{ NULL, NULL, 0u, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT, NULL }
+	{ NULL, NULL, 0u, 0u, NULL, NULL, NULL, NULL, IOT_MQTT_VERSION_DEFAULT, NULL, NULL, 0u }
 
 /**
  * @brief internal MQTT structure
