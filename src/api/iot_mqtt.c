@@ -411,7 +411,7 @@ iot_status_t iot_mqtt_connect_impl(
 		PAHO_OBJ( _SSLOptions ) ssl_opts =
 			PAHO_OBJ( _SSLOptions_initializer );
 #endif /* else ifdef IOT_MQTT_MOSQUITTO */
-		const char *fail_reason;
+		const char *fail_reason = NULL;
 		iot_uint16_t port = opts->port;
 		iot_millisecond_t wait_time = 0u; /* time wait so far */
 

@@ -58,6 +58,7 @@ void __wrap_iot_plugin_terminate( iot_plugin_t *p );
 iot_status_t __wrap_iot_telemetry_free( iot_telemetry_t *telemetry,
 	iot_millisecond_t max_time_out );
 
+/* mock iot_json functions */
 iot_status_t __wrap_iot_json_decode_bool(
 	const iot_json_decoder_t *json,
 	const iot_json_item_t *item,
@@ -96,6 +97,10 @@ iot_status_t __wrap_iot_json_decode_parse(
 	char *error,
 	size_t error_len );
 iot_status_t __wrap_iot_json_decode_real(
+	const iot_json_decoder_t *json,
+	const iot_json_item_t *item,
+	iot_float64_t *value );
+iot_status_t __wrap_iot_json_decode_number(
 	const iot_json_decoder_t *json,
 	const iot_json_item_t *item,
 	iot_float64_t *value );
@@ -296,6 +301,15 @@ iot_status_t __wrap_iot_json_decode_parse(
 }
 
 iot_status_t __wrap_iot_json_decode_real(
+	const iot_json_decoder_t *json,
+	const iot_json_item_t *item,
+	iot_float64_t *value )
+{
+	if ( value ) *value = 1.2345;
+	return IOT_STATUS_SUCCESS;
+}
+
+iot_status_t __wrap_iot_json_decode_number(
 	const iot_json_decoder_t *json,
 	const iot_json_item_t *item,
 	iot_float64_t *value )

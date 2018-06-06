@@ -15,8 +15,16 @@
  * OR CONDITIONS OF ANY KIND, either express or implied."
  */
 
-#include <stdarg.h>
 #include "relay_main.h"
+
+#include "app_arg.h"                   /* for struct app_arg & functions */
+#include "app_config.h"                /* for proxy configuration */
+#include "app_path.h"                  /* for path support functions */
+
+#include "iot_build.h"                 /* for IOT_NAME_FULL */
+#include "iot.h"                       /* for iot_bool_t type */
+#include "iot_mqtt.h"
+#include "shared/iot_types.h"          /* for proxy struct */
 
 #if defined( IOT_WEBSOCKET_CIVETWEB )
 #	include <civetweb.h>                  /* for civetweb functions */
@@ -42,14 +50,16 @@
 #	define SEND_BUFFER_POST_PADDING       LWS_SEND_BUFFER_POST_PADDING
 #endif /* else if defined( IOT_WEBSOCKET_CIVETWEB ) */
 
-#include "iot_build.h"                 /* for IOT_NAME_FULL */
-#include "iot.h"                       /* for iot_bool_t type */
-#include "shared/iot_types.h"          /* for proxy struct */
 #include "app_arg.h"                   /* for struct app_arg & functions */
-/*#include "app-common/app_config.h"     *//* for proxy configuration */
-/*#include "app-common/app_path.h"       *//* for path support functions */
+#include "app_config.h"                /* for proxy configuration */
+#include "app_path.h"                  /* for path support functions */
+#include "iot.h"                       /* for iot_bool_t type */
+#include "iot_build.h"                 /* for IOT_NAME_FULL */
+#include "iot_mqtt.h"
+#include "shared/iot_types.h"          /* for proxy struct */
 
 #include <os.h>                        /* for os_* functions */
+#include <stdarg.h>                    /* for va_list */
 
 /* defines */
 /** @brief Key used to initialize a client connection */
@@ -456,7 +466,6 @@ int relay_client( const char *url,
 #endif /* if civetweb > 1.10 || libwebsockets >= 1.4 */
 	struct relay_data *const app_data = &APP_DATA;
 
-	/*FIXME*/
 	(void)config_file;
 
 	/* print client configuration */
@@ -538,15 +547,15 @@ int relay_client( const char *url,
 
 	if ( result == EXIT_SUCCESS )
 	{
-		/*struct app_config* conf;*/
 #if !defined( IOT_WEBSOCKET_CIVETWEB )
-		char cert_path[ PATH_MAX + 1u ];
+		struct app_config *conf;
+		char cert_path[PATH_MAX + 1];
 		struct lws_context *context = NULL;
 		struct lws_context_creation_info context_ci;
 		struct lws_protocols protocols[ 2u ];
 #if LWS_LIBRARY_VERSION_MAJOR > 1 || \
 	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR >= 3 )
-		/*struct iot_proxy proxy_info;*/
+	   /* struct iot_proxy proxy_info;*/ /*FIXME*/
 #endif /* libwebsockets >= 1.3.0 */
 #endif /* if !defined( IOT_WEBSOCKET_CIVETWEB ) */
 		char web_url[ PATH_MAX + 1u ];
@@ -589,24 +598,27 @@ int relay_client( const char *url,
 	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR >= 4 )
 			protocols[0].user = app_data;
 #endif /* libwebsockets >= 1.4.0 */
-
 			/* set ca certificate directory */
 			os_strncpy( cert_path, IOT_DEFAULT_CERT_PATH, PATH_MAX );
-			/*FIXME*/
-			/*conf = app_config_open( NULL, config_file );*/
-			/*if ( conf )*/
-			/*{*/
-			/*iot_bool_t ssl_validation = !insecure;*/
-			/*app_config_read_boolean( conf, NULL, "ssl_validation",*/
-			/*&ssl_validation );*/
-			/*insecure = !ssl_validation;*/
+			conf = app_config_open( config_file );
+			if ( conf )
+			{
+				const char *temp = NULL;
+				size_t temp_len = 0u;
 
-			/*app_config_read_string( conf, NULL, "cert_path",*/
-			/*cert_path, PATH_MAX );*/
-			/*}*/
+				iot_bool_t ssl_validation = !insecure;
+				app_config_read_boolean( conf, NULL, "ssl_validation",
+					&ssl_validation );
+				insecure = !ssl_validation;
 
-			/*if ( conf )*/
-			/*app_config_close( conf );*/
+				if( app_config_read_string( conf, NULL, "cert_path",
+					&temp, &temp_len ) == IOT_STATUS_SUCCESS && temp_len <= PATH_MAX )
+				{
+					os_strncpy( cert_path, temp, temp_len );
+					cert_path[temp_len] = '\0';
+				}
+			} else
+				app_config_close( conf );
 
 			/* context creation info */
 			os_memzero( &context_ci, sizeof( struct lws_context_creation_info ) );
@@ -615,8 +627,7 @@ int relay_client( const char *url,
 			context_ci.protocols = &protocols[0];
 			context_ci.extensions = NULL;
 
-			/*FIXME*/
-			/*app_path_make_absolute( cert_path, PATH_MAX, IOT_TRUE );*/
+			app_path_make_absolute( cert_path, PATH_MAX, IOT_TRUE );
 			if ( verbose != IOT_FALSE && ( *cert_path ) )
 				relay_log( IOT_LOG_DEBUG,
 					"CA certificate path: %s",
@@ -633,63 +644,61 @@ int relay_client( const char *url,
 
 #if LWS_LIBRARY_VERSION_MAJOR > 1 || \
 	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR >= 3 )
+			/* FIXME */
 			/* setup proxy connection, if defined */
-			/*os_memzero( &proxy_info, sizeof( struct iot_proxy ) );*/
-			/*FIXME*/
-			/*if ( app_config_read_proxy_file( &proxy_info ) ==*/
-			/*OS_STATUS_SUCCESS )*/
-			/*{*/
-			/*char address[ RELAY_MAX_ADDRESS_LEN + 1u ];*/
-			/*size_t address_len = 0;*/
-			/**address = '\0';*/
-			/*address[ RELAY_MAX_ADDRESS_LEN ] = '\0';*/
-			/*if ( *proxy_info.username != '\0' )*/
-			/*{*/
-			/*os_strncpy( address,*/
-			/*proxy_info.username,*/
-			/*RELAY_MAX_ADDRESS_LEN - address_len );*/
-			/*address_len = os_strlen( address );*/
-			/*if ( *proxy_info.password != '\0' )*/
-			/*{*/
-			/*os_snprintf( &address[address_len],*/
-			/*RELAY_MAX_ADDRESS_LEN - address_len,*/
-			/*":%s", proxy_info.password );*/
-			/*address_len = os_strlen( address );*/
-			/*}*/
-			/*os_strncpy( &address[address_len], "@",*/
-			/*RELAY_MAX_ADDRESS_LEN - address_len );*/
-			/*++address_len;*/
-			/*}*/
-			/*os_strncpy( &address[address_len],*/
-			/*proxy_info.host,*/
-			/*RELAY_MAX_ADDRESS_LEN - address_len );*/
+			/* os_memzero( &proxy_info, sizeof( struct iot_proxy ) ); */
+			/* if ( app_config_read_proxy_file( &proxy_info ) == */
+			/* 	IOT_STATUS_SUCCESS ) */
+			/* { */
+			/* 	char address[ RELAY_MAX_ADDRESS_LEN + 1u ]; */
+			/* 	size_t address_len = 0; */
+			/* 	*address = '\0'; */
+			/* 	address[ RELAY_MAX_ADDRESS_LEN ] = '\0'; */
+			/* 	if ( *proxy_info.username != '\0' ) */
+			/* 	{ */
+			/* 		os_strncpy( address, */
+			/* 		proxy_info.username, */
+			/* 		RELAY_MAX_ADDRESS_LEN - address_len ); */
+			/* 		address_len = os_strlen( address ); */
+			/* 	if ( *proxy_info.password != '\0' ) */
+			/* 	{ */
+			/* 		os_snprintf( &address[address_len], */
+			/* 		RELAY_MAX_ADDRESS_LEN - address_len, */
+			/* 		":%s", proxy_info.password ); */
+			/* 		address_len = os_strlen( address ); */
+			/* 	} */
+			/* 		os_strncpy( &address[address_len], "@", */
+			/* 		RELAY_MAX_ADDRESS_LEN - address_len ); */
+			/* 		++address_len; */
+			/* 	} */
+			/* 		os_strncpy( &address[address_len], */
+			/* 		proxy_info.host, */
+			/* 		RELAY_MAX_ADDRESS_LEN - address_len ); */
 
-			/*if ( os_strncmp( proxy_info.type, "HTTP",*/
-			/*IOT_PROXY_TYPE_MAX_LEN ) == 0 )*/
-			/*{*/
-			/*context_ci.http_proxy_address = address;*/
-			/*context_ci.http_proxy_port = proxy_info.port;*/
-			/*}*/
-			/*#if LWS_LIBRARY_VERSION_MAJOR > 2 || ( LWS_LIBRARY_VERSION_MAJOR == 2 && LWS_LIBRARY_VERSION_MINOR > 2 )*/
-			/*else if ( os_strncmp( proxy_info.type, "SOCKS5",*/
-			/*IOT_PROXY_TYPE_MAX_LEN ) == 0 )*/
-			/*{*/
-			/*#if defined(LWS_WITH_SOCKS5)*/
-			/*context_ci.socks_proxy_address = address;*/
-			/*context_ci.socks_proxy_port = proxy_info.port;*/
-			/*#else*/
-			/*relay_log( IOT_LOG_WARNING,*/
-			/*"The libwebsockets doesn't have SOCKS5"*/
-			/*" proxy support built in" );*/
-			/*#endif *//* if defined(LWS_WITH_SOCKS5) */
-			/*}*/
-			/*#endif *//* libwebsockets > 2.2.0 */
+			/* 	if ( proxy_info.type == IOT_PROXY_HTTP ) */
+			/* 	{ */
+			/* 		context_ci.http_proxy_address = address; */
+			/* 		context_ci.http_proxy_port = proxy_info.port; */
+			/* 	} */
+			/* 	#if LWS_LIBRARY_VERSION_MAJOR > 2 || ( LWS_LIBRARY_VERSION_MAJOR == 2 && LWS_LIBRARY_VERSION_MINOR > 2 ) */
+			/* 	else if ( proxy_info.type == IOT_PROXY_SOCKS5 ) */
+			/* 	{ */
+			/* 		#if defined(LWS_WITH_SOCKS5) */
+			/* 		context_ci.socks_proxy_address = address; */
+			/* 		context_ci.socks_proxy_port = proxy_info.port; */
+			/* 		#else */
+			/* 		relay_log( IOT_LOG_WARNING, */
+			/* 		"The libwebsockets doesn't have SOCKS5" */
+			/* 		" proxy support built in" ); */
+			/* 		#endif /1* if defined(LWS_WITH_SOCKS5) *1/ */
+			/* 	} */
+			/* 	#endif /1* libwebsockets > 2.2.0  *1/ */
 
-			/*if ( app_data->verbose != IOT_FALSE && *address != '\0' )*/
-			/*relay_log( IOT_LOG_DEBUG,*/
-			/*"Proxy set to: %s:%ld",*/
-			/*address, proxy_info.port );*/
-			/*}*/
+			/* 	if ( app_data->verbose != IOT_FALSE && *address != '\0' ) */
+			/* 		relay_log( IOT_LOG_DEBUG, */
+			/* 			"Proxy set to: %s:%ld", */
+			/* 			address, proxy_info.port ); */
+			/* } */
 #endif /* libwebsockets >= 1.3.0 */
 
 			context = lws_create_context( &context_ci );

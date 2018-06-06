@@ -37,8 +37,9 @@ add_custom_command( OUTPUT
 )
 
 #################################################
-include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
-
+include_directories(
+	${CMAKE_CURRENT_BINARY_DIR}
+)
 
 set( IOT_HDRS_C ${IOT_HDRS_C}
 	"control_main.h"
@@ -62,8 +63,12 @@ add_executable( "${TARGET}"
 )
 
 target_link_libraries( "${TARGET}"
-	${IOT_LIBRARY_NAME}
 	iotutils
+	${JSON_LIBRARIES}
+	${OSAL_LIBRARIES}
+	${CMAKE_THREAD_LIBS_INIT}
+	m
+	dl
 )
 
 # Installation instructions

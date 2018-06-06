@@ -2,7 +2,7 @@
  * @file
  * @brief source file for path helper operations for applications
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,18 @@
 
 #include "app_path.h"
 
-#include "os.h"           /* for os_* functions */
-#include "iot_build.h"    /* for IOT_BIN_DIR */
-
 /** @brief Maximum path length for app_path_create */
 #define APP_PATH_CREATE_MAX_LEN 128u
+
+/**
+ * @brief Maximum length for the environment variable containing extensions
+ */
+#define EXT_LIST_MAX 63u
+/**
+ * @brief Maximum length for the file name to find
+ */
+#define FILE_NAME_MAX 63u
+
 
 iot_status_t app_path_create(
 	const char *path_in,
@@ -61,6 +68,72 @@ iot_status_t app_path_create(
 				OS_STATUS_SUCCESS )
 				result = IOT_STATUS_FAILURE;
 		}
+	}
+	return result;
+}
+
+iot_status_t app_path_executable_directory_get(
+	char *path, const size_t size )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	if ( path )
+	{
+		char exe_path[ PATH_MAX + 1u ];
+		os_memzero( exe_path, PATH_MAX + 1u );
+		os_memzero( path, size );
+		result = IOT_STATUS_FAILURE;
+		if ( os_path_executable( exe_path, PATH_MAX ) ==
+			OS_STATUS_SUCCESS )
+		{
+			char *dir_sep = NULL;
+			dir_sep = os_strrchr( exe_path, OS_DIR_SEP );
+			if ( dir_sep )
+			{
+				size_t dir_size = (size_t)(dir_sep - exe_path);
+				if ( dir_size < size )
+				{
+					os_strncpy( path, exe_path, dir_size );
+					path[ dir_size ] = '\0';
+					result = IOT_STATUS_SUCCESS;
+				}
+			}
+		}
+	}
+	return result;
+}
+
+size_t app_path_directory_name_get(
+	iot_dir_type_t type,
+	char *buf,
+	size_t buf_len )
+{
+	size_t result = 0u;
+	const char *dir_fmt = NULL;
+	switch( type )
+	{
+		case IOT_DIR_CONFIG:
+			dir_fmt = IOT_DEFAULT_DIR_CONFIG;
+			break;
+		case IOT_DIR_RUNTIME:
+			dir_fmt = IOT_DEFAULT_DIR_RUNTIME;
+			break;
+		default:
+			result = IOT_STATUS_BAD_PARAMETER;
+			break;
+	}
+
+	if ( dir_fmt )
+	{
+		result = os_strlen( dir_fmt );
+		if ( buf && buf_len > result )
+		{
+			os_strncpy( buf, dir_fmt, buf_len - 1u );
+			/** @todo expand environment variables in
+			 * path here */
+			buf[ buf_len - 1u ] = '\0';
+		}
+		else if ( buf )
+			result = 0u; /* buffer too small */
 	}
 	return result;
 }
@@ -162,17 +235,6 @@ size_t app_path_make_absolute( char *path, size_t path_max,
 	return result;
 }
 
-/**
- * @def EXT_LIST_MAX
- * @brief Maximum length for the environment variable containing extensions
- */
-#define EXT_LIST_MAX 63u
-/**
- * @def FILE_NAME_MAX
- * @brief Maximum length for the file name to find
- */
-#define FILE_NAME_MAX 63u
-
 size_t app_path_which( char *path, size_t path_max, const char *cur_dir,
 	const char *file_name )
 {
@@ -266,32 +328,3 @@ size_t app_path_which( char *path, size_t path_max, const char *cur_dir,
 	return result;
 }
 
-iot_status_t app_path_executable_directory_get(
-	char *path, const size_t size )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	if ( path )
-	{
-		char exe_path[ PATH_MAX + 1u ];
-		os_memzero( exe_path, PATH_MAX + 1u );
-		os_memzero( path, size );
-		result = IOT_STATUS_FAILURE;
-		if ( os_path_executable( exe_path, PATH_MAX ) ==
-			OS_STATUS_SUCCESS )
-		{
-			char *dir_sep = NULL;
-			dir_sep = os_strrchr( exe_path, OS_DIR_SEP );
-			if ( dir_sep )
-			{
-				size_t dir_size = (size_t)(dir_sep - exe_path);
-				if ( dir_size < size )
-				{
-					os_strncpy( path, exe_path, dir_size );
-					path[ dir_size ] = '\0';
-					result = IOT_STATUS_SUCCESS;
-				}
-			}
-		}
-	}
-	return result;
-}

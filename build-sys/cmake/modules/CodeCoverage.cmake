@@ -3,7 +3,7 @@
 #
 # Enables code coverage support within the build system
 #
-# Copyright (C) 2015 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2015, 2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ if ( CMAKE_BUILD_TYPE_UPPER MATCHES "COVERAGE" )
 		COMMAND ${LCOV_WRAPPER} --gcov-tool=${GCOV_WRAPPER} --derive-func-data --directory . --zerocounters
 		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
 		COMMAND ${LCOV_WRAPPER} --gcov-tool=${GCOV_WRAPPER} --derive-func-data --directory . --capture --output-file ${TEMP_COVERAGE_FILE}
-		COMMAND ${LCOV_WRAPPER} --gcov-tool=${GCOV_WRAPPER} --remove coverage.info "/usr/include/\\*" "/usr/local/include/\\*" "test/\\*" --output-file ${TEMP_COVERAGE_FILE}
+		COMMAND ${LCOV_WRAPPER} --gcov-tool=${GCOV_WRAPPER} --remove "${TEMP_COVERAGE_FILE}" "/usr/include/\\*" "/usr/local/include/\\*" "${CMAKE_SOURCE_DIR}/test/\\*" --output-file ${TEMP_COVERAGE_FILE}
 		COMMAND ${GENHTML_COMMAND} --legend --title \"`${GIT_COMMAND} --git-dir \"${CMAKE_SOURCE_DIR}/.git\" log --format="%h;[%cr];-;%s" -1`\" --output-directory coverage ${TEMP_COVERAGE_FILE}
 		COMMAND ${CMAKE_COMMAND} -E remove ${TEMP_COVERAGE_FILE}
 		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"

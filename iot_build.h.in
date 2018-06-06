@@ -75,6 +75,8 @@
 #define IOT_DEFAULT_FILE_DEVICE_ID     "@IOT_DEFAULT_FILE_DEVICE_ID@"
 /** @brief Device manager configuration file name */
 #define IOT_DEFAULT_FILE_DEVICE_MANAGER "@IOT_DEFAULT_FILE_DEVICE_MANAGER@"
+/** @brief Configuration proxy */
+#define IOT_DEFAULT_FILE_PROXY		   "@IOT_DEFAULT_FILE_PROXY@"
 
 /* PATHS */
 /** @brief Sub-directory that binary applications are installed within */

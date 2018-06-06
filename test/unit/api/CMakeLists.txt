@@ -35,6 +35,7 @@ endif( JSON_DEFINES )
 
 include( "mock_api" )
 include( "mock_osal" )
+include( "mock_utilities" )
 
 # iot_action.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
@@ -110,12 +111,10 @@ list( REMOVE_ITEM MOCK_API_PART
 	"iot_json_decode_terminate"
 	"iot_json_decode_type"
 )
-set( TEST_IOT_JSON_DECODE_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} )
-set( TEST_IOT_JSON_DECODE_DEFS "${JSON_DEFINES_}" )
-set( TEST_IOT_JSON_DECODE_INCS "${JSON_INCLUDE_DIR}" )
-set( TEST_IOT_JSON_DECODE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_json_decode_test.c" )
-set( TEST_IOT_JSON_DECODE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} ${JSON_LIBRARIES} )
-set( TEST_IOT_JSON_DECODE_UNIT "json/iot_json_decode.c" "json/iot_json_base.c" )
+set( TEST_IOT_JSON_DECODE_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} ${MOCK_UTILITIES_FUNC} )
+set( TEST_IOT_JSON_DECODE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} ${MOCK_UTILITIES_SRCS} "iot_json_decode_test.c" )
+set( TEST_IOT_JSON_DECODE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} ${MOCK_UTILITIES_LIBS} iotutils )
+set( TEST_IOT_JSON_DECODE_UNIT "json/iot_json_decode.c" )
 
 # json/iot_json_encode.c
 set( MOCK_API_PART ${MOCK_API_FUNC} )
@@ -132,12 +131,10 @@ list( REMOVE_ITEM MOCK_API_PART
 	"iot_json_encode_string"
 	"iot_json_encode_terminate"
 )
-set( TEST_IOT_JSON_ENCODE_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} )
-set( TEST_IOT_JSON_ENCODE_DEFS "${JSON_DEFINES_}" )
-set( TEST_IOT_JSON_ENCODE_INCS "${JSON_INCLUDE_DIR}" )
-set( TEST_IOT_JSON_ENCODE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} "iot_json_encode_test.c" )
-set( TEST_IOT_JSON_ENCODE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} ${JSON_LIBRARIES} )
-set( TEST_IOT_JSON_ENCODE_UNIT "json/iot_json_encode.c" "json/iot_json_base.c" )
+set( TEST_IOT_JSON_ENCODE_MOCK ${MOCK_API_PART} ${MOCK_OSAL_FUNC} ${MOCK_UTILITIES_FUNC} )
+set( TEST_IOT_JSON_ENCODE_SRCS ${MOCK_API_SRCS} ${MOCK_OSAL_SRCS} ${MOCK_UTILITIES_SRCS} "iot_json_encode_test.c" )
+set( TEST_IOT_JSON_ENCODE_LIBS ${MOCK_API_LIBS} ${MOCK_OSAL_LIBS} ${MOCK_UTILITIES_LIBS} iotutils )
+set( TEST_IOT_JSON_ENCODE_UNIT "json/iot_json_encode.c" )
 
 # iot_location.c
 set( TEST_IOT_LOCATION_MOCK ${MOCK_API_FUNC} ${MOCK_OSAL_FUNC} )

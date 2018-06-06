@@ -14,7 +14,7 @@
 
 ifeq ($(SPACE), user)
 EXE = iot-device-manager
-ADDED_LIBS += -liot -losal -lnet -larchive -lHASH -lOPENSSL -lmosquitto -ljson -lzlib -lcurl -lunix
+ADDED_LIBS += -liot -liotutils -losal -lnet -larchive -lHASH -lOPENSSL -lmosquitto -ljson -lzlib -lcurl -lunix
 else
 LIB_BASE_NAME = deviceCloudManager
 endif
