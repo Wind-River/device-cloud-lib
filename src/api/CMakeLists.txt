@@ -12,7 +12,6 @@
 # OR CONDITIONS OF ANY KIND, either express or implied.
 #
 
-find_package( Threads )
 if ( MQTT_SSL_SUPPORT )
 	find_package( OpenSSL )
 endif()
@@ -48,12 +47,6 @@ include_directories( SYSTEM
 	"${MQTT_INCLUDE_DIR}"
 	"${LibArchive_INCLUDE_DIRS}"
 )
-if( JSON_DEFINES )
-	foreach( JSON_DEFINE ${JSON_DEFINES} )
-		set( JSON_DEFINES_ "-D${JSON_DEFINE}=1" )
-	endforeach( JSON_DEFINE )
-	add_definitions( ${JSON_DEFINES_} )
-endif( JSON_DEFINES )
 
 add_subdirectory( "checksum" )
 add_subdirectory( "json" )
@@ -69,6 +62,7 @@ add_library( "${IOT_LIBRARY_NAME}"
 
 target_link_libraries( "${IOT_LIBRARY_NAME}"
 	${CMAKE_THREAD_LIBS_INIT}
+	iotutils
 	${JSON_LIBRARIES}
 	${MQTT_LIBRARIES}
 	${OSAL_LIBRARIES}

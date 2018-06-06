@@ -19,27 +19,34 @@ LOCAL_PATH:= $(call my-dir)
 iotutils_c_includes := \
     $(LOCAL_PATH)/../ \
     $(LOCAL_PATH)/../../ \
+    $(LOCAL_PATH)/../api/public/ \
+	external/hdc/iotjsmn \
 
 iotutils_src_files := \
-    app_arg.c \
-    app_log.c \
-    app_path.c \
+	app_arg.c \
+	app_config.c \
+	app_log.c \
+	app_path.c \
+	app_json_base.c \
+	app_json_decode.c \
+	app_json_encode.c \
+	app_json_schema.c \
 
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iotutils_c_includes)
-LOCAL_CFLAGS += ${EXTRA_CFLAGS}
+LOCAL_CFLAGS += -DJSMN_PARENT_LINKS -DJSMN_STRICT ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)
 LOCAL_SHARED_LIBRARIES := libdl libext2_uuid
-LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs
+LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs libiotjsmn
 LOCAL_MODULE := libiotutils
 LOCAL_SRC_FILES := $(iotutils_src_files)
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iotutils_c_includes)
-LOCAL_CFLAGS += ${EXTRA_CFLAGS}
+LOCAL_CFLAGS += -DJSMN_PARENT_LINKS -DJSMN_STRICT ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)
-LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs
+LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs libiotjsmn
 LOCAL_MODULE := libiotutils
 LOCAL_SRC_FILES := $(iotutils_src_files)
 include $(BUILD_STATIC_LIBRARY)

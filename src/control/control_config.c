@@ -16,11 +16,11 @@
  */
 #include "control_config.h"
 
-#include "api/shared/iot_types.h"   /* for iot_directory_name_get */
 #include "iot-connect.schema.json.h"
 #include "iot_build.h"
-#include "os.h"
+#include "utilities/app_json.h"        /* for app_json flags */
 
+#include <os.h>
 #include <stdarg.h>                    /* for va_list, va_start, va_end */
 #include <stdlib.h>                    /* for EXIT_FAILURE */
 
@@ -37,10 +37,10 @@
  * @retval IOT_STATUS_BAD_REQUEST      invalid schema
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_array(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_array(
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set );
 
@@ -57,10 +57,10 @@ static IOT_SECTION iot_status_t control_config_schema_array(
  * @retval IOT_STATUS_BAD_REQUEST      invalid schema
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_bool(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_bool(
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set );
 
@@ -77,10 +77,10 @@ static IOT_SECTION iot_status_t control_config_schema_bool(
  * @retval IOT_STATUS_BAD_REQUEST      invalid schema
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_object(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_object(
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	size_t key_len,
 	iot_bool_t *value_set );
@@ -100,9 +100,9 @@ static IOT_SECTION iot_status_t control_config_schema_object(
  * @retval IOT_STATUS_BAD_REQUEST      invalid schema
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_input(
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_input(
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t show_user_input,
 	char *out,
@@ -120,10 +120,10 @@ static IOT_SECTION iot_status_t control_config_schema_input(
  *
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_integer(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_integer(
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set );
 
@@ -138,10 +138,10 @@ static IOT_SECTION iot_status_t control_config_schema_integer(
  *
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_real(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_real(
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set );
 
@@ -156,10 +156,10 @@ static IOT_SECTION iot_status_t control_config_schema_real(
  *
  * @retval IOT_STATUS_SUCCESS          on success
  */
-static IOT_SECTION iot_status_t control_config_schema_string(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+static iot_status_t control_config_schema_string(
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set );
 
@@ -173,7 +173,7 @@ static IOT_SECTION iot_status_t control_config_schema_string(
  * @retval IOT_STATUS_SUCCESS          on success
  */
 iot_status_t control_config_user_interface(
-	iot_json_encoder_t *encoder,
+	app_json_encoder_t *encoder,
 	iot_bool_t *value_set );
 
 /**
@@ -185,7 +185,7 @@ iot_status_t control_config_user_interface(
  * @param[in]      prompt              prompt for user in printf format
  * @param[in]      ...                 variable arguments based on @c prompt
  */
-static IOT_SECTION void control_config_user_prompt(
+static void control_config_user_prompt(
 	char *out,
 	size_t len,
 	iot_bool_t show_user_input,
@@ -193,16 +193,16 @@ static IOT_SECTION void control_config_user_prompt(
 
 iot_status_t control_config_generate( const char *file_name )
 {
-	iot_json_encoder_t *encoder;
+	app_json_encoder_t *encoder;
 	iot_status_t result = IOT_STATUS_NO_MEMORY;
 
 #ifdef IOT_STACK_ONLY
 	char buffer[1024u];
-	encoder = iot_json_encode_initialize( buffer, 1024u,
-		IOT_JSON_FLAG_INDENT(2) | IOT_JSON_FLAG_EXPAND );
+	encoder = app_json_encode_initialize( buffer, 1024u,
+		APP_JSON_FLAG_INDENT(2) | APP_JSON_FLAG_EXPAND );
 #else
-	encoder = iot_json_encode_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC |
-		IOT_JSON_FLAG_INDENT(2) | IOT_JSON_FLAG_EXPAND );
+	encoder = app_json_encode_initialize( NULL, 0u, APP_JSON_FLAG_DYNAMIC |
+		APP_JSON_FLAG_INDENT(2) | APP_JSON_FLAG_EXPAND );
 #endif
 	if ( encoder )
 	{
@@ -219,7 +219,7 @@ iot_status_t control_config_generate( const char *file_name )
 			else
 			{
 				size_t config_file_len;
-				config_file_len = iot_directory_name_get(
+				config_file_len = app_path_directory_name_get(
 					IOT_DIR_CONFIG, config_file, PATH_MAX );
 				os_snprintf( &config_file[config_file_len],
 					PATH_MAX - config_file_len, "%c%s%s",
@@ -239,27 +239,29 @@ iot_status_t control_config_generate( const char *file_name )
 					"Wrote configuration to file (%s)...\n",
 					config_file );
 				os_fprintf( connection_file, "%s\n",
-					iot_json_encode_dump( encoder ) );
+					app_json_encode_dump( encoder ) );
 				os_file_close( connection_file );
 			}
 			else
 			{
+				/*
 				os_fprintf( OS_STDERR,
 					"Failed to write configuration file (%s)... %s\n",
 					config_file, iot_error( IOT_STATUS_FAILURE ) );
+				*/
 				result = EXIT_FAILURE;
 			}
 		}
 
-		iot_json_encode_terminate( encoder );
+		app_json_encode_terminate( encoder );
 	}
 	return result;
 }
 
 iot_status_t control_config_schema_object(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	size_t key_len,
 	iot_bool_t *value_set )
@@ -267,13 +269,13 @@ iot_status_t control_config_schema_object(
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( schema && obj )
 	{
-		iot_json_type_t t;
+		app_json_type_t t;
 		char *k = NULL;
-		t = iot_json_schema_type( schema, obj );
+		t = app_json_schema_type( schema, obj );
 
 		/* null-terminate the item key */
 		result = IOT_STATUS_SUCCESS;
-		if ( t != IOT_JSON_TYPE_OBJECT || key_len > 0u )
+		if ( t != (enum app_json_type) APP_JSON_TYPE_OBJECT || key_len > 0u )
 		{
 			result = IOT_STATUS_NO_MEMORY;
 			k = (char*)os_malloc( key_len + 1u );
@@ -289,32 +291,32 @@ iot_status_t control_config_schema_object(
 		{
 			switch ( t )
 			{
-			case IOT_JSON_TYPE_ARRAY:
+			case APP_JSON_TYPE_ARRAY:
 			{
 				result = control_config_schema_array( encoder, schema,
 					obj, k, value_set );
 				break;
 			}
-			case IOT_JSON_TYPE_OBJECT:
+			case APP_JSON_TYPE_OBJECT:
 			{
 				char **set_items = NULL;
 				size_t set_items_count = 0u;
 				iot_bool_t any_val_set = IOT_FALSE;
 
-				iot_json_schema_object_iterator_t *iter =
-					iot_json_schema_object_iterator( schema, obj );
+				app_json_schema_object_iterator_t *iter =
+					app_json_schema_object_iterator( schema, obj );
 
-				iot_json_encode_object_start( encoder, k );
+				app_json_encode_object_start( encoder, k );
 				while ( iter )
 				{
-					iot_json_schema_item_t *item = NULL;
-					iot_json_schema_object_iterator_key(
+					app_json_schema_item_t *item = NULL;
+					app_json_schema_object_iterator_key(
 						schema, obj, iter, &key, &key_len );
-					iot_json_schema_object_iterator_value(
+					app_json_schema_object_iterator_value(
 						schema, obj, iter, &item );
 
 					/* only show option if dependencies are met */
-					if ( iot_json_schema_dependencies_achieved(
+					if ( app_json_schema_dependencies_achieved(
 						schema, item, (const char* const*)set_items, set_items_count  ) != IOT_FALSE )
 					{
 						iot_bool_t val_set = IOT_FALSE;
@@ -338,14 +340,14 @@ iot_status_t control_config_schema_object(
 								*value_set = val_set;
 						}
 					}
-					iter = iot_json_schema_object_iterator_next(
+					iter = app_json_schema_object_iterator_next(
 						schema, obj, iter );
 				}
 
 				if ( any_val_set == IOT_FALSE )
-					iot_json_encode_object_cancel( encoder );
+					app_json_encode_object_cancel( encoder );
 				else
-					iot_json_encode_object_end( encoder );
+					app_json_encode_object_end( encoder );
 
 				if ( set_items )
 				{
@@ -357,23 +359,23 @@ iot_status_t control_config_schema_object(
 				}
 				break;
 			}
-			case IOT_JSON_TYPE_BOOL:
+			case APP_JSON_TYPE_BOOL:
 				result = control_config_schema_bool( encoder,
 					schema, obj, k, value_set );
 				break;
-			case IOT_JSON_TYPE_INTEGER:
+			case APP_JSON_TYPE_INTEGER:
 				result = control_config_schema_integer( encoder,
 					schema, obj, k, value_set );
 				break;
-			case IOT_JSON_TYPE_REAL:
+			case APP_JSON_TYPE_REAL:
 				result = control_config_schema_real( encoder,
 					schema, obj, k, value_set );
 				break;
-			case IOT_JSON_TYPE_STRING:
+			case APP_JSON_TYPE_STRING:
 				result = control_config_schema_string( encoder,
 					schema, obj, k, value_set );
 				break;
-			case IOT_JSON_TYPE_NULL:
+			case APP_JSON_TYPE_NULL:
 			default:
 				result = IOT_STATUS_BAD_REQUEST;
 				break;
@@ -387,9 +389,9 @@ iot_status_t control_config_schema_object(
 }
 
 iot_status_t control_config_schema_array(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set )
 {
@@ -398,22 +400,22 @@ iot_status_t control_config_schema_array(
 	{
 		/* must get array user input here */
 		result = IOT_STATUS_BAD_REQUEST;
-		if ( iot_json_schema_array( schema, obj, NULL, 0u, NULL ) != IOT_FALSE )
+		if ( app_json_schema_array( schema, obj, NULL, 0u, NULL ) != IOT_FALSE )
 		{
-			iot_json_encode_array_start( encoder, key );
+			app_json_encode_array_start( encoder, key );
 			if ( value_set )
 				*value_set = IOT_TRUE;
 			/* todo add items here */
-			iot_json_encode_array_end( encoder );
+			app_json_encode_array_end( encoder );
 		}
 	}
 	return result;
 }
 
 iot_status_t control_config_schema_bool(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set )
 {
@@ -427,7 +429,7 @@ iot_status_t control_config_schema_bool(
 			result = control_config_schema_input( schema, obj, key,
 				IOT_TRUE, input, 10u, value_set );
 			if ( result == IOT_STATUS_SUCCESS &&
-				iot_json_schema_bool( schema, obj, input,
+				app_json_schema_bool( schema, obj, input,
 					os_strlen( input ), &error_msg ) != IOT_FALSE )
 			{
 				/* get user input */
@@ -440,7 +442,7 @@ iot_status_t control_config_schema_bool(
 					(input[0] == 'O' && input[1] == 'f') ||
 					(input[0] == 'o' && input[1] == 'F') )
 					value = IOT_FALSE;
-				result = iot_json_encode_bool(
+				result = app_json_encode_bool(
 					encoder, key, value );
 			}
 			else
@@ -455,8 +457,8 @@ iot_status_t control_config_schema_bool(
 }
 
 iot_status_t control_config_schema_input(
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t show_user_input,
 	char *out,
@@ -471,8 +473,8 @@ iot_status_t control_config_schema_input(
 		const char *title = NULL;
 		size_t title_len = 0u;
 
-		iot_json_schema_description( schema, obj, &desc, &desc_len );
-		iot_json_schema_title( schema, obj, &title, &title_len );
+		app_json_schema_description( schema, obj, &desc, &desc_len );
+		app_json_schema_title( schema, obj, &title, &title_len );
 
 		/* set the title, if not explicitly set */
 		if ( !title )
@@ -499,7 +501,7 @@ iot_status_t control_config_schema_input(
 			*value_set = IOT_TRUE;
 
 		if ( out[0] != '\0' ||
-			iot_json_schema_required( schema, obj ) == IOT_FALSE )
+			app_json_schema_required( schema, obj ) == IOT_FALSE )
 		{
 			result = IOT_STATUS_SUCCESS;
 		}
@@ -508,9 +510,9 @@ iot_status_t control_config_schema_input(
 }
 
 iot_status_t control_config_schema_integer(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set )
 {
@@ -529,11 +531,11 @@ iot_status_t control_config_schema_integer(
 			in_len = os_strlen( input );
 
 			if ( result == IOT_STATUS_SUCCESS &&
-				iot_json_schema_integer( schema, obj, input, in_len,
+				app_json_schema_integer( schema, obj, input, in_len,
 					&error_msg ) != IOT_FALSE )
 			{
 				value = atol( input );
-				result = iot_json_encode_integer( encoder,
+				result = app_json_encode_integer( encoder,
 					key, value );
 			}
 			else if ( result == IOT_STATUS_SUCCESS )
@@ -547,9 +549,9 @@ iot_status_t control_config_schema_integer(
 }
 
 iot_status_t control_config_schema_real(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set )
 {
@@ -564,7 +566,7 @@ iot_status_t control_config_schema_real(
 				IOT_TRUE, input, 125u, value_set );
 
 			if ( result == IOT_STATUS_SUCCESS &&
-				iot_json_schema_real( schema, obj, input,
+				app_json_schema_real( schema, obj, input,
 					os_strlen( input ),
 					&error_msg ) != IOT_FALSE )
 			{
@@ -576,7 +578,7 @@ iot_status_t control_config_schema_real(
 				}
 				else
 				{
-					result = iot_json_encode_real( encoder,
+					result = app_json_encode_real( encoder,
 						key, value );
 				}
 			}
@@ -589,9 +591,9 @@ iot_status_t control_config_schema_real(
 }
 
 iot_status_t control_config_schema_string(
-	iot_json_encoder_t *encoder,
-	iot_json_schema_t *schema,
-	iot_json_schema_item_t *obj,
+	app_json_encoder_t *encoder,
+	app_json_schema_t *schema,
+	app_json_schema_item_t *obj,
 	const char *key,
 	iot_bool_t *value_set )
 {
@@ -602,7 +604,7 @@ iot_status_t control_config_schema_string(
 		size_t format_len = 0u;
 		iot_bool_t show_user_input = IOT_TRUE;
 
-		iot_json_schema_format( schema, obj, &format, &format_len );
+		app_json_schema_format( schema, obj, &format, &format_len );
 		if ( format && os_strncmp( format, "password", format_len ) == 0 )
 			show_user_input = IOT_FALSE;
 
@@ -615,12 +617,12 @@ iot_status_t control_config_schema_string(
 				show_user_input, input, 256u, value_set );
 
 			if ( result == IOT_STATUS_SUCCESS &&
-				iot_json_schema_string( schema, obj, input,
+				app_json_schema_string( schema, obj, input,
 					os_strlen( input ), &error_msg ) )
 			{
 				if ( os_strlen( input ) > 0 )
 				{
-					result = iot_json_encode_string(
+					result = app_json_encode_string(
 						encoder, key, input );
 				}
 			}
@@ -636,22 +638,22 @@ iot_status_t control_config_schema_string(
 }
 
 iot_status_t control_config_user_interface(
-	iot_json_encoder_t *encoder,
+	app_json_encoder_t *encoder,
 	iot_bool_t *value_set )
 {
 	iot_status_t result;
-	iot_json_schema_t *schema;
-	iot_json_schema_item_t *root = NULL;
+	app_json_schema_t *schema;
+	app_json_schema_item_t *root = NULL;
 	char json_error[ 256u ];
 
 #ifdef IOT_STACK_ONLY
 	char buffer[4096u];
-	schema = iot_json_schema_initialize( buffer, sizeof(buffer), 0u );
+	schema = app_json_schema_initialize( buffer, sizeof(buffer), 0u );
 #else
-	schema = iot_json_schema_initialize( NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
+	schema = app_json_schema_initialize( NULL, 0u, APP_JSON_FLAG_DYNAMIC );
 #endif
 
-	result = iot_json_schema_parse( schema, IOT_CONNECT_SCHEMA,
+	result = app_json_schema_parse( schema, IOT_CONNECT_SCHEMA,
 		os_strlen( IOT_CONNECT_SCHEMA ), &root, json_error, 256u );
 
 	if ( result == IOT_STATUS_SUCCESS && root )
@@ -663,7 +665,7 @@ iot_status_t control_config_user_interface(
 		os_fprintf( OS_STDERR, "Failed to parse JSON schema: %s\n",
 			json_error );
 
-	iot_json_schema_terminate( schema );
+	app_json_schema_terminate( schema );
 
 	return result;
 }

@@ -2,7 +2,7 @@
  * @file
  * @brief header file for path helper operations for applications
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 #ifndef APP_PATH_H
 #define APP_PATH_H
 
-#include "api/public/iot.h"            /* for size_t, iot_bool_t */
+#include "api/shared/iot_types.h"      /* for iot_dir_type_t */
 
 /**
  * @brief Iterates through a path and creates all directories if they do not exist
@@ -37,26 +37,13 @@ IOT_SECTION iot_status_t app_path_create(
 	unsigned int timeout );
 
 /**
- * @brief Get the path to configuration directory
- *
- * @param[out]     path                buffer to put path to executable's directory
- * @param[in]      size                size of the buffer
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter
- * @retval IOT_STATUS_FAILURE          on failure
- * @retval IOT_STATUS_SUCCESS          on success
- */
-IOT_SECTION iot_status_t app_path_config_directory_get(
-	char *path, const size_t size );
-
-/**
  * @brief Get the path to executable's directory
  *
  * @param[out]     path                buffer to put path to executable's directory
  * @param[in]      size                size of the buffer
  *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter
- * @retval IOT_STATUS_FAILURE          on failure
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to the function
+ * @retval IOT_STATUS_FAILURE          system error
  * @retval IOT_STATUS_SUCCESS          on success
  */
 IOT_SECTION iot_status_t app_path_executable_directory_get(
@@ -83,17 +70,17 @@ IOT_SECTION size_t app_path_make_absolute( char *path, size_t path_max,
 	iot_bool_t relative_to_install );
 
 /**
- * @brief Get the path to runtime directory
+ * @brief Get the path to runtime/config directory
  *
+ * @param[in]      type                type of iot directory
  * @param[out]     path                buffer to put path to executable's directory
  * @param[in]      size                size of the buffer
  *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter
- * @retval IOT_STATUS_FAILURE          on failure
- * @retval IOT_STATUS_SUCCESS          on success
+ * @retval 0u      path buffer is too small
+ * @retval >0u     number characters in path
  */
-IOT_SECTION iot_status_t app_path_runtime_directory_get(
-	char *path, const size_t size );
+IOT_SECTION size_t app_path_directory_name_get(
+	iot_dir_type_t type, char *path, const size_t size );
 
 /**
  * @brief Function very similar to the 'which' command on Linux/Unix, with

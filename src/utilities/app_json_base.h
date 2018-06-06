@@ -2,7 +2,7 @@
  * @file
  * @brief header file for base IoT library json functionality
  *
- * @copyright Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+ * @copyright Copyright (C) 2018 Wind River Systems, Inc. All Rights Reserved.
  *
  * @license Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
  * OR CONDITIONS OF ANY KIND, either express or implied."
  */
-#ifndef IOT_JSON_BASE_H
-#define IOT_JSON_BASE_H
+#ifndef JSON_BASE_H
+#define JSON_BASE_H
 
 #if defined( IOT_JSON_JANSSON )
 #include <jansson.h>
@@ -27,7 +27,7 @@
 
 #if defined( IOT_JSON_JANSSON )
 	/** @brief base structure used for decoding with JANSSON */
-	struct iot_json_decoder
+	struct app_json_decoder
 	{
 		/** @brief output flags */
 		unsigned int flags;
@@ -36,7 +36,7 @@
 	};
 #elif defined ( IOT_JSON_JSONC )
 	/** @brief base structure used for decoding with json-c */
-	struct iot_json_decoder
+	struct app_json_decoder
 	{
 		/** @brief output flags */
 		unsigned int flags;
@@ -45,7 +45,7 @@
 	};
 #else /* defined( IOT_JSON_JSMN ) */
 	/** @brief base structure used for decoding with JSMN */
-	struct iot_json_decoder
+	struct app_json_decoder
 	{
 		/** @brief start of the buffer */
 		const char *buf;
@@ -73,18 +73,18 @@
  * @return a pointer to the new allocated memory large enough to hold atleast
  * @c size in bytes, NULL if memory is unable to be allocated
  *
- * @see iot_json_free
+ * @see app_json_free
  */
-void *iot_json_realloc( void *ptr, size_t size );
+void *app_json_realloc( void *ptr, size_t size );
 
 /**
  * @brief internal dynamic memory deallocation function
  *
  * @param[in]      ptr                 pointer of memory to free
  *
- * @see iot_json_realloc
+ * @see app_json_realloc
  */
-void iot_json_free( void* ptr );
+void app_json_free( void* ptr );
 #endif /* ifndef IOT_STACK_ONLY */
 
 #endif

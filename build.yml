@@ -47,6 +47,7 @@ IOT_DEFAULT_FILE_CONFIG: "iot-connect"
 IOT_DEFAULT_FILE_CONFIG_EXT: ".cfg"
 IOT_DEFAULT_FILE_DEVICE_ID: "device_id"
 IOT_DEFAULT_FILE_DEVICE_MANAGER: "iot.cfg"
+IOT_DEFAULT_FILE_PROXY: "iot-proxy.cfg"
 
 # Default paths
 IOT_BIN_DIR: "bin"

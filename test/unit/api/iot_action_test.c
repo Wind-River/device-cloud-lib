@@ -1753,7 +1753,7 @@ static void test_iot_action_parameter_set_max_parameters( void **state )
 
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
-		char _name[IOT_NAME_MAX_LEN + 1u];
+		char _name[IOT_NAME_MAX_LEN];
 		snprintf( _name, IOT_NAME_MAX_LEN, "param%u", (unsigned int)i );
 		strncpy( request.parameter[i].name, _name, IOT_NAME_MAX_LEN );
 	}
@@ -2009,7 +2009,7 @@ static void test_iot_action_parameter_set_raw_max_parameters( void **state )
 
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
-		char _name[ IOT_NAME_MAX_LEN + 1u ];
+		char _name[ IOT_NAME_MAX_LEN ];
 		snprintf( _name, IOT_NAME_MAX_LEN, "param%u", (unsigned)(i+1u) );
 		strncpy( request.parameter[i].name, _name, IOT_NAME_MAX_LEN );
 	}
@@ -2052,7 +2052,7 @@ static void test_iot_action_parameter_set_raw_new_parameter( void **state )
 
 	for ( i = 0u; i < request.parameter_count; ++i )
 	{
-		char _name[ IOT_NAME_MAX_LEN + 1u ];
+		char _name[ IOT_NAME_MAX_LEN ];
 		snprintf( _name, IOT_NAME_MAX_LEN, "param%u", (unsigned)(i + 1u ) );
 		strncpy( request.parameter[i].name, _name, IOT_NAME_MAX_LEN );
 	}

@@ -404,6 +404,7 @@ int main( int argc, char *argv[] )
 		cmocka_unit_test( test_iot_location_allocate_longitude_out_of_range ),
 		cmocka_unit_test( test_iot_location_allocate_no_memory ),
 		cmocka_unit_test( test_iot_location_altitude_accuracy_set ),
+		cmocka_unit_test( test_iot_location_altitude_accuracy_set_null_sample ),
 		cmocka_unit_test( test_iot_location_altitude_set ),
 		cmocka_unit_test( test_iot_location_altitude_set_null_sample ),
 		cmocka_unit_test( test_iot_location_free ),

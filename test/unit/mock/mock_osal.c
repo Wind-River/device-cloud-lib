@@ -222,9 +222,9 @@ void __wrap_os_free( void *ptr )
 	/* in cmocka 0.3.2, test_free( NULL ) will generate an error.  So let's
 	 * ensure that ptr is valid, in case use is using a new version of
 	 * cmocka they will also see this error.  Although, according to the
-	 * man pages of "free", passing NULL is valid. But we never know if all
-	 * operating systems behave 100% correctly so it is a good idea to
-	 * explicitly check. */
+	 * man page of "free", passing NULL to free is valid. But we never know
+	 * if all operating systems behave 100% correctly so it is a good idea
+	 * to explicitly check. */
 	assert_non_null( ptr );
 	test_free( ptr );
 }

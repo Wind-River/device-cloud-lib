@@ -14,7 +14,7 @@
 
 ifeq ($(SPACE), user)
 EXE = iot-control
-ADDED_LIBS += -liot -losal -lnet -larchive -lHASH -lOPENSSL -lmosquitto -ljson -lzlib -lcurl -lunix
+ADDED_LIBS += -liotutils -lm -losal -lnet -larchive -lHASH -lOPENSSL -lmosquitto -ljson -lzlib -lcurl -lunix
 else
 LIB_BASE_NAME = deviceCloudControl
 endif

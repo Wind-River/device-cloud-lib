@@ -17,6 +17,7 @@
 LOCAL_PATH:= $(call my-dir)
 
 iot_c_includes := $(LOCAL_PATH) \
+	$(LOCAL_PATH)/..\
 	$(LOCAL_PATH)/../../ \
 	$(LOCAL_PATH)/public \
 	$(LOCAL_PATH)/share \
@@ -45,7 +46,7 @@ LOCAL_C_INCLUDES := $(iot_c_includes) external/hdc/libarchive/contrib/android/in
 LOCAL_CFLAGS += -DIOT_PLUGIN_SUPPORT=1 -DOPENSSL -DJSMN_PARENT_LINKS -DJSMN_STRICT ${EXTRA_CFLAGS}
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/public
 LOCAL_SHARED_LIBRARIES := libcutils libdl libjansson libmosquitto libext2_uuid libcrypto libssl libcurl
-LOCAL_STATIC_LIBRARIES := libosal libandroidifaddrs libtr50 libpaho-mqtt3as libiotjsmn libarchive
+LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs libtr50 libpaho-mqtt3as libiotjsmn libarchive
 
 LOCAL_MODULE := libiot
 LOCAL_SRC_FILES := \
@@ -66,7 +67,6 @@ LOCAL_SRC_FILES := \
 	./checksum/iot_checksum_crc32.c \
 	./json/iot_json_decode.c \
 	./json/iot_json_encode.c \
-	./json/iot_json_schema.c \
 	./json/iot_json_base.c \
 	./plugin/iot_plugin_builtin.c
 include $(BUILD_SHARED_LIBRARY)

@@ -55,7 +55,7 @@ typedef struct iot_proxy
 	/** @brief Proxy to use */
 	const char *host;
 	/** @brief Port number the proxy server listens to */
-	const iot_int64_t port;
+	iot_int64_t port;
 	/** @brief Proxy protocol type to use */
 	iot_proxy_type_t type;
 	/** @brief User name to use for proxy authentication */

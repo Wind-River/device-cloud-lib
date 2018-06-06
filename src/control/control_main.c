@@ -44,7 +44,7 @@ int control_device_decommission( void )
 	iot_status_t result = IOT_STATUS_NOT_FOUND;
 
 	/* #1 config dir: remove the iot-connect.cfg file, reboot. */
-	file_path_len = iot_directory_name_get( IOT_DIR_CONFIG,
+	file_path_len = app_path_directory_name_get( IOT_DIR_CONFIG,
 		file_path, PATH_MAX );
 	os_snprintf( &file_path[file_path_len], PATH_MAX - file_path_len,
 		"%c%s%s", OS_DIR_SEP,
@@ -60,8 +60,7 @@ int control_device_decommission( void )
 
 	/* #2: runtime dir: the API uses config dir and runtime dir.
 	 * Check the runtime dir as well */
-	file_path_len = iot_directory_name_get( IOT_DIR_RUNTIME,
-		file_path, PATH_MAX );
+	file_path_len = app_path_directory_name_get( IOT_DIR_RUNTIME, file_path, PATH_MAX );
 	os_snprintf( &file_path[file_path_len], PATH_MAX - file_path_len,
 		"%c%s%s", OS_DIR_SEP,
 		IOT_DEFAULT_FILE_CONFIG, IOT_DEFAULT_FILE_CONFIG_EXT );

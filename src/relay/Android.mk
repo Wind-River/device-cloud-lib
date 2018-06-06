@@ -20,14 +20,16 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../../ \
+	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../api/ \
+	$(LOCAL_PATH)/../api/public \
 	external/hdc/libwebsockets/lib \
 	external/hdc/curl/include \
 	external/openssl/include \
 
 LOCAL_CFLAGS += ${EXTRA_CFLAGS}
-LOCAL_SHARED_LIBRARIES := libiot libcrypto libssl libz libdl libext2_uuid
-LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs libwebsockets
+LOCAL_SHARED_LIBRARIES := libcrypto libssl libz libdl libext2_uuid
+LOCAL_STATIC_LIBRARIES := libiotutils libosal libandroidifaddrs libwebsockets libiotjsmn
 
 LOCAL_MODULE := iot-relay
 

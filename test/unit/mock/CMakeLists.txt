@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Wind River Systems, Inc. All Rights Reserved.
+# Copyright (C) 2017-2018 Wind River Systems, Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,4 +20,5 @@ endif ( CMAKE_C_COMPILER_ID MATCHES "(Clang|GNU)" )
 
 add_test_library( mock_api             "mock_api.c" )
 add_test_library( mock_osal            "mock_osal.c" )
+add_test_library( mock_utilities       "mock_utilities.c" )
 
