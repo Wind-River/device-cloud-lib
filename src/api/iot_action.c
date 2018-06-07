@@ -1316,9 +1316,19 @@ iot_status_t iot_action_process(
 			/* send command execution result to the cloud */
 			iot_action_request_set_status( request,
 				action_result, NULL );
+
+#ifdef IOT_THREAD_SUPPORT
+		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
+			os_thread_mutex_lock( &lib->worker_mutex );
+#endif /* ifdef IOT_THREAD_SUPPORT */
 			result = iot_plugin_perform( lib, NULL, &max_time_out,
 				IOT_OPERATION_ACTION_COMPLETE, action, request,
 				NULL );
+
+#ifdef IOT_THREAD_SUPPORT
+		if ( !( lib->flags & IOT_FLAG_SINGLE_THREAD ) )
+			os_thread_mutex_unlock( &lib->worker_mutex );
+#endif /* ifdef IOT_THREAD_SUPPORT */
 
 			/* free memory associated with the request */
 			iot_action_request_free( request );
