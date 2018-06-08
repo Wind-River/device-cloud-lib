@@ -21,7 +21,6 @@
 #if defined( IOT_WEBSOCKET_CIVETWEB )
 #	include <civetweb.h>                  /* for civetweb functions */
 #	include <openssl/ssl.h>               /* for SSL support */
-#	include <sys/socket.h>                /* for AF_INET definition */
 
 	/** @brief send buffer pre-padding */
 #	define SEND_BUFFER_PRE_PADDING        0u
