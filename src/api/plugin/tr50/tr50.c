@@ -2140,13 +2140,6 @@ void tr50_on_message(
 								const size_t msg_count =
 									iot_json_decode_array_size( json, j_messages );
 
-								/* check mailbox for more actions if queue is available */
-								if ( data->lib->request_queue_free_count + 1
-										< IOT_ACTION_QUEUE_MAX )
-									if( iot_timestamp_now() - data->time_last_mailbox_check
-											> TR50_MAILBOX_CHECK_INTERVAL )
-										tr50_check_mailbox( data, NULL );
-
 								for ( i = 0u; i < msg_count; ++i )
 								{
 									const iot_json_item_t *j_cmd_item;
@@ -2187,6 +2180,14 @@ void tr50_on_message(
 												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
 												name[ IOT_NAME_MAX_LEN ] = '\0';
 												req = iot_action_request_allocate( data->lib, name, "tr50" );
+
+												/* check mailbox for more actions if queue is available */
+												if ( data->lib->request_queue_free_count
+														< IOT_ACTION_QUEUE_MAX )
+													if( iot_timestamp_now() - data->time_last_mailbox_check
+															> TR50_MAILBOX_CHECK_INTERVAL )
+														tr50_check_mailbox( data, NULL );
+
 												if ( req )
 													iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
 												else
