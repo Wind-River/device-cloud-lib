@@ -1254,6 +1254,7 @@ iot_status_t check_listening_port(
 
 	if ( port_num <= 0 ||
 		os_get_host_address( "localhost", 0, localhost_addr, 15, AF_INET ) != 0 )
+		status = IOT_STATUS_FAILURE;
 
 	if ( os_socket_open( &socket, localhost_addr, port_num,
 		SOCK_STREAM, 0u, 1000u ) == OS_STATUS_SUCCESS )
