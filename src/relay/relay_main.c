@@ -1161,7 +1161,7 @@ void relay_log( iot_log_level_t level, const char *format, ... )
 	va_list args;
 	os_timestamp_t t;
 
-	os_time(&t, NULL );
+	os_time( &t, NULL );
 	os_time_format( timestamp, RELAY_LOG_TIMESTAMP_LEN,
 		"%Y-%m-%dT%H:%M:%S", t, IOT_FALSE );
 
@@ -1245,7 +1245,8 @@ int relay_main( int argc, char *argv[] )
 	LOG_FILE = OS_STDERR;
 
 	result = app_arg_parse( args, argc, argv, &url_pos );
-	if ( result == EXIT_FAILURE || url_pos == 0 ||
+
+	if ( result == EXIT_FAILURE || argv[url_pos] == NULL ||
 		app_arg_count( args, 'h', NULL ) )
 		app_arg_usage( args, 36u, argv[0], IOT_PRODUCT, "url",
 			"remote relay address" );
