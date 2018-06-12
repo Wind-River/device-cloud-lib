@@ -41,6 +41,8 @@ enum iot_operation
 {
 	/** @brief unknown/unsupported operation */
 	IOT_OPERATION_UNKNOWN = 0,
+	/** @brief ( up ) check if actions are available */
+	IOT_OPERATION_ACTION_CHECK,
 	/** @brief ( up ) action completed */
 	IOT_OPERATION_ACTION_COMPLETE,
 	/** @brief ( up ) action deregistration */

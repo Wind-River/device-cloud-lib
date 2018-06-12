@@ -303,6 +303,17 @@ iot_status_t iot_action_deregister(
 	return result;
 }
 
+iot_status_t iot_action_check(
+	iot_t *lib,
+	iot_millisecond_t max_time_out )
+{
+	iot_status_t result = IOT_STATUS_FAILURE;
+	result = iot_plugin_perform( lib, NULL, &max_time_out,
+		IOT_OPERATION_ACTION_CHECK, NULL, NULL, NULL );
+
+	return result;
+}
+
 iot_status_t iot_action_execute(
 	const struct iot_action *action,
 	struct iot_action_request *request,

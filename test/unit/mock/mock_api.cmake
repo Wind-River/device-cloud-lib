@@ -16,6 +16,7 @@ set( MOCK_API_LIBS "mock_api" )
 
 set( MOCK_API_FUNC
 	"iot_action_process"
+	"iot_action_check"
 	"iot_action_free"
 	"iot_alarm_deregister"
 	"iot_base64_encode"

@@ -625,7 +625,11 @@ OS_THREAD_DECL iot_base_worker_thread_main( void *user_data )
 	iot_status_t result = IOT_STATUS_SUCCESS;
 	while( lib && lib->to_quit == IOT_FALSE &&
 		result == IOT_STATUS_SUCCESS )
+	{
 		result = iot_action_process( lib, 0u );
+		if ( result == IOT_STATUS_SUCCESS )
+			iot_action_check( lib, 0u );
+	}
 	return (OS_THREAD_RETURN)0;
 }
 #endif /* ifdef IOT_THREAD_SUPPORT */

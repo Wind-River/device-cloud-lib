@@ -684,6 +684,19 @@ IOT_API IOT_SECTION iot_status_t iot_config_set_raw(
 #endif /* ifndef iot_EXPORTS */
 
 /**
+ * @brief Checks for further actions on the cloud queue
+ *
+ * @param[in,out]  lib                 library handle
+ * @param[in]      max_time_out        maximum time to wait in milliseconds
+ *
+ * @retval IOT_STATUS_SUCCESS          on success
+ * @retval IOT_STATUS_FAILURE          failed to run check operation
+ */
+IOT_API IOT_SECTION iot_status_t iot_action_check(
+	iot_t *lib,
+	iot_millisecond_t max_time_out );
+
+/**
  * @brief Returns the value of a action option
  *
  * @param[in]      action              action object to get value from

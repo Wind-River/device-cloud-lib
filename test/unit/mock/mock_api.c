@@ -28,6 +28,7 @@
 
 /* mock definitions */
 iot_status_t __wrap_iot_action_process( iot_t *lib_handle, iot_millisecond_t max_time_out );
+iot_status_t __wrap_iot_action_check( iot_t *lib_handle, iot_millisecond_t max_time_out );
 iot_status_t __wrap_iot_action_free( iot_action_t *action, iot_millisecond_t max_time_out );
 iot_status_t __wrap_iot_alarm_deregister( iot_telemetry_t *alarm );
 size_t __wrap_iot_base64_encode( uint8_t *out, size_t out_len, const uint8_t *in, size_t in_len );
@@ -111,6 +112,11 @@ iot_json_type_t __wrap_iot_json_decode_type(
 
 /* mock functions */
 iot_status_t __wrap_iot_action_process( iot_t *lib_handle, iot_millisecond_t max_time_out )
+{
+	return mock_type( iot_status_t );
+}
+
+iot_status_t __wrap_iot_action_check( iot_t *lib_handle, iot_millisecond_t max_time_out )
 {
 	return mock_type( iot_status_t );
 }
