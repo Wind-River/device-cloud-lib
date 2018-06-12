@@ -124,7 +124,11 @@ struct tr50_data
 	iot_timestamp_t file_queue_last_checked;
 	/** @brief library handle */
 	iot_t *lib;
+#ifdef IOT_THREAD_SUPPORT
+	/** @brief mail related mutex to prevent concurrent checks */
+	os_thread_mutex_t mail_check_mutex;
 	/** @brief pointer to the mqtt connection to the cloud */
+#endif /* IOT_THREAD_SUPPORT */
 	iot_mqtt_t *mqtt;
 	/** @brief current number of pings missed */
 	iot_uint8_t ping_miss_count;
@@ -1029,14 +1033,27 @@ iot_status_t tr50_check_mailbox(
 		if ( msg )
 		{
 			/* Do not allow simultaneous pending outgoing checks */
+#ifdef IOT_THREAD_SUPPORT
+			os_thread_mutex_lock( &data->mail_check_mutex );
+#endif /* IOT_THREAD_SUPPORT */
 			if ( iot_timestamp_now() - data->time_last_mailbox_check
 				> TR50_MAILBOX_CHECK_INTERVAL )
 			{
+				/* keep mqtt out of critical section */
+				/* due to potential paho.mqtt deadlock */
+				/* worst case scenario (publish failed)
+				 * we wait out the timer */
+				data->time_last_mailbox_check = iot_timestamp_now();
+#ifdef IOT_THREAD_SUPPORT
+				os_thread_mutex_unlock( &data->mail_check_mutex );
+#endif /* IOT_THREAD_SUPPORT */
 				result = tr50_mqtt_publish(
 					data, "api", msg, os_strlen( msg ), txn );
-				if ( result == IOT_STATUS_SUCCESS )
-					data->time_last_mailbox_check = iot_timestamp_now();
 			}
+#ifdef IOT_THREAD_SUPPORT
+			else
+				os_thread_mutex_unlock( &data->mail_check_mutex );
+#endif /* IOT_THREAD_SUPPORT */
 		}
 		else
 			IOT_LOG( data->lib, IOT_LOG_ERROR, "%s",
@@ -1992,7 +2009,9 @@ iot_status_t tr50_initialize(
 		os_memzero( data, sizeof( struct tr50_data ) );
 		data->lib = lib;
 		*plugin_data = data;
-
+#ifdef IOT_THREAD_SUPPORT
+		os_thread_mutex_create( &data->mail_check_mutex ) ;
+#endif /* IOT_THREAD_SUPPORT */
 		curl_global_init( CURL_GLOBAL_ALL );
 		result = iot_mqtt_initialize();
 	}
@@ -2691,6 +2710,9 @@ iot_status_t tr50_terminate(
 	iot_status_t result = IOT_STATUS_SUCCESS;
 	struct tr50_data *data = plugin_data;
 	IOT_LOG( lib, IOT_LOG_TRACE, "tr50: %s", "terminate" );
+#ifdef IOT_THREAD_SUPPORT
+	os_thread_mutex_destroy( &data->mail_check_mutex );
+#endif /* IOT_THREAD_SUPPORT */
 	os_free_null( (void**)&data );
 	iot_mqtt_terminate();
 	curl_global_cleanup();
