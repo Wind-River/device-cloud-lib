@@ -27,9 +27,10 @@ SRC_DIRS = \
         $(DEVICE_CLOUD_LIB_DIR)/src/control
 
 SRC_FILES = \
+        $(DEVICE_CLOUD_LIB_DIR)/src/control/control.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/control/control_config.c \
-        $(DEVICE_CLOUD_LIB_DIR)/src/control/iot-connect.schema.json.c \
-        $(DEVICE_CLOUD_LIB_DIR)/src/control/control_main.c
+        $(DEVICE_CLOUD_LIB_DIR)/src/control/control_main.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/control/iot-connect.schema.json.c
 
 OBJS = $(addsuffix .o, $(notdir $(basename $(SRC_FILES))))
 
@@ -39,8 +40,10 @@ EXTRA_INCLUDE += -I$(DEVICE_CLOUD_LIB_DIR)/src \
 
 ADDED_CFLAGS += $(C_COMPILER_FLAGS_C99)
 
-EXTRA_DEFINE += -DOSAL_STATIC=1 -DOSAL_WRAP=1 -DIOT_THREAD_SUPPORT=1 \
+EXTRA_DEFINE += -DOSAL_STATIC=1 \
+                -DOSAL_WRAP=1 \
                 -DOPENSSL=1 \
+                -DIOT_THREAD_SUPPORT=1 \
                 -DIOT_MQTT_MOSQUITTO=1 \
                 -DIOT_JSON_JANSSON=1
 

@@ -466,7 +466,6 @@ iot_status_t device_manager_actions_register(
 		struct device_manager_action *action;
 		char command_path[ PATH_MAX + 1u ];
 		iot_t *const iot_lib = device_manager->iot_lib;
-#ifndef _WRS_KERNEL
 
 #ifndef NO_FILEIO_SUPPORT
 		/* file transfer */
@@ -751,7 +750,6 @@ iot_status_t device_manager_actions_register(
 				action->ptr = NULL;
 			}
 		}
-#endif
 
 		/* device reboot */
 		action = &device_manager->actions[DEVICE_MANAGER_IDX_DEVICE_REBOOT];
@@ -765,10 +763,10 @@ iot_status_t device_manager_actions_register(
 			result = iot_action_register_callback(
 				action->ptr, &on_action_agent_reboot,
 				(void*)device_manager, NULL, 0u );
-#else
+#else /* if defined( __ANDROID__ ) */
 			result = iot_action_register_command( action->ptr,
 				"reboot", NULL, 0u );
-#endif
+#endif /* else if defined( __ANDROID__ ) */
 			if ( result != IOT_STATUS_SUCCESS )
 			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
@@ -1735,13 +1733,9 @@ iot_status_t on_action_agent_decommission(
 	if ( device_manager && request )
 	{
 		char cmd_decommission[] = "iot-control --decommission";
-		char cmd_reboot[] = "iot-control --reboot --delay 5000 &";
 		iot_t *const iot_lib = device_manager->iot_lib;
 		result = device_manager_run_os_command(
 			cmd_decommission, IOT_TRUE );
-		/*if ( result == IOT_STATUS_SUCCESS )*/
-		/*result = device_manager_run_os_command(*/
-		/*cmd_reboot, IOT_FALSE );*/
 	}
 	return result;
 }
@@ -1827,11 +1821,14 @@ iot_status_t on_action_ping(
 			ts_str[ out_len ] = '\0';
 
 			IOT_LOG( iot_lib, IOT_LOG_DEBUG,
-				"Responding to ping request with %s %s",response, ts_str);
+				"Responding to ping request with %s %s",
+				response, ts_str);
 
 			/* now set the out parameters */
-			iot_action_parameter_set( request, "response", IOT_TYPE_STRING, response);
-			iot_action_parameter_set( request, "time_stamp", IOT_TYPE_STRING, ts_str);
+			iot_action_parameter_set( request, "response",
+				IOT_TYPE_STRING, response);
+			iot_action_parameter_set( request, "time_stamp",
+				IOT_TYPE_STRING, ts_str);
 			result = IOT_STATUS_SUCCESS;
 		}
 	}
@@ -1857,7 +1854,6 @@ iot_status_t on_action_device_shutdown(
 }
 #endif /* __ANDROID__ */
 
-#ifndef _WRS_KERNEL
 iot_status_t on_action_remote_login( iot_action_request_t* request,
 	void *user_data )
 {
@@ -1919,12 +1915,17 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		{
 			os_status_t run_status;
 
+#if defined( __VXWORKS__ )
+			os_snprintf( relay_cmd, PATH_MAX, "bin%c", OS_DIR_SEP );
+			relay_cmd_len = os_strlen( relay_cmd );
+#else /* if defined( __VXWORKS__ ) */
 			if ( app_path_executable_directory_get(
 				relay_cmd, PATH_MAX ) == IOT_STATUS_SUCCESS )
 			{
 				relay_cmd_len = os_strlen( relay_cmd );
 				relay_cmd[ relay_cmd_len++ ] = OS_DIR_SEP;
 			}
+#endif /* defined( __VXWORKS__ ) */
 
 			os_snprintf( &relay_cmd[ relay_cmd_len ],
 				PATH_MAX,
@@ -1954,5 +1955,4 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 	}
 	return result;
 }
-#endif /* !_WRS_KERNEL */
 

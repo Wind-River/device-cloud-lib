@@ -201,10 +201,12 @@ struct relay_data
 	iot_bool_t verbose;         /**< @brief whether in verbose mode */
 };
 
-#if !defined( IOT_WEBSOCKET_CIVETWEB ) && ( LWS_LIBRARY_VERSION_MAJOR < 1 || \
-	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR < 4 ) )
+#if (defined( IOT_WEBSOCKET_CIVETWEB ) && (CIVETWEB_VERSION_MAJOR < 1 || \
+	CIVETWEB_VERSION_MAJOR == 1 && CIVETWEB_VERSION_MINOR < 10)) \
+    || (!defined( IOT_WEBSOCKET_CIVETWEB ) && ( LWS_LIBRARY_VERSION_MAJOR < 1 || \
+	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR < 4 ) ))
 static struct relay_data APP_DATA;
-#endif /* if libwebsockets < 1.4 */
+#endif /* if civetweb <= 1.10 || libwebsockets < 1.4 */
 
 /** @brief Structure containing the textual representations of log levels */
 static const char *const RELAY_LOG_LEVEL_TEXT[] =
@@ -446,10 +448,12 @@ int relay_client( const char *url,
 	int packet_type = SOCK_STREAM;
 	int result = EXIT_FAILURE;
 
-#if defined( IOT_WEBSOCKET_CIVETWEB ) || ( LWS_LIBRARY_VERSION_MAJOR > 1 || \
-	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR >= 4 ) )
+#if (defined( IOT_WEBSOCKET_CIVETWEB ) && (CIVETWEB_VERSION_MAJOR > 1 || \
+	CIVETWEB_VERSION_MAJOR == 1 && CIVETWEB_VERSION_MINOR > 10)) \
+    || (!defined( IOT_WEBSOCKET_CIVETWEB ) && ( LWS_LIBRARY_VERSION_MAJOR > 1 || \
+	( LWS_LIBRARY_VERSION_MAJOR == 1 && LWS_LIBRARY_VERSION_MINOR >= 4 ) ))
 	struct relay_data APP_DATA;
-#endif /* if civetweb || libwebsockets >= 1.4 */
+#endif /* if civetweb > 1.10 || libwebsockets >= 1.4 */
 	struct relay_data *const app_data = &APP_DATA;
 
 	/*FIXME*/
@@ -751,9 +755,16 @@ int relay_client( const char *url,
 #if defined( IOT_WEBSOCKET_CIVETWEB )
 #	if CIVETWEB_VERSION_MAJOR < 1 || \
 		CIVETWEB_VERSION_MAJOR == 1 && CIVETWEB_VERSION_MINOR <= 10
+#if defined( __VXWORKS__ )
+				/* in VxWorks a patch is applied to the civetweb
+				 * code base to initialize SSL support.
+				 */
+				ssl_connection = 1;
+#else /* if defined( __VXWORKS__ ) */
 				ssl_connection = 0;
 				relay_log( IOT_LOG_ERROR, "%s",
 					"SSL is not supported on civetweb <= 1.10" );
+#endif /* else if defined( __VXWORKS__ ) */
 #else /* if civetweb <= 1.10 */
 				ssl_connection = 1;
 				if ( insecure )
@@ -852,7 +863,7 @@ int relay_client( const char *url,
 				}
 
 				relay_log( IOT_LOG_INFO,
-					"relay connected status %d", result );
+					"Connected status %d", result );
 
 				while ( result == EXIT_SUCCESS && TO_QUIT == IOT_FALSE )
 				{
@@ -1011,6 +1022,10 @@ int relay_on_receive( struct relay_data *app_data,
 	void *data, size_t data_len )
 {
 	int result = 0;
+#if defined( IOT_WEBSOCKET_CIVETWEB ) && (CIVETWEB_VERSION_MAJOR < 1 || \
+	CIVETWEB_VERSION_MAJOR == 1 && CIVETWEB_VERSION_MINOR < 10)
+	app_data = &APP_DATA;
+#endif /* if civetweb <= 1.10 */
 	if ( app_data )
 	{
 		if ( app_data->verbose )
@@ -1026,8 +1041,8 @@ int relay_on_receive( struct relay_data *app_data,
 				connection_key_len =
 					os_strlen( RELAY_CONNECTION_KEY );
 
-			/* if client and not connected, connect here! */
-			/* connect as client to tcp socket */
+			/* if the relay-client is not connected, then connect */
+			/* ie. connect as a "fake client" to a tcp socket */
 			if ( app_data->state == RELAY_STATE_CONNECT )
 			{
 				retval = os_socket_connect( app_data->socket );
@@ -1079,13 +1094,13 @@ int relay_on_send( struct relay_data *app_data, void *connection )
 			MG_WEBSOCKET_OPCODE_BINARY,
 			(const char *)&app_data->tx_buffer[ SEND_BUFFER_PRE_PADDING ],
 			app_data->tx_buffer_len );
-#else /* if civetewb >= 1.10 */
+#else /* if civetweb >= 1.10 */
 		result = mg_websocket_client_write(
 			(struct mg_connection *)connection,
 			WEBSOCKET_OPCODE_BINARY,
 			(const char *)&app_data->tx_buffer[ SEND_BUFFER_PRE_PADDING ],
 			app_data->tx_buffer_len );
-#endif /* else if civetewb >= 1.10 */
+#endif /* else if civetweb >= 1.10 */
 #else /* if defined( IOT_WEBSOCKET_CIVETWEB ) */
 		result = lws_write( (struct lws *)connection,
 			&app_data->tx_buffer[ SEND_BUFFER_PRE_PADDING ],
