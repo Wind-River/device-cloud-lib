@@ -92,6 +92,7 @@ int control_device_decommission( void )
 			result = IOT_STATUS_SUCCESS;
 	}
 
+#if !defined( __VXWORKS__ )
 	if ( result == IOT_STATUS_SUCCESS )
 	{
 		os_printf("Rebooting system\n");
@@ -101,6 +102,7 @@ int control_device_decommission( void )
 			result = IOT_STATUS_BAD_REQUEST;
 		}
 	}
+#endif /* if !defined( __VXWORKS__ ) */
 	return result;
 }
 
@@ -142,19 +144,19 @@ int control_main( int argc, char *argv[] )
 			app_arg_count( args, 0u, "reboot" ) )
 		{
 			result = control_device_shutdown( IOT_TRUE, IOT_REBOOT_DELAY );
-			os_printf("reboot device delay=%d seconds\n", IOT_REBOOT_DELAY);
+			os_printf( "Rebooting device (after %d seconds)\n", IOT_REBOOT_DELAY );
 		}
 		if ( result == EXIT_SUCCESS &&
 			app_arg_count( args, 0u, "shutdown" ) )
 		{
 			result = control_device_shutdown( IOT_FALSE, IOT_REBOOT_DELAY );
-			os_printf("shutdown device delay=%d seconds\n", IOT_REBOOT_DELAY);
+			os_printf( "Shuting down device (after %d seconds)\n", IOT_REBOOT_DELAY );
 		}
-                if ( result == EXIT_SUCCESS &&
-                        app_arg_count( args, 0u, "decommission" ) )
+		if ( result == EXIT_SUCCESS &&
+			app_arg_count( args, 0u, "decommission" ) )
 		{
 			result = control_device_decommission();
-			os_printf("decommissioning device\n");
+			os_printf("Decommissioning device\n");
 		}
 	}
 	return result;

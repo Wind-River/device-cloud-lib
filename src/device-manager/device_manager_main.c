@@ -18,7 +18,6 @@
 
 #include "device_manager_file.h"
 
-#include "os.h"                       /* for os specific functions */
 #include "utilities/app_arg.h"        /* for struct app_arg & functions */
 #include "utilities/app_log.h"        /* for app_log function */
 #include "utilities/app_path.h"       /* for app_path_which function */
@@ -26,6 +25,7 @@
 #include "iot_build.h"
 #include "iot_json.h"                 /* for json */
 
+#include <os.h>                       /* for os specific functions */
 #include <stdlib.h>                   /* for EXIT_SUCCESS, EXIT_FAILURE */
 
 /** @brief Name of "host" parameter for remote login action */
@@ -43,12 +43,6 @@
 #define DEVICE_MANAGER_FILE_CLOUD_PARAMETER_USE_GLOBAL_STORE "use_global_store"
 /** @brief Name of the parameter for file path on device */
 #define DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_PATH "file_path"
-
-#if defined( __unix__ ) && !defined( __ANDROID__ )
-#	define COMMAND_PREFIX                      "sudo "
-#else
-#	define COMMAND_PREFIX                      ""
-#endif
 
 #ifdef _WIN32
 	/** @brief IoT device manager service ID */
@@ -209,11 +203,10 @@ static iot_status_t device_manager_make_control_command( char *full_path,
 	size_t max_len, struct device_manager_info *device_manager,
 	const char *options );
 
-#if defined( __ANDROID__ )
 /**
  * @brief Run OS command
  *
- * @param[in]      command                       command
+ * @param[in]      cmd                           command
  * @param[in]      blocking_action               blocking_action
  *                                               IOT_TRUE: blocking
  *                                               IOT_FALSE: non_blocking
@@ -224,7 +217,6 @@ static iot_status_t device_manager_make_control_command( char *full_path,
  */
 static iot_status_t device_manager_run_os_command( const char *cmd,
 	iot_bool_t blocking_action );
-#endif /* __ANDROID__ */
 
 /**
  * @brief Handles terminatation signal and tears down gracefully
@@ -244,35 +236,8 @@ static void device_manager_sig_handler( int signum );
 static iot_status_t device_manager_terminate(
 	struct device_manager_info *device_manager );
 
-#if defined( __ANDROID__ )
 /**
- * @brief Callback function to return the agent decommission
- *
- * @param[in,out]  request             request invoked by the cloud
- * @param[in,out]  user_data           pointer to a struct device_manager_info
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
- * @retval IOT_STATUS_SUCCESS          on success
- */
-static iot_status_t on_action_agent_decommission(
-	iot_action_request_t* request,
-	void *user_data );
-
-/**
- * @brief Callback function to return the agent reboot
- *
- * @param[in,out]  request             request invoked by the cloud
- * @param[in,out]  user_data           pointer to a struct device_manager_info
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
- * @retval IOT_STATUS_SUCCESS          on success
- */
-static iot_status_t on_action_agent_reboot(
-	iot_action_request_t* request,
-	void *user_data );
-
-/**
- * @brief Callback function to return the agent reset
+ * @brief Callback function to reset the device manager
  *
  * @param[in,out]  request             request invoked by the cloud
  * @param[in,out]  user_data           pointer to a struct device_manager_info
@@ -284,10 +249,8 @@ static iot_status_t on_action_agent_reset(
 	iot_action_request_t* request,
 	void *user_data );
 
-#endif /* __ANDROID__ */
-
 /**
- * @brief Callback function to return the agent quit
+ * @brief Callback function to quit the device manager
  *
  * @param[in,out]  request             request invoked by the cloud
  * @param[in,out]  user_data           pointer to a struct device_manager_info
@@ -298,6 +261,57 @@ static iot_status_t on_action_agent_reset(
 static iot_status_t on_action_agent_quit(
 	iot_action_request_t* request,
 	void *user_data );
+
+/**
+ * @brief Callback function to perform device decommission
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in,out]  user_data           pointer to a struct device_manager_info
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static iot_status_t on_action_device_decommission(
+	iot_action_request_t* request,
+	void *user_data );
+
+/**
+ * @brief Callback function to perform device reboot
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in,out]  user_data           pointer to a struct device_manager_info
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static iot_status_t on_action_device_reboot(
+	iot_action_request_t* request,
+	void *user_data );
+
+/**
+ * @brief Callback function to return the agent shutdown
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in,out]  user_data           pointer to a struct device_manager_info
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static iot_status_t on_action_device_shutdown(
+	iot_action_request_t* request,
+	void *user_data );
+
+/**
+ * @brief Callback function to return the remote login
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in]      user_data           not used
+ *
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static iot_status_t on_action_remote_login(
+		iot_action_request_t* request,
+		void *user_data );
 
 /**
  * @brief Callback function diagnostic action to respond with timestamp
@@ -312,32 +326,6 @@ static iot_status_t on_action_ping(
 	iot_action_request_t* request,
 	void *user_data );
 
-#if defined( __ANDROID__ )
-/**
- * @brief Callback function to return the agent shutdown
- *
- * @param[in,out]  request             request invoked by the cloud
- * @param[in,out]  user_data           pointer to a struct device_manager_info
- *
- * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
- * @retval IOT_STATUS_SUCCESS          on success
- */
-static iot_status_t on_action_device_shutdown(
-	iot_action_request_t* request,
-	void *user_data );
-#endif /* __ANDROID__ */
-
-/**
- * @brief Callback function to return the remote login
- *
- * @param[in,out]  request             request invoked by the cloud
- * @param[in]      user_data           not used
- *
- * @retval IOT_STATUS_SUCCESS          on success
- */
-static iot_status_t on_action_remote_login(
-		iot_action_request_t* request,
-		void *user_data );
 
 
 /* function implementations */
@@ -371,7 +359,7 @@ iot_status_t device_manager_actions_deregister(
 		iot_action_t *file_download = device_manager->file_download;
 		iot_action_t *const device_reboot = device_manager->device_reboot;
 
-#if !defined( WIN32 ) && !defined( __VXWORKS__ )
+#if !defined( _WIN32 ) && !defined( __VXWORKS__ )
 		iot_action_t *const restore_factory_images = device_manager->restore_factory_images;
 
 		/* restore_factory_images */
@@ -381,9 +369,9 @@ iot_status_t device_manager_actions_deregister(
 			iot_action_free( restore_factory_images, 0u );
 			device_manager->restore_factory_images = NULL;
 		}
-#endif /* if !defined( WIN32 ) && !defined( __VXWORKS__ ) */
+#endif /* if !defined( _WIN32 ) && !defined( __VXWORKS__ ) */
 
-		/* device_shutdown */
+		/* device shutdown */
 		if ( device_shutdown )
 		{
 			iot_action_deregister( device_shutdown, NULL, 0u );
@@ -391,7 +379,7 @@ iot_status_t device_manager_actions_deregister(
 			device_manager->device_shutdown = NULL;
 		}
 
-		/* device_reboot */
+		/* device reboot */
 		if ( device_reboot )
 		{
 			iot_action_deregister( device_reboot, NULL, 0u );
@@ -399,7 +387,7 @@ iot_status_t device_manager_actions_deregister(
 			device_manager->device_reboot = NULL;
 		}
 
-		/* decommission_device */
+		/* decommission device */
 		if ( decommission_device )
 		{
 			iot_action_deregister( decommission_device, NULL, 0u );
@@ -407,7 +395,7 @@ iot_status_t device_manager_actions_deregister(
 			device_manager->decommission_device = NULL;
 		}
 
-		/* agent_reset */
+		/* agent reset */
 		if ( agent_reset )
 		{
 			iot_action_deregister( agent_reset, NULL, 0u );
@@ -415,7 +403,7 @@ iot_status_t device_manager_actions_deregister(
 			device_manager->agent_reset = NULL;
 		}
 
-		/* dump_log_files */
+		/* dump log files */
 		if ( dump_log_files )
 		{
 			iot_action_deregister( dump_log_files, NULL, 0u );
@@ -423,7 +411,7 @@ iot_status_t device_manager_actions_deregister(
 			device_manager->dump_log_files = NULL;
 		}
 
-		/* remote_login */
+		/* remote login */
 		if ( remote_login )
 		{
 			iot_action_deregister( remote_login, NULL, 0u );
@@ -597,17 +585,9 @@ iot_status_t device_manager_actions_register(
 				action->action_name );
 			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
-#if defined( __ANDROID__ )
 			result = iot_action_register_callback(
 				action->ptr, &on_action_device_shutdown,
 				(void*)device_manager, NULL, 0u );
-#else
-			result = device_manager_make_control_command( command_path,
-				PATH_MAX, device_manager, " --shutdown" );
-			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command(
-					action->ptr, command_path, NULL, 0u );
-#endif
 			if ( result != IOT_STATUS_SUCCESS )
 			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
@@ -627,17 +607,9 @@ iot_status_t device_manager_actions_register(
 				action->action_name );
 			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
-#if defined( __ANDROID__ )
 			result = iot_action_register_callback( action->ptr,
-					&on_action_agent_decommission,
+					&on_action_device_decommission,
 					(void*)device_manager, NULL, 0u );
-#else
-			result = device_manager_make_control_command( command_path,
-					PATH_MAX, device_manager, " --decommission" );
-			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command(
-					action->ptr, command_path, NULL, 0u );
-#endif
 			if ( result != IOT_STATUS_SUCCESS )
 			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
@@ -657,17 +629,11 @@ iot_status_t device_manager_actions_register(
 				action->action_name );
 			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
-#if defined( __ANDROID__ )
+
 			result = iot_action_register_callback(
 				action->ptr, &on_action_agent_reset,
 				(void*)device_manager, NULL, 0u );
-#else
-			result = device_manager_make_control_command( command_path,
-				PATH_MAX, device_manager, " --restart" );
-			if ( result == IOT_STATUS_SUCCESS )
-				result = iot_action_register_command( action->ptr,
-					command_path, NULL, 0u );
-#endif
+
 			if ( result != IOT_STATUS_SUCCESS )
 			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
@@ -759,14 +725,9 @@ iot_status_t device_manager_actions_register(
 				action->action_name );
 			iot_action_flags_set( action->ptr,
 				IOT_ACTION_NO_RETURN | IOT_ACTION_EXCLUSIVE_DEVICE );
-#if defined( __ANDROID__ )
 			result = iot_action_register_callback(
-				action->ptr, &on_action_agent_reboot,
+				action->ptr, &on_action_device_reboot,
 				(void*)device_manager, NULL, 0u );
-#else /* if defined( __ANDROID__ ) */
-			result = iot_action_register_command( action->ptr,
-				"reboot", NULL, 0u );
-#endif /* else if defined( __ANDROID__ ) */
 			if ( result != IOT_STATUS_SUCCESS )
 			{
 				IOT_LOG( iot_lib, IOT_LOG_ERROR,
@@ -1286,7 +1247,8 @@ iot_status_t device_manager_initialize( const char *app_path,
 
 #if defined( __ANDROID__ )
 		/* start telnetd bind to localhost only */
-		device_manager_run_os_command( ENABLE_TELNETD_LOCALHOST, IOT_TRUE );
+		device_manager_run_os_command(
+			ENABLE_TELNETD_LOCALHOST, IOT_TRUE );
 #endif /* __ANDROID__ */
 
 		/* Set user specified default log level */
@@ -1301,10 +1263,17 @@ iot_status_t device_manager_initialize( const char *app_path,
 			*p_path = '\0';
 		else
 		{
-#ifndef __ANDROID__
+#if defined( __VXWORKS__ )
+			/* on vxworks applications reside in "/bin" directory */
+			os_snprintf( device_manager->app_path, PATH_MAX,
+				"%cbin", OS_DIR_SEP );
+#elif defined( __ANDROID__ )
+			/* on android applications reside in "/system/bin" */
+			os_snprintf( device_manager->app_path, PATH_MAX,
+				"%csystem%cbin", OS_DIR_SEP, OS_DIR_SEP );
+#else /* elif defined( __ANDROID__ ) */
+			/* applications reside in the current directory */
 			os_strncpy( device_manager->app_path, ".", PATH_MAX );
-#else
-			os_strncpy( device_manager->app_path, "/system/bin", PATH_MAX );
 #endif /* __ANDROID__ */
 		}
 
@@ -1583,16 +1552,12 @@ static iot_status_t device_manager_make_control_command( char *full_path,
 		char *ptr = NULL;
 		size_t offset = 0u;
 
+		ptr = full_path;
 		result = IOT_STATUS_SUCCESS;
-		os_strncpy( full_path, COMMAND_PREFIX, max_len );
-		full_path[ max_len - 1u ] = '\0';
-		offset = os_strlen( full_path );
-		ptr = full_path + offset;
 #if defined( _WIN32 )
-		if ( offset < max_len - 1u )
+		if ( max_len > 0u )
 		{
-			*ptr = '"';
-			++ptr;
+			*ptr++ = '"';
 			*ptr = '\0';
 			++offset;
 		}
@@ -1606,6 +1571,7 @@ static iot_status_t device_manager_make_control_command( char *full_path,
 				IOT_CONTROL_TARGET, NULL ) == OS_STATUS_SUCCESS )
 				result = IOT_STATUS_SUCCESS;
 		}
+
 		if ( result == IOT_STATUS_SUCCESS )
 		{
 			full_path[ max_len - 1u ] = '\0';
@@ -1614,8 +1580,7 @@ static iot_status_t device_manager_make_control_command( char *full_path,
 #if defined( _WIN32 )
 			if ( offset < max_len - 1u )
 			{
-				*ptr = '"';
-				++ptr;
+				*ptr++ = '"';
 				*ptr = '\0';
 				++offset;
 			}
@@ -1624,8 +1589,7 @@ static iot_status_t device_manager_make_control_command( char *full_path,
 #endif /* defined( _WIN32 ) */
 			if ( *options != ' ' && offset < max_len - 1u )
 			{
-				*ptr = ' ';
-				++ptr;
+				*ptr++ = ' ';
 				*ptr = '\0';
 				++offset;
 			}
@@ -1641,23 +1605,26 @@ static iot_status_t device_manager_make_control_command( char *full_path,
 	return result;
 }
 
-#if defined( __ANDROID__ )
 iot_status_t device_manager_run_os_command( const char *cmd,
 	iot_bool_t blocking_action )
 {
 	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
 	if ( cmd )
 	{
-		int retval = -1;
 		os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
 
 		args.cmd = cmd;
+#if defined( __ANDROID__ )
+		/* no sudo available on Android */
 		args.privileged = OS_FALSE;
+#else /* if defined( __ANDROID__ ) */
+		args.privileged = OS_TRUE;
+#endif /* else if defined( __ANDROID__ ) */
 		args.block = OS_FALSE;
 		if ( blocking_action != IOT_FALSE )
 			args.block = OS_TRUE;
 
-		if ( os_system_run( &args ) == IOT_STATUS_SUCCESS &&
+		if ( os_system_run( &args ) == OS_STATUS_SUCCESS &&
 			args.return_code >= 0 )
 			result = IOT_STATUS_SUCCESS;
 		else
@@ -1670,7 +1637,6 @@ iot_status_t device_manager_run_os_command( const char *cmd,
 	}
 	return result;
 }
-#endif /* __ANDROID__ */
 
 void device_manager_sig_handler( int signum )
 {
@@ -1716,42 +1682,6 @@ iot_status_t device_manager_terminate(
 	return result;
 }
 
-#if defined( __ANDROID__ )
-iot_status_t on_action_agent_decommission(
-	iot_action_request_t* request,
-	void *user_data )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	struct device_manager_info * const device_manager =
-		(struct device_manager_info *) user_data;
-
-	if ( device_manager && request )
-	{
-		char cmd_decommission[] = "iot-control --decommission";
-		iot_t *const iot_lib = device_manager->iot_lib;
-		result = device_manager_run_os_command(
-			cmd_decommission, IOT_TRUE );
-	}
-	return result;
-}
-
-iot_status_t on_action_agent_reboot(
-	iot_action_request_t* request,
-	void *user_data )
-{
-	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
-	struct device_manager_info * const device_manager =
-		(struct device_manager_info *) user_data;
-
-	if ( device_manager && request )
-	{
-		char cmd[] = "iot-control --reboot --delay 5000 &";
-		iot_t *const iot_lib = device_manager->iot_lib;
-		result = device_manager_run_os_command( cmd, IOT_FALSE );
-	}
-	return result;
-}
-
 iot_status_t on_action_agent_reset(
 	iot_action_request_t* request,
 	void *user_data )
@@ -1762,13 +1692,17 @@ iot_status_t on_action_agent_reset(
 
 	if ( device_manager && request )
 	{
-		char cmd[] = "iot-control --restart --delay 5000 &";
-		iot_t *const iot_lib = device_manager->iot_lib;
-		result = device_manager_run_os_command( cmd, IOT_FALSE );
+		char cmd[ PATH_MAX ];
+		result = device_manager_make_control_command( cmd,
+			PATH_MAX, device_manager,
+			"--restart" );
+
+		if ( result == IOT_STATUS_SUCCESS )
+			result = device_manager_run_os_command(
+				cmd, IOT_FALSE );
 	}
 	return result;
 }
-#endif /* __ANDROID__ */
 
 iot_status_t on_action_agent_quit(
 	iot_action_request_t* request,
@@ -1786,6 +1720,63 @@ iot_status_t on_action_agent_quit(
 			iot_lib->to_quit = IOT_TRUE;
 			result = IOT_STATUS_SUCCESS;
 		}
+	}
+	return result;
+}
+
+
+iot_status_t on_action_device_decommission(
+	iot_action_request_t* request,
+	void *user_data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	struct device_manager_info * const device_manager =
+		(struct device_manager_info *) user_data;
+
+	if ( device_manager && request )
+	{
+		char cmd[ PATH_MAX ];
+		result = device_manager_make_control_command( cmd,
+			PATH_MAX, device_manager, "--decommission" );
+
+		if ( result == IOT_STATUS_SUCCESS )
+			result = device_manager_run_os_command(
+				cmd, IOT_TRUE );
+
+#if defined( __VXWORKS__ )
+		if ( result == IOT_STATUS_SUCCESS )
+			os_system_shutdown( OS_TRUE, 0u );
+#endif /* defined( __VXWORKS__ ) */
+	}
+	return result;
+}
+
+iot_status_t on_action_device_reboot(
+	iot_action_request_t* request,
+	void *user_data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	struct device_manager_info * const device_manager =
+		(struct device_manager_info *) user_data;
+
+	if ( device_manager && request )
+	{
+#if defined( __VXWORKS__ )
+		os_status_t reboot_status = os_system_shutdown( OS_TRUE, 0u );
+		result = IOT_STATUS_FAILURE;
+		if ( reboot_status == OS_STATUS_INVOKED ||
+			reboot_status == OS_STATUS_SUCCESS )
+			result = IOT_STATUS_SUCCESS;
+#else /* if defined( __VXWORKS__ ) */
+		char cmd[ PATH_MAX ];
+		result = device_manager_make_control_command( cmd,
+			PATH_MAX, device_manager,
+			"--reboot" );
+
+		if ( result == IOT_STATUS_SUCCESS )
+			result = device_manager_run_os_command(
+				cmd, IOT_FALSE );
+#endif /* if defined( __VXWORKS__ ) */
 	}
 	return result;
 }
@@ -1830,7 +1821,6 @@ iot_status_t on_action_ping(
 	return result;
 }
 
-#if defined( __ANDROID__ )
 iot_status_t on_action_device_shutdown(
 	iot_action_request_t* request,
 	void *user_data )
@@ -1841,13 +1831,24 @@ iot_status_t on_action_device_shutdown(
 
 	if ( device_manager && request )
 	{
-		char cmd[] = "iot-control --shutdown --delay 5000 &";
-		iot_t *const iot_lib = device_manager->iot_lib;
-		result = device_manager_run_os_command( cmd, IOT_FALSE );
+#if defined( __VXWORKS__ )
+		os_status_t reboot_status = os_system_shutdown( OS_FALSE, 0u );
+		result = IOT_STATUS_FAILURE;
+		if ( reboot_status == OS_STATUS_INVOKED ||
+			reboot_status == OS_STATUS_SUCCESS )
+			result = IOT_STATUS_SUCCESS;
+#else /* if defined( __VXWORKS__ ) */
+		char cmd[ PATH_MAX ];
+		result = device_manager_make_control_command( cmd,
+			PATH_MAX, device_manager,
+			"--shutdown" );
+
+		if ( result == IOT_STATUS_SUCCESS )
+			result = device_manager_run_os_command( cmd, IOT_FALSE );
+#endif /* else if defined( __VXWORKS__ ) */
 	}
 	return result;
 }
-#endif /* __ANDROID__ */
 
 iot_status_t on_action_remote_login( iot_action_request_t* request,
 	void *user_data )
@@ -1912,7 +1913,8 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 			os_status_t run_status;
 
 #if defined( __VXWORKS__ )
-			os_snprintf( relay_cmd, PATH_MAX, "bin%c", OS_DIR_SEP );
+			os_snprintf( relay_cmd, PATH_MAX, "%s%c",
+				device_manager->app_path, OS_DIR_SEP );
 			relay_cmd_len = os_strlen( relay_cmd );
 #else /* if defined( __VXWORKS__ ) */
 			if ( app_path_executable_directory_get(
