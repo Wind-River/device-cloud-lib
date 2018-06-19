@@ -1662,7 +1662,7 @@ iot_status_t device_manager_run_os_command( const char *cmd,
 				out_len[i] = 0u;
 			}
 		}
-		if ( os_system_run_wait( cmd, &retval, OS_TRUE, 0, 0u,
+		if ( os_system_run_wait( cmd, &retval, OS_FALSE, 0, 0u,
 			out_buf, out_len, 0u ) == IOT_STATUS_SUCCESS &&
 			     retval >= 0 )
 			result = IOT_STATUS_SUCCESS;
