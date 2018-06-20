@@ -37,9 +37,25 @@ mkdir -p "$DEPS_DIR/lib"
 
 CMAKE_ARGS=""
 
+# Get the name of current branch
+if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
+	BRANCH_NAME="$TRAVIS_PULL_REQUEST_BRANCH"
+elif [ ! -z "$TRAVIS_BRANCH" ]; then
+	BRANCH_NAME="$TRAVIS_BRANCH"
+else
+	CWD=`pwd`
+	cd "$SCRIPT_PATH"
+	BRANCH_NAME=`git symbolic-ref --short HEAD || true`
+	cd "$CWD"
+fi
+
 # operating system abstraction layer
 git clone https://github.com/Wind-River/device-cloud-osal.git device-cloud-osal
 cd device-cloud-osal
+# test if branch exists on osal layer matching current branch, if so, change to
+if [ ! -z "$BRANCH_NAME" ]; then
+	git checkout "$BRANCH_NAME" 2>/dev/null || true
+fi
 if [ ! -e cmake_build ]; then
 	mkdir cmake_build
 fi
