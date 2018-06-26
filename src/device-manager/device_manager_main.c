@@ -36,6 +36,8 @@
 #define REMOTE_LOGIN_PARAM_URL                 "url"
 /** @brief Name of "debug" parameter for remote login action */
 #define REMOTE_LOGIN_PARAM_DEBUG               "debug-mode"
+/** @brief Name of "reconnect" parameter for remote login action */
+#define REMOTE_LOGIN_PARAM_RECONNECT           "reconnect"
 
 /** @brief Name of the parameter to save file as */
 #define DEVICE_MANAGER_FILE_CLOUD_PARAMETER_FILE_NAME "file_name"
@@ -732,6 +734,11 @@ iot_status_t device_manager_actions_register(
 				REMOTE_LOGIN_PARAM_URL,
 				IOT_PARAMETER_IN_REQUIRED,
 				IOT_TYPE_STRING, 0u );
+			/* NOTE: reconnect currently not supported */
+			iot_action_parameter_add( action->ptr,
+				REMOTE_LOGIN_PARAM_RECONNECT,
+				IOT_PARAMETER_IN,
+				IOT_TYPE_BOOL, 0u );
 			iot_action_parameter_add( action->ptr,
 				REMOTE_LOGIN_PARAM_DEBUG,
 				IOT_PARAMETER_IN,
@@ -1867,6 +1874,7 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		const char *url_in = NULL;
 		const char *protocol_in = NULL;
 		const iot_bool_t debug_mode = IOT_FALSE;
+		const iot_bool_t reconnect_mode  = IOT_FALSE;
 		os_file_t out_files[2] = { NULL, NULL };
 
 		/* Support a debug option that supports logging */
@@ -1882,6 +1890,10 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		iot_action_parameter_get( request,
 			REMOTE_LOGIN_PARAM_URL, IOT_TRUE, IOT_TYPE_STRING,
 			&url_in );
+		/* NOTE: reconnect currently not supported */
+		iot_action_parameter_get( request,
+			REMOTE_LOGIN_PARAM_RECONNECT, IOT_TRUE, IOT_TYPE_BOOL,
+			&reconnect_mode );
 		iot_action_parameter_get( request,
 			REMOTE_LOGIN_PARAM_DEBUG, IOT_TRUE, IOT_TYPE_BOOL,
 			&debug_mode);
