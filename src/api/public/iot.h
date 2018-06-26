@@ -632,7 +632,7 @@ IOT_API IOT_SECTION iot_status_t iot_action_option_set_raw(
  *
  * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed
  * @retval IOT_STATUS_FAILURE          internal system failure
-`* @retval IOT_STATUS_NOT_INITIALIZED  action was not initialized
+ * @retval IOT_STATUS_NOT_INITIALIZED  action was not initialized
  * @retval IOT_STATUS_SUCCESS          pointer was successfully set
  * @retval IOT_STATUS_TIMED_OUT        timed out while waiting for
  *                                     deregistration
