@@ -1433,18 +1433,19 @@ int device_manager_main( int argc, char *argv[] )
 						NULL, NULL,
 						"os_version",
 						os.system_version );
-					/* FIXME: disabled for now
-					 * since it is not in the thing def and auto is false */
-					/*iot_attribute_publish_string(*/
-					/*APP_DATA.iot_lib,*/
-					/*NULL, NULL,*/
-					/*"os_variant",*/
-					/*os.system_release );*/
 					iot_attribute_publish_string(
 						APP_DATA.iot_lib,
 						NULL, NULL,
-						"platform",
+						"architecture",
 						os.system_platform );
+					/* not published:
+					 * - amt_guid
+					 * - platform
+					 * - hdc_version
+					 * - mac address
+					 * - relay_version
+					 * - remote_access_support
+					 */
 				}
 
 				/* Publish JSON of login_protocols */
@@ -1631,7 +1632,7 @@ iot_status_t device_manager_run_os_command( const char *cmd,
 		{
 			result = IOT_STATUS_FAILURE;
 			IOT_LOG( APP_DATA.iot_lib, IOT_LOG_INFO,
-				"OS Command: \"%s\" returned: %d",
+				"Failed command: \"%s\" returned: %d",
 				cmd, args.return_code );
 		}
 	}
