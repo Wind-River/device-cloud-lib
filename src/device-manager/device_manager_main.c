@@ -1399,13 +1399,59 @@ int device_manager_main( int argc, char *argv[] )
 		}
 		else
 		{
-
 			if ( device_manager_initialize(argv[0], &APP_DATA )
 				== IOT_STATUS_SUCCESS )
 			{
 				/* setup device manager attributes */
 				os_system_info_t os;
-				/*os_adapters_t *adapters = NULL;*/
+
+#if !defined( IOT_STACK_ONLY )
+				os_adapter_t adapters;
+				if ( os_adapters_obtain( &adapters ) == OS_STATUS_SUCCESS )
+				{
+					char *macs = NULL;
+					size_t macs_len = 0u;
+					do {
+						char mac[24u] = {0};
+						if ( os_adapters_mac( &adapters, mac, sizeof(mac) ) == OS_STATUS_SUCCESS )
+						{
+							const size_t mac_len =
+								os_strlen( mac );
+							char *new_macs;
+							const size_t new_macs_len =
+								macs_len + mac_len + 1u;
+							new_macs =
+								os_realloc( macs, new_macs_len );
+							if ( new_macs )
+							{
+								if ( macs && macs_len > 0u )
+									new_macs[macs_len - 1u] = ' ';
+								os_strncpy(
+									&new_macs[macs_len],
+									mac,
+									mac_len );
+								macs = new_macs;
+								macs_len = new_macs_len;
+
+								/* null-terminate */
+								macs[macs_len - 1u] = '\0';
+							}
+						}
+					} while ( os_adapters_next( &adapters ) == OS_STATUS_SUCCESS );
+					os_adapters_release( &adapters );
+
+					/* if any macs are found then publish it */
+					if ( macs )
+					{
+						iot_attribute_publish_string(
+							APP_DATA.iot_lib,
+							NULL, NULL,
+							"mac_address",
+							macs );
+						os_free( macs );
+					}
+				}
+#endif /* if !defined( IOT_STACK_ONLY ) */
 
 				iot_attribute_publish_string(
 					APP_DATA.iot_lib, NULL, NULL,
