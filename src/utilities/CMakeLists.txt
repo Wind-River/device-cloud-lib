@@ -22,6 +22,7 @@ set( IOT_HDRS_C ${IOT_HDRS_C}
 	"app_json_schema.h"
 	"app_log.h"
 	"app_path.h"
+	"app_websocket.h"
 )
 
 set( IOT_SRCS_C ${IOT_SRCS_C}
@@ -33,6 +34,7 @@ set( IOT_SRCS_C ${IOT_SRCS_C}
 	"app_json_schema.c"
 	"app_log.c"
 	"app_path.c"
+	"app_websocket.c"
 )
 
 add_definitions( ${IOT_DEFS} )
@@ -63,6 +65,8 @@ if( MSVC )
 endif( MSVC )
 
 include_directories( SYSTEM
+	${WEBSOCKET_INCLUDE_DIR}
+	${OPENSSL_INCLUDE_DIR}
 	${JSMN_INCLUDE_DIR}
 	${IOT_INCS}
 	"${CMAKE_SOURCE_DIR}/src/api"
