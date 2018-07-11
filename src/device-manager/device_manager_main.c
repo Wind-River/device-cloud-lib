@@ -1905,12 +1905,8 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		(struct device_manager_info *) user_data;
 	iot_t *const iot_lib = device_manager->iot_lib;
 
-#	define RELAY_CMD_TEMPLATE "%s --host=%s --insecure -p %d %s "
-
 	if ( device_manager && request )
 	{
-		char relay_cmd[ PATH_MAX + 1u ];
-		size_t relay_cmd_len = 0u;
 		const char *host_in = NULL;
 		const char *url_in = NULL;
 		const char *protocol_in = NULL;
@@ -1957,8 +1953,14 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 		     && url_in && *url_in != '\0' )
 		{
 			os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
+			const char *ca_bundle = NULL;
+			char relay_cmd[ PATH_MAX + 1u ];
+			size_t relay_cmd_len = 0u;
+			int char_count;
 			os_status_t run_status;
+			iot_bool_t validate_cert = IOT_FALSE;
 
+			/* obtain path to relay application */
 #if defined( __VXWORKS__ )
 			os_snprintf( relay_cmd, PATH_MAX, "%s%c",
 				device_manager->app_path, OS_DIR_SEP );
@@ -1972,14 +1974,48 @@ iot_status_t on_action_remote_login( iot_action_request_t* request,
 			}
 #endif /* defined( __VXWORKS__ ) */
 
-			os_snprintf( &relay_cmd[ relay_cmd_len ],
-				PATH_MAX,
-				RELAY_CMD_TEMPLATE,
-				IOT_TARGET_RELAY,
-				host_in, os_atoi(protocol_in), url_in );
+			/* add name of relay application */
+			if ((char_count = os_snprintf( &relay_cmd[relay_cmd_len],
+				PATH_MAX - relay_cmd_len,
+				IOT_TARGET_RELAY )) > 0)
+				relay_cmd_len += (size_t)char_count;
 
-			IOT_LOG( iot_lib, IOT_LOG_TRACE, "Remote login cmd: %s",
-				relay_cmd );
+			/* custom certification */
+			iot_config_get( device_manager->iot_lib,
+				"ca_bundle_file", IOT_FALSE,
+				IOT_TYPE_STRING, &ca_bundle );
+			if ( ca_bundle )
+			{
+				if ((char_count = os_snprintf(
+					&relay_cmd[ relay_cmd_len ],
+					PATH_MAX - relay_cmd_len,
+					" --cert=%s", ca_bundle )) > 0)
+				relay_cmd_len += (size_t)char_count;
+			}
+	
+			/* allow insecure connections (private signed certs) */
+			iot_config_get( device_manager->iot_lib,
+				"validate_cloud_cert", IOT_FALSE,
+				IOT_TYPE_BOOL, &validate_cert );
+			if ( validate_cert != IOT_FALSE )
+			{
+				if ((char_count = os_snprintf(
+					&relay_cmd[ relay_cmd_len ],
+					PATH_MAX - relay_cmd_len,
+					" --insecure" )) > 0)
+				relay_cmd_len += (size_t)char_count;
+			}
+
+			/* add host and port to connect to */
+			if ((char_count = os_snprintf( &relay_cmd[ relay_cmd_len ],
+				PATH_MAX - relay_cmd_len,
+				" --host=%s -p %d %s",
+				host_in, os_atoi(protocol_in), url_in )) > 0)
+				relay_cmd_len += (size_t)char_count;
+
+			relay_cmd[relay_cmd_len] = '\0';
+			IOT_LOG( iot_lib, IOT_LOG_TRACE,
+				"Remote login cmd: %s", relay_cmd );
 
 			args.cmd = relay_cmd;
 			args.opts.nonblock.std_out = out_files[0];
