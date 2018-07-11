@@ -26,6 +26,17 @@
 #include "iot_mqtt.h"
 #include "shared/iot_types.h"          /* for proxy struct */
 
+#include "app_arg.h"                   /* for struct app_arg & functions */
+#include "app_config.h"                /* for proxy configuration */
+#include "app_path.h"                  /* for path support functions */
+#include "iot.h"                       /* for iot_bool_t type */
+#include "iot_build.h"                 /* for IOT_NAME_FULL */
+#include "iot_mqtt.h"
+#include "shared/iot_types.h"          /* for proxy struct */
+
+#include <os.h>                        /* for os_* functions */
+#include <stdarg.h>                    /* for va_list */
+
 #if defined( IOT_WEBSOCKET_CIVETWEB )
 #	include <civetweb.h>                  /* for civetweb functions */
 #	include <openssl/ssl.h>               /* for SSL support */
@@ -49,17 +60,6 @@
 	/** @brief send buffer post-padding */
 #	define SEND_BUFFER_POST_PADDING       LWS_SEND_BUFFER_POST_PADDING
 #endif /* else if defined( IOT_WEBSOCKET_CIVETWEB ) */
-
-#include "app_arg.h"                   /* for struct app_arg & functions */
-#include "app_config.h"                /* for proxy configuration */
-#include "app_path.h"                  /* for path support functions */
-#include "iot.h"                       /* for iot_bool_t type */
-#include "iot_build.h"                 /* for IOT_NAME_FULL */
-#include "iot_mqtt.h"
-#include "shared/iot_types.h"          /* for proxy struct */
-
-#include <os.h>                        /* for os_* functions */
-#include <stdarg.h>                    /* for va_list */
 
 /* defines */
 /** @brief Key used to initialize a client connection */
@@ -260,26 +260,42 @@ static void relay_civetweb_on_close( const struct mg_connection *connection,
 	void *user_data );
 #endif /* if defined( IOT_WEBSOCKET_CIVETWEB ) */
 
+/** @brief Structure of arguments to pass to the relay client function */
+struct relay_client_args
+{
+	/** @brief Bind to the given port  */
+	iot_bool_t bind;
+	/** @brief Configuration file to use */
+	const char *config_file;
+	/** @brief Host to open port on */
+	const char *host;
+	/** @brief Allow insecure connections (accept self-signed certificates) */
+	iot_bool_t insecure;
+	/** @brief Notification file to use for inter-process communication */
+	const char *notification_file;
+	/** @brief Port to open (and optionally bind to) */
+	iot_uint16_t port;
+	/** @brief Use UDP sockets instead of TCP sockets */
+	iot_bool_t udp;
+	/** @brief Websocket URL to connect to */
+	const char *url;
+	/** @brief Use Verbose mode: send debug information to stdout */
+	iot_bool_t verbose;
+};
+
+/** @brief Macro to initialize the @c relay_client_args structure */
+#define RELAY_CLIENT_ARGS_INIT { IOT_FALSE, NULL, NULL, IOT_FALSE, NULL, 0u, \
+	IOT_FALSE, NULL, IOT_FALSE }
+
 /**
  * @brief Contains main code for the client
  *
- * @param[in]      url                 url to connect to via websocket
- * @param[in]      host                host to open to port on
- * @param[in]      port                port to open
- * @param[in]      udp                 whether to accept udp or tcp packets
- * @param[in]      bind                whether to bind to opened port
- * @param[in]      config_file         configuration file to use
- * @param[in]      insecure            accept self-signed certificates
- * @param[in]      verbose             output in verbose mode on stdout
- * @param[in]      notification_file   file to write connection status in
+ * @param[in]      args                structure containing relay arguments
  *
  * @retval EXIT_SUCCESS      application completed successfully
  * @retval EXIT_FAILURE      application encountered an error
  */
-static int relay_client( const char *url,
-	const char *host, os_uint16_t port, iot_bool_t udp, iot_bool_t bind,
-	const char *config_file, iot_bool_t insecure, iot_bool_t verbose,
-	const char * notification_file );
+static int relay_client( const struct relay_client_args *args );
 
 #if !defined( IOT_WEBSOCKET_CIVETWEB )
 /**
@@ -445,13 +461,7 @@ void relay_civetweb_on_close( const struct mg_connection *UNUSED(connection),
 }
 #endif /* if defined( IOT_WEBSOCKET_CIVETWEB ) */
 
-/* Write a status file once the connectivity has been confirmed so
- * that the device manager and return a status to the cloud.  This
- * will help debug connectivity issues */
-int relay_client( const char *url,
-	const char *host, os_uint16_t port, iot_bool_t udp, iot_bool_t bind,
-	const char *config_file, iot_bool_t insecure, iot_bool_t verbose,
-	const char *notification_file )
+int relay_client( const struct relay_client_args *args )
 {
 	os_socket_t *socket = NULL;
 	os_socket_t *socket_accept = NULL;
@@ -466,45 +476,43 @@ int relay_client( const char *url,
 #endif /* if civetweb > 1.10 || libwebsockets >= 1.4 */
 	struct relay_data *const app_data = &APP_DATA;
 
-	(void)config_file;
-
 	/* print client configuration */
-	relay_log(IOT_LOG_INFO, "host:     %s", host );
-	relay_log(IOT_LOG_INFO, "port:     %u", port );
+	relay_log(IOT_LOG_INFO, "host:     %s", args->host );
+	relay_log(IOT_LOG_INFO, "port:     %u", args->port );
 	relay_log(IOT_LOG_INFO, "bind:     %s",
-		( bind == IOT_FALSE ? "false" : "true" ) );
+		( args->bind == IOT_FALSE ? "false" : "true" ) );
 	relay_log(IOT_LOG_INFO, "protocol: %s",
-		( udp == IOT_FALSE ? "tcp" : "udp" ) );
+		( args->udp == IOT_FALSE ? "tcp" : "udp" ) );
 	relay_log(IOT_LOG_INFO, "insecure: %s",
-		( insecure == IOT_FALSE ? "false" : "true" ) );
+		( args->insecure == IOT_FALSE ? "false" : "true" ) );
 	relay_log(IOT_LOG_INFO, "verbose:  %s",
-		( verbose == IOT_FALSE ? "false" : "true" ) );
+		( args->verbose == IOT_FALSE ? "false" : "true" ) );
 	relay_log(IOT_LOG_INFO, "notification_file:  %s",
-		notification_file );
+		args->notification_file );
 
 	/* support UDP packets */
-	if ( udp != IOT_FALSE )
+	if ( args->udp != IOT_FALSE )
 		packet_type = SOCK_DGRAM;
 
 	/* setup socket */
 	os_memzero( app_data, sizeof( struct relay_data ) );
-	app_data->udp = udp;
-	app_data->verbose = verbose;
+	app_data->udp = args->udp;
+	app_data->verbose = args->verbose;
 #if !defined( IOT_WEBSOCKET_CIVETWEB )
-	if ( verbose != IOT_FALSE )
+	if ( args->verbose != IOT_FALSE )
 		lws_set_log_level( LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO |
 				   LLL_DEBUG | LLL_CLIENT, &relay_lws_log );
 	else
 		lws_set_log_level( LLL_ERR | LLL_WARN | LLL_NOTICE, &relay_lws_log );
 #endif /* if !defined( IOT_WEBSOCKET_CIVETWEB ) */
-	if ( os_socket_open( &socket, host, (os_uint16_t)port, packet_type, 0, 0u )
-		== OS_STATUS_SUCCESS )
+	if ( os_socket_open( &socket, args->host, (os_uint16_t)args->port,
+		packet_type, 0, 0u ) == OS_STATUS_SUCCESS )
 	{
-		if ( verbose != IOT_FALSE )
+		if ( args->verbose != IOT_FALSE )
 			relay_log( IOT_LOG_DEBUG, "%s",
 				"socket opened successfully" );
 
-		if ( bind != IOT_FALSE )
+		if ( args->bind != IOT_FALSE )
 		{
 			os_status_t retval;
 			app_data->state = RELAY_STATE_BIND;
@@ -558,6 +566,7 @@ int relay_client( const char *url,
 	   /* struct iot_proxy proxy_info;*/ /*FIXME*/
 #endif /* libwebsockets >= 1.3.0 */
 #endif /* if !defined( IOT_WEBSOCKET_CIVETWEB ) */
+		iot_bool_t ssl_validation = !args->insecure;
 		char web_url[ PATH_MAX + 1u ];
 		const char *web_address = NULL;
 		const char *web_path = NULL;
@@ -577,14 +586,15 @@ int relay_client( const char *url,
 		app_data->tx_buffer_size = RELAY_BUFFER_SIZE;
 
 #if defined( IOT_WEBSOCKET_CIVETWEB )
-		os_strncpy( web_url, url, PATH_MAX );
+		os_strncpy( web_url, args->url, PATH_MAX );
 		result = lws_parse_uri( web_url, &web_protocol,
 			&web_address, &web_port, &web_path );
 #else /* if defined( IOT_WEBSOCKET_CIVETWEB ) */
 		if ( result == EXIT_SUCCESS )
 		{
 			/* protocol */
-			os_memzero( &protocols[0u], sizeof( struct lws_protocols ) * 2u );
+			os_memzero( &protocols[0u],
+				sizeof( struct lws_protocols ) * 2u );
 			protocols[0].name = "relay";
 			protocols[0].per_session_data_size = 0;
 			protocols[0].rx_buffer_size = RELAY_BUFFER_SIZE;
@@ -600,16 +610,14 @@ int relay_client( const char *url,
 #endif /* libwebsockets >= 1.4.0 */
 			/* set ca certificate directory */
 			os_strncpy( cert_path, IOT_DEFAULT_CERT_PATH, PATH_MAX );
-			conf = app_config_open( config_file );
+			conf = app_config_open( args->config_file );
 			if ( conf )
 			{
 				const char *temp = NULL;
 				size_t temp_len = 0u;
 
-				iot_bool_t ssl_validation = !insecure;
-				app_config_read_boolean( conf, NULL, "ssl_validation",
-					&ssl_validation );
-				insecure = !ssl_validation;
+				app_config_read_boolean( conf, NULL,
+					"ssl_validation", &ssl_validation );
 
 				if( app_config_read_string( conf, NULL, "cert_path",
 					&temp, &temp_len ) == IOT_STATUS_SUCCESS && temp_len <= PATH_MAX )
@@ -621,17 +629,17 @@ int relay_client( const char *url,
 				app_config_close( conf );
 
 			/* context creation info */
-			os_memzero( &context_ci, sizeof( struct lws_context_creation_info ) );
+			os_memzero( &context_ci,
+				sizeof( struct lws_context_creation_info ) );
 			context_ci.port = CONTEXT_PORT_NO_LISTEN;
 			context_ci.iface = NULL;
 			context_ci.protocols = &protocols[0];
 			context_ci.extensions = NULL;
 
 			app_path_make_absolute( cert_path, PATH_MAX, IOT_TRUE );
-			if ( verbose != IOT_FALSE && ( *cert_path ) )
+			if ( args->verbose != IOT_FALSE && ( *cert_path ) )
 				relay_log( IOT_LOG_DEBUG,
-					"CA certificate path: %s",
-					cert_path );
+					"CA certificate path: %s", cert_path );
 			context_ci.ssl_ca_filepath = cert_path;
 			context_ci.ssl_cert_filepath = NULL;
 			context_ci.ssl_private_key_filepath = NULL;
@@ -711,7 +719,7 @@ int relay_client( const char *url,
 			{
 
 				/* client connection info */
-				os_strncpy( web_url, url, PATH_MAX );
+				os_strncpy( web_url, args->url, PATH_MAX );
 				result = lws_parse_uri( web_url, &web_protocol,
 					&web_address, &web_port, &web_path );
 			}
@@ -776,17 +784,17 @@ int relay_client( const char *url,
 #endif /* else if defined( __VXWORKS__ ) */
 #else /* if civetweb <= 1.10 */
 				ssl_connection = 1;
-				if ( insecure )
+#endif /* else if civetweb <= 1.10 */
+				if ( ssl_connection && ssl_validation == OS_FALSE )
 					relay_log( IOT_LOG_ERROR, "%s",
 						"Insecure SSL (private certs) option not "
 						"supported on civetweb, using secure" );
-#endif /* else if civetweb <= 1.10 */
 #else /* if defined( IOT_WEBSOCKET_CIVETWEB ) */
 #	if LWS_LIBRARY_VERSION_MAJOR > 2 || \
 		( LWS_LIBRARY_VERSION_MAJOR == 2 && \
 		  LWS_LIBRARY_VERSION_MINOR >= 1 )
 				ssl_connection |= LCCSCF_USE_SSL;
-				if ( insecure )
+				if ( ssl_validation == OS_FALSE )
 					ssl_connection |= LCCSCF_ALLOW_SELFSIGNED |
 #		if LWS_LIBRARY_VERSION_MAJOR > 2 || \
 			( LWS_LIBRARY_VERSION_MAJOR == 2 && \
@@ -891,7 +899,7 @@ int relay_client( const char *url,
 							if ( app_data->verbose )
 							{
 								relay_log( IOT_LOG_DEBUG, "%s Rx: %lu\n",
-									(udp == IOT_FALSE ? "TCP" : "UDP"),
+									(args->udp == IOT_FALSE ? "TCP" : "UDP"),
 									(unsigned long)rx_len );
 							}
 							app_data->tx_buffer_len += (size_t)rx_len;
@@ -951,7 +959,8 @@ int relay_client( const char *url,
 #endif /* if !defined( IOT_WEBSOCKET_CIVETWEB ) */
 		}
 		else
-			relay_log( IOT_LOG_FATAL, "Failed to parse url: %s", url );
+			relay_log( IOT_LOG_FATAL, "Failed to parse url: %s",
+				args->url );
 
 		app_data->tx_buffer_len = app_data->tx_buffer_size = 0;
 		os_free_null( (void **)&app_data->tx_buffer );
@@ -1233,12 +1242,12 @@ os_status_t relay_setup_file_log( const char *path )
 /* main entry point function */
 int relay_main( int argc, char *argv[] )
 {
+	struct relay_client_args relay_args = RELAY_CLIENT_ARGS_INIT;
 	int result;
-	const char *config_file = NULL;
+
 	const char *port_str = NULL;
 	const char *host = NULL;
 	const char *log_file_path = NULL;
-	const char *notification_file = NULL;
 	int url_pos = 0;
 
 	struct app_arg args[] = {
@@ -1247,13 +1256,15 @@ int relay_main( int argc, char *argv[] )
 		{ 'b', "bind", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
 			"bind to the specified socket", 0u },
 		{ 'c', "configure", APP_ARG_FLAG_OPTIONAL,
-			"file", &config_file, "configuration file", 0u },
+			"file", &relay_args.config_file,
+			"configuration file", 0u },
 		{ 'h', "help", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
 			"display help menu", 0u },
 		{ 'i', "insecure", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
 			"disable certificate validation", 0u },
 		{ 'n', "notification", APP_ARG_FLAG_OPTIONAL,
-			"file", &notification_file, "notification file", 0u },
+			"file", &relay_args.notification_file,
+			"notification file", 0u },
 		{ 'o', "host", APP_ARG_FLAG_OPTIONAL, "host", &host,
 			"host for socket connection", 0u },
 		{ 'u', "udp", APP_ARG_FLAG_OPTIONAL, NULL, NULL,
@@ -1276,7 +1287,6 @@ int relay_main( int argc, char *argv[] )
 	else if ( result == EXIT_SUCCESS )
 	{
 		os_uint16_t port;
-		const char *const url = argv[url_pos];
 		char host_resolved[ RELAY_MAX_ADDRESS_LEN + 1u ];
 
 		if ( host == NULL || *host == '\0' )
@@ -1340,13 +1350,19 @@ int relay_main( int argc, char *argv[] )
 			{
 				host_resolved[ RELAY_MAX_ADDRESS_LEN ] = '\0';
 
-				result = relay_client( url, host_resolved, port,
-					(iot_bool_t)app_arg_count( args, 'u', NULL ),
-					(iot_bool_t)app_arg_count( args, 'b', NULL ),
-					config_file,
-					(iot_bool_t)app_arg_count( args, 'i', NULL ),
-					(iot_bool_t)app_arg_count( args, 'v', NULL ),
-					notification_file );
+				relay_args.bind = (iot_bool_t)app_arg_count(
+					args, 'b', NULL );
+				relay_args.host = host_resolved;
+				relay_args.insecure = (iot_bool_t)app_arg_count(
+					args, 'i', NULL );
+				relay_args.port = port;
+				relay_args.udp = (iot_bool_t)app_arg_count(
+					args, 'u', NULL );
+				relay_args.url = argv[url_pos];
+				relay_args.verbose = (iot_bool_t)app_arg_count(
+					args, 'v', NULL );
+
+				result = relay_client( &relay_args );
 			}
 			else
 			{
