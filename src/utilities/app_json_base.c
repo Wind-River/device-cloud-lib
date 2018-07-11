@@ -20,13 +20,13 @@
 
 #include <os.h>
 
-#ifndef IOT_STACK_ONLY
+#if !defined( IOT_STACK_ONLY )
 /** @brief internal pointer to use for freeing dynamically allocated memory */
 static app_json_free_t *JSON_FREE = NULL;
 /** @brief internal pointer to use for dynamically allocating memory */
 static app_json_realloc_t *JSON_REALLOC = NULL;
 
-#ifdef IOT_JSON_JANSSON
+#if defined( IOT_JSON_JANSSON )
 /**
  * @brief helper function to dynamically allocate memory for JSON
  *
@@ -57,7 +57,7 @@ static void app_jansson_free( void *p )
 	else
 		os_free( p );
 }
-#endif /* ifdef IOT_JSON_JANSSON */
+#endif /* if defined( IOT_JSON_JANSSON ) */
 
 void app_json_allocation_get( app_json_realloc_t **mptr, app_json_free_t **fptr )
 {
@@ -69,9 +69,9 @@ void app_json_allocation_get( app_json_realloc_t **mptr, app_json_free_t **fptr 
 
 void app_json_allocation_set( app_json_realloc_t* mptr, app_json_free_t* fptr )
 {
-#ifdef IOT_JSON_JANSSON
+#if defined( IOT_JSON_JANSSON )
 	json_set_alloc_funcs( app_jansson_malloc, app_jansson_free );
-#endif /* ifdef IOT_JSON_JANSSON */
+#endif /* if defined( IOT_JSON_JANSSON ) */
 	JSON_REALLOC = mptr;
 	JSON_FREE = fptr;
 }
@@ -91,4 +91,4 @@ void app_json_free( void* ptr )
 	else
 		os_free(ptr);
 }
-#endif /* ifndef IOT_STACK_ONLY */
+#endif /* if !defined( IOT_STACK_ONLY ) */
