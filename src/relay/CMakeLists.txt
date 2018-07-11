@@ -34,12 +34,6 @@ include_directories( SYSTEM
 	${OPENSSL_INCLUDE_DIR}
 )
 
-# Local include directories
-include_directories(
-	"../api"
-	"../utilities"
-)
-
 # Executable files
 add_executable( ${TARGET}
 	${IOT_HDRS_C}
@@ -52,12 +46,9 @@ add_executable( ${TARGET}
 # Required libraries
 target_link_libraries( ${TARGET}
 	iotutils
-	${JSON_LIBRARIES}
 	${WEBSOCKET_LIBRARIES}
-	${OPENSSL_LIBRARIES}
 	${OSAL_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
-	${CMAKE_DL_LIBS} "m"
 )
 
 # Installation instructions
