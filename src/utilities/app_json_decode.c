@@ -412,7 +412,7 @@ app_json_decoder_t *app_json_decode_initialize(
 	size_t additional_size = sizeof( jsmntok_t );
 #endif /* defined( IOT_JSON_JSMN ) */
 
-#ifndef IOT_STACK_ONLY
+#if !defined( IOT_STACK_ONLY )
 	iot_bool_t on_heap = IOT_FALSE;
 	if ( !buf )
 		flags |= APP_JSON_FLAG_DYNAMIC;
@@ -423,7 +423,7 @@ app_json_decoder_t *app_json_decode_initialize(
 		buf = app_json_realloc( NULL, len );
 		on_heap = IOT_TRUE;
 	}
-#endif /* ifndef IOT_STACK_ONLY */
+#endif /* if !defined( IOT_STACK_ONLY ) */
 
 	if ( buf && len >= ( sizeof( struct app_json_decoder ) + additional_size ) )
 	{
@@ -891,8 +891,8 @@ iot_status_t app_json_decode_parse(
 				j_error.text, j_error.line, j_error.column );
 		}
 #elif defined( IOT_JSON_JSONC )
-		struct json_tokener *tok = json_tokener_new();
 		enum json_tokener_error j_error;
+		struct json_tokener *tok = json_tokener_new();
 		do
 		{
 			decoder->j_root = json_tokener_parse_ex( tok, js, len );
@@ -907,10 +907,14 @@ iot_status_t app_json_decode_parse(
 		{
 			os_snprintf( error, error_len,
 				"%s", json_tokener_error_desc( j_error ) );
+
+			if ( decoder->j_root )
+				json_object_put( decoder->j_root );
+
 			result = IOT_STATUS_PARSE_ERROR;
 		}
 		if ( tok )
-			json_tokener_free( tok );
+			json_tokener_free(tok);
 #else /* defined( IOT_JSON_JSMN ) */
 		jsmn_parser parser;
 		const char *error_text = NULL;
@@ -1132,18 +1136,25 @@ void app_json_decode_terminate(
 		if ( decoder->j_root )
 			json_decref( decoder->j_root );
 #elif defined( IOT_JSON_JSONC )
+		struct json_tokener *tok = json_tokener_new();
+		if ( tok )
+		{
+			if ( decoder->j_root )
+				json_object_put( decoder->j_root );
+			json_tokener_free( tok );
+		}
 #else /* defined( IOT_JSON_JSMN ) */
-#ifndef IOT_STACK_ONLY
+#if !defined( IOT_STACK_ONLY )
 		if ( decoder->flags & APP_JSON_FLAG_DYNAMIC && decoder->tokens )
 			app_json_free( decoder->tokens );
-#endif /* ifndef IOT_STACK_ONLY */
+#endif /* if !defined( IOT_STACK_ONLY ) */
 #endif /* defined( IOT_JSON_JSMN ) */
 
-#ifndef IOT_STACK_ONLY
+#if !defined( IOT_STACK_ONLY )
 		/* free object from heap */
 		if ( decoder->flags & APP_JSON_FLAG_DYNAMIC )
 			app_json_free( decoder );
-#endif /* ifndef IOT_STACK_ONLY */
+#endif /* if !defined( IOT_STACK_ONLY ) */
 	}
 }
 

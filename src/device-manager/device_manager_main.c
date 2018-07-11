@@ -804,7 +804,8 @@ iot_status_t device_manager_config_read(
 				json_string = (char *)os_malloc( json_size + 1 );
 				if ( json_string )
 				{
-					json_size = os_file_read( json_string, 1, json_size, fd );
+					json_size = os_file_read( json_string,
+						1, json_size, fd );
 					json_string[ json_size ] = '\0';
 					if ( json_size > 0 )
 						result = IOT_STATUS_SUCCESS;
@@ -825,9 +826,9 @@ iot_status_t device_manager_config_read(
 					IOT_JSON_FLAG_DYNAMIC );
 #endif
 				if ( json && iot_json_decode_parse( json,
-							json_string,
-							json_size, &json_root,
-						err_msg, 1024u ) == IOT_STATUS_SUCCESS )
+					json_string,
+					json_size, &json_root,
+					err_msg, 1024u ) == IOT_STATUS_SUCCESS )
 				{
 					enum device_manager_config_idx idx;
 					const iot_json_item_t *j_action_top;
@@ -929,29 +930,24 @@ iot_status_t device_manager_config_read(
 							iot_json_decode_array_iterator( json, j_ra_support );
 
 						/* Encode new JSON object while we filter for valid protocols */
-#ifdef IOT_STACK_ONLY
+#if defined( IOT_STACK_ONLY )
 						json_enc = iot_json_encode_initialize(
 								buffer, 1024u, 0u );
-#else
+#else /* if defined( IOT_STACK_ONLY ) */
 						json_enc = iot_json_encode_initialize(
 								NULL, 0u, IOT_JSON_FLAG_DYNAMIC );
 						/* Publish remote access object with updated list of protocols */
-#endif
+#endif /* else if defined( IOT_STACK_ONLY ) */
 
 						iot_json_encode_array_start( json_enc, NULL );
-
 
 						/* Parse login protocols from JSON array */
 						while ( j_itr != NULL )
 						{
 							const iot_json_item_t *j_temp;
-							char *name;
-							char *port;
-							char *session_timeout;
-
-							name = NULL;
-							port = NULL;
-							session_timeout = NULL;
+							char *name = NULL;
+							char *port = NULL;
+							char *session_timeout = NULL;
 
 							iot_json_decode_array_iterator_value( json,
 								j_ra_support, j_itr, &j_action_top );
@@ -965,7 +961,7 @@ iot_status_t device_manager_config_read(
 							if ( temp && temp[0] != '\0' )
 							{
 								/* encode new (valid) protocol */
-								name = os_malloc( temp_len + 1 );
+								name = os_malloc( temp_len + 1u );
 								if ( name != NULL )
 								{
 									os_strncpy( name, temp, temp_len );
@@ -980,7 +976,7 @@ iot_status_t device_manager_config_read(
 
 							if ( temp && temp[0] != '\0' )
 							{
-								port = os_malloc( temp_len	+ 1 );
+								port = os_malloc( temp_len + 1 );
 								if ( port != NULL )
 								{
 									os_strncpy( port, temp, temp_len );
@@ -1012,17 +1008,21 @@ iot_status_t device_manager_config_read(
 									iot_json_encode_object_start( json_enc, NULL );
 									iot_json_encode_string( json_enc, "name", name );
 									iot_json_encode_string( json_enc, "port", port );
-									os_free( name );
-									os_free( port );
 									if ( session_timeout && session_timeout[0] != '\0' )
-									{
-										iot_json_encode_string( json_enc, "session_timeout", session_timeout );
-										os_free( session_timeout );
-									}
+										iot_json_encode_string( json_enc,
+											"session_timeout", session_timeout );
 									iot_json_encode_object_end( json_enc );
 								} else
 									iot_json_encode_object_cancel( json_enc );
 							}
+
+							if ( name )
+								os_free( name );
+							if ( port )
+								os_free( port );
+							if ( session_timeout )
+								os_free( session_timeout );
+
 							j_itr = iot_json_decode_array_iterator_next( json, j_ra_support, j_itr );
 						}
 						IOT_LOG( NULL, IOT_LOG_DEBUG, "  * remote_login_protocols: %s",
@@ -1033,6 +1033,9 @@ iot_status_t device_manager_config_read(
 				else
 					IOT_LOG( NULL, IOT_LOG_ERROR,
 						"%s", err_msg );
+
+				os_free( json_string );
+				iot_json_decode_terminate( json );
 			}
 		}
 		os_file_close( fd );
@@ -1220,6 +1223,7 @@ iot_status_t check_listening_port(
 	{
 		if ( os_socket_connect( socket ) == OS_STATUS_SUCCESS )
 			status = IOT_STATUS_SUCCESS;
+		os_socket_close( socket );
 	}
 	return status;
 }
@@ -1561,7 +1565,7 @@ int device_manager_main( int argc, char *argv[] )
 				/*os_adapters_release( adapters );*/
 				/*}*/
 
-				/*os_terminate_handler(device_manager_sig_handler);*/
+				os_terminate_handler(device_manager_sig_handler);
 
 				IOT_LOG( APP_DATA.iot_lib, IOT_LOG_INFO, "%s",
 					"Ready for some actions..." );

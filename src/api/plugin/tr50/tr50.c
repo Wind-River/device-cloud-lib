@@ -2716,7 +2716,11 @@ iot_status_t tr50_terminate(
 #ifdef IOT_THREAD_SUPPORT
 	os_thread_mutex_destroy( &data->mail_check_mutex );
 #endif /* IOT_THREAD_SUPPORT */
-	os_free_null( (void**)&data );
+	if ( data )
+	{
+		os_free( data );
+		data = NULL;
+	}
 	iot_mqtt_terminate();
 	curl_global_cleanup();
 	return result;
