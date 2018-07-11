@@ -47,9 +47,6 @@
 /** @brief Flag to enable remote login related actions */
 #define DEVICE_MANAGER_ENABLE_REMOTE_LOGIN            0x0100
 
-/** @brief Remote login protocol maximum length */
-#define REMOTE_LOGIN_PROTOCOL_MAX 32
-
 /**
  * @brief Index of various default device manager functions in the global
  *        structure
@@ -67,7 +64,6 @@ enum device_manager_config_idx
 	DEVICE_MANAGER_IDX_FILE_UPLOAD,
 	DEVICE_MANAGER_IDX_PING,
 	DEVICE_MANAGER_IDX_REMOTE_LOGIN,
-	DEVICE_MANAGER_IDX_REMOTE_LOGIN_PROTOCOL,
 	DEVICE_MANAGER_IDX_RESTORE_FACTORY_IMAGES,
 	DEVICE_MANAGER_IDX_SOFTWARE_UPDATE,
 
@@ -91,10 +87,10 @@ struct device_manager_info
 {
 	/** @brief Library handle */
 	iot_t *iot_lib;
-#ifndef NO_FILEIO_SUPPORT
+#if !defined( NO_FILEIO_SUPPORT )
 	/** @brief structure used to support file input/output operations */
 	struct device_manager_file_io_info file_io_info;
-#endif
+#endif /* if !defined( NO_FILEIO_SUPPORT ) */
 	/** @brief registered device manager actions */
 	struct device_manager_action actions[DEVICE_MANAGER_IDX_LAST];
 	/** @brief agent_state */
@@ -103,8 +99,6 @@ struct device_manager_info
 	char app_path[PATH_MAX + 1u];
 	/** @brief run time directory */
 	char runtime_dir[PATH_MAX + 1u];
-	/** @brief valid remote login protocols */
-	iot_json_encoder_t* remote_login_protocols;
 	/** @brief number of loops main loop has gone through */
 	size_t loop_count;
 	/** @brief log level */
