@@ -13,10 +13,10 @@
 		"remote_login" : true
 	},
 	"remote_access_support":[
-		{ "name": "Telnet", "port":"23", "session_timeout":"120" },
-		{ "name": "SSH",    "port":"22", "session_timeout":"120" },
+		{ "name": "Telnet", "port":"telnet", "session_timeout":120 },
+		{ "name": "SSH",    "port":"ssh", "session_timeout":120 },
 		{ "name": "VNC",    "port":"5900" },
-		{ "name": "HTTP",   "port":"80" },
+		{ "name": "HTTP",   "port":"http" },
 		{ "name": "RDP",    "port":"3389" }
 	]
 }

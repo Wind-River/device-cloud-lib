@@ -1257,13 +1257,23 @@ int relay_main( int argc, char *argv[] )
 			"remote relay address" );
 	else if ( result == EXIT_SUCCESS )
 	{
-		os_uint16_t port;
+		os_uint16_t port_num;
 		char host_resolved[ RELAY_MAX_ADDRESS_LEN + 1u ];
 
 		if ( host == NULL || *host == '\0' )
 			host = RELAY_DEFAULT_HOST;
 
-		port = (os_uint16_t)os_atoi( port_str );
+		port_num = (os_uint16_t)os_atoi( port_str );
+
+		/* support for ports by name */
+		if ( port_num == 0u  )
+		{
+			os_service_entry_t *const ent =
+				os_service_entry_by_name( port_str, NULL );
+			if ( ent )
+				port_num = (iot_uint16_t)ntohs((uint16_t)ent->s_port);
+			os_service_entry_close();
+		}
 
 		if( log_file_path )
 		{
@@ -1316,7 +1326,7 @@ int relay_main( int argc, char *argv[] )
 			/* initialize websockets */
 			os_socket_initialize();
 
-			if ( os_get_host_address ( host, port_str, host_resolved,
+			if ( os_get_host_address( host, port_str, host_resolved,
 				RELAY_MAX_ADDRESS_LEN, AF_INET ) == 0 )
 			{
 				host_resolved[ RELAY_MAX_ADDRESS_LEN ] = '\0';
@@ -1326,7 +1336,7 @@ int relay_main( int argc, char *argv[] )
 				relay_args.host = host_resolved;
 				relay_args.insecure = (iot_bool_t)app_arg_count(
 					args, 'i', NULL );
-				relay_args.port = port;
+				relay_args.port = port_num;
 				relay_args.udp = (iot_bool_t)app_arg_count(
 					args, 'u', NULL );
 				relay_args.url = argv[url_pos];

@@ -125,16 +125,19 @@ static iot_status_t device_manager_config_read(
 	const char *app_path, const char *config_file );
 
 /**
- * @brief Checks if port is actively listened to on a host
+ * @brief Checks if service (or port) is actively listening on the localhost
  *
- * @param[in]  port        port number to check
+ * @note @p service can be a numeric port number.  If @p service is not a number
+ * then an entry is looked for in the /etc/services file for the corresponding
+ * port
  *
- * @retval IOT_STATUS_SUCCESS          port was active
- * @retval IOT_STATUS_FAILURE          port was inactive or invalid host
+ * @param[in]  service                 service to check
+ *
+ * @retval 0       The service name was not found or not active
+ * @retval >0      The port number of the service, if active.
  */
-static iot_status_t check_listening_port(
-	const char *port );
-
+static iot_uint16_t check_listening_service(
+	const char *service );
 
 /**
  * @brief Callback function to download a file from the cloud
@@ -1124,27 +1127,38 @@ void device_manager_file_progress(
 		(double)percent );
 }
 
-
-iot_status_t check_listening_port(
-	const char *port )
+iot_uint16_t check_listening_service(
+	const char *service )
 {
 	os_socket_t *socket;
-	iot_status_t status = IOT_STATUS_FAILURE;
 	char localhost_addr[15];
-	iot_uint16_t port_num = (iot_uint16_t)os_atoi(port);
+	iot_uint16_t port_num = 0u;
+
+	if ( service )
+		port_num = (iot_uint16_t)os_atoi( service );
+
+	/* support for ports by name */
+	if ( port_num == 0u  )
+	{
+		os_service_entry_t *const ent =
+			os_service_entry_by_name( service, NULL );
+		if ( ent )
+			port_num = (iot_uint16_t)ntohs( (uint16_t)ent->s_port );
+		os_service_entry_close();
+	}
 
 	if ( port_num <= 0 ||
 		os_get_host_address( "localhost", 0, localhost_addr, 15, AF_INET ) != 0 )
-		status = IOT_STATUS_FAILURE;
+		port_num = 0u;
 
-	if ( os_socket_open( &socket, localhost_addr, port_num,
+	if ( port_num > 0u && os_socket_open( &socket, localhost_addr, port_num,
 		SOCK_STREAM, 0u, 1000u ) == OS_STATUS_SUCCESS )
 	{
-		if ( os_socket_connect( socket ) == OS_STATUS_SUCCESS )
-			status = IOT_STATUS_SUCCESS;
+		if ( os_socket_connect( socket ) != OS_STATUS_SUCCESS )
+			port_num = 0u;
 		os_socket_close( socket );
 	}
-	return status;
+	return port_num;
 }
 
 iot_status_t device_manager_initialize( const char *app_path,
@@ -1981,7 +1995,8 @@ iot_status_t on_action_remote_login_update( iot_action_request_t* request,
 					{
 						const iot_json_item_t *j_ra_obj = NULL;
 						const iot_json_item_t *j_ra_value = NULL;
-						char *port = NULL;
+						char *service_name = NULL;
+						iot_uint16_t port_num;
 						const char *str = NULL;
 						size_t str_len = 0u;
 
@@ -1990,25 +2005,26 @@ iot_status_t on_action_remote_login_update( iot_action_request_t* request,
 							json_dec, j_ra_support,
 							j_itr, &j_ra_obj );
 
-						/* port */
+						/* service_name */
 						j_ra_value = iot_json_decode_object_find(
 							json_dec, j_ra_obj, "port" );
 						iot_json_decode_string( json_dec,
 							j_ra_value, &str, &str_len );
 						if ( str && str_len > 0u )
 						{
-							port = os_malloc( str_len + 1u );
-							if ( port )
+							service_name = os_malloc( str_len + 1u );
+							if ( service_name )
 							{
-								os_strncpy( port, str, str_len );
-								port[ str_len ] = '\0';
+								os_strncpy( service_name, str, str_len );
+								service_name[ str_len ] = '\0';
 							}
 						}
 
-						if ( port &&
-							check_listening_port( port ) == IOT_STATUS_SUCCESS )
+						port_num = check_listening_service( service_name );
+						if ( port_num > 0u )
 						{
-							char *name = port;
+							char port_str[12u];
+							char *name = service_name;
 							long timeout = 0L;
 							iot_json_encode_object_start( json_enc, NULL );
 
@@ -2029,14 +2045,20 @@ iot_status_t on_action_remote_login_update( iot_action_request_t* request,
 									name[ str_len ] = '\0';
 								}
 							}
+
 							iot_json_encode_string(
 								json_enc, "name", name );
 
 							if ( name && str && str_len > 0u )
 								os_free( name );
 
+							os_snprintf( port_str,
+								sizeof(port_str),
+								"%d", (unsigned int)port_num );
+							port_str[sizeof(port_str) - 1u] = '\0';
+
 							iot_json_encode_string(
-								json_enc, "port", port );
+								json_enc, "port", port_str );
 
 							/* session timeout */
 							j_ra_value = iot_json_decode_object_find(
@@ -2047,18 +2069,19 @@ iot_status_t on_action_remote_login_update( iot_action_request_t* request,
 								&timeout );
 							if ( timeout > 0L )
 							{
-								char timeout_str[12u];
+								char timeout_str[32u];
 								os_snprintf( timeout_str,
 									sizeof(timeout_str),
 									"%ld", timeout );
+								timeout_str[sizeof(timeout_str) - 1u] = '\0';
 								iot_json_encode_string( json_enc,
 									"session_timeout", timeout_str );
 							}
 							iot_json_encode_object_end( json_enc );
 						}
 
-						if ( port )
-							os_free( port );
+						if ( service_name )
+							os_free( service_name );
 
 						j_itr = iot_json_decode_array_iterator_next(
 							json_dec, j_ra_support, j_itr );
