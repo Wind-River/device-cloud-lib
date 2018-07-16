@@ -20,7 +20,10 @@ iotutils_c_includes := \
     $(LOCAL_PATH)/../ \
     $(LOCAL_PATH)/../../ \
     $(LOCAL_PATH)/../api/public/ \
+	external/hdc/curl/include \
 	external/hdc/iotjsmn \
+	external/hdc/libwebsockets/lib \
+	external/openssl/include \
 
 iotutils_src_files := \
 	app_arg.c \
@@ -31,6 +34,7 @@ iotutils_src_files := \
 	app_json_decode.c \
 	app_json_encode.c \
 	app_json_schema.c \
+	app_websocket.c \
 
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(iotutils_c_includes)

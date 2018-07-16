@@ -140,7 +140,7 @@ else()
 endif()
 
 if ( IOT_WEBSOCKET_LIBRARY STREQUAL "civetweb" )
-	set( CIVETWEB_ROOT_DIR "/home/kholman/work/civetweb/output/out" )
+	#set( CIVETWEB_ROOT_DIR "/home/kholman/work/civetweb/output/out" )
 	find_package( Civetweb REQUIRED )
 	add_definitions( "-DIOT_WEBSOCKET_CIVETWEB" )
 	set( WEBSOCKET_INCLUDE_DIR "${CIVETWEB_INCLUDE_DIR}" )

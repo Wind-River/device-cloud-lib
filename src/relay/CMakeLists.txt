@@ -30,8 +30,6 @@ set( IOT_SRCS_C ${IOT_SRCS_C}
 
 # System include directories
 include_directories( SYSTEM
-	${WEBSOCKET_INCLUDE_DIR}
-	${OPENSSL_INCLUDE_DIR}
 )
 
 # Local include directories
