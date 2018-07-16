@@ -46,12 +46,16 @@ SRC_FILES = \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/json/iot_json_base.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/json/iot_json_decode.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/json/iot_json_encode.c \
-        $(DEVICE_CLOUD_LIB_DIR)/src/api/json/iot_json_schema.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/checksum/iot_checksum.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/checksum/iot_checksum_crc32.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/plugin/iot_plugin_builtin.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/api/plugin/tr50/tr50.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_arg.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_config.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_json_base.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_json_decode.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_json_encode.c \
+        $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_json_schema.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_log.c \
         $(DEVICE_CLOUD_LIB_DIR)/src/utilities/app_path.c \
         $(DEVICE_CLOUD_LIB_DIR)/build-sys/vxworks-lib/vxworks_lib.c
