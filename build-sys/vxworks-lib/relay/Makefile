@@ -14,7 +14,7 @@
 
 ifeq ($(SPACE), user)
 EXE = iot-relay
-ADDED_LIBS += -liotutils -lm -losal -lnet -lcivetweb -larchive -lHASH -lOPENSSL -lmosquitto -ljson -lzlib -lcurl -lunix
+ADDED_LIBS += -liot -losal -lnet -lcivetweb -larchive -lHASH -lOPENSSL -lmosquitto -ljson -lzlib -lcurl -lunix
 else
 LIB_BASE_NAME = deviceCloudRelay
 endif
