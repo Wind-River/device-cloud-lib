@@ -17,6 +17,8 @@ Features Included are:
 
 Building
 --------
+
+### Building for Linux ###
 Required system dependencies:
   * Fedora (22+):
 ```sh
@@ -28,21 +30,15 @@ sudo apt-get install build-essential git cmake libssl-dev \
                libcurl4-openssl-dev libarchive-dev
 ```
 
-Note: regaring repository access, device-cloud-osal is not public.  Make sure to
-enable ssh clone access in your github account (e.g. add ssh key), or
-the `build.sh` script will fail to clone the device-cloud-osal repository.
-
 ```sh
 rm -rf build
 mkdir build
 cd build
-set BUILD_TYPE=Release
+export BUILD_TYPE=Release #for additional debug logging, use 'BUILD_TYPE=Debug'
 ../build.sh
 # if you have build issues, it is typically caused by missing build dependencies
 make
 
-# Optional: make check
-This will build and run unit tests on the code base
 
 # Optional: make package
 This will build a package for installing the code base
@@ -56,10 +52,39 @@ Note: if you use DESTDIR, make sure the libiot.so can be found, e.g.
 update ld.so.conf.d,  LD_LIBRARY_PATH etc.  Run 'sudo ldconfig' if the
 ld.so.conf.d was changed.
 
+### Building for Android ###
+From the source tree root
+```
+cd build-sys/wr-hdc-buildinfo/
+mkdir build
+./android_build_wr-iot-lib.sh build num_of_jobs git_tag branch_name target_name [platform | all]
+```
+This builds and android image from source packages and builds the device cloud library on top of it.
+This will take up ~160GB of disk space. (note: this will recursively checkout this repository)
+
+Unit Testing & Coverage
+-------
+Required system depndencies:
+  * CMocka: [git://git.cryptomilk.org/projects/cmocka.git](git://git.cryptomilk.org/projects/cmocka.git)
+  * lcov:	https://github.com/linux-test-project/lcov
+
+Make sure you don't have any preinstalled CMocka - install from the repository above.
+Older versions will cause the tests to fail.
+
+In the folder you ran `build.sh` in, you can run:
+
+`make check` (requires CMocka)
+This will build and run unit tests on the code base
+
+`make coverage` (requires lcov)
+This will generate coverage reports for code base.
+Requires you to edit the `CMAKE_BUILD_TYPE:STRING=""` line to `CMAKE_BUILD_TYPE:STRING=Coverage`
+
+
 
 Running
 -------
-From the directory you ran "make in, do the following to test an
+From the directory you ran "make" in, do the following to test an
 application.  Note: you will need credentials e.g. an app token to
 connect.  The "iot-control" tool will create the correct
 iot-connect.cfg file in /etc/iot.
