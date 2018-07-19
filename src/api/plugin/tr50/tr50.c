@@ -60,6 +60,8 @@
 #define TR50_TIMEOUT_RECONNECT_MS           5u * IOT_MILLISECONDS_IN_SECOND /* 5 seconds */
 /** @brief Maximum length for a "thingkey" */
 #define TR50_THING_KEY_MAX_LEN              ( IOT_ID_MAX_LEN * 2u ) + 1u
+/** @brief Non-secure MQTT port */
+#define TR50_MQTT_NONSECURE_PORT            1883
 
 #ifdef IOT_THREAD_SUPPORT
 /** @brief File transfer progress interval in seconds */
@@ -1144,7 +1146,10 @@ iot_status_t tr50_connect(
 		con_opts.port = (iot_uint16_t)port;
 		con_opts.keep_alive = TR50_MQTT_KEEP_ALIVE;
 		con_opts.proxy_conf = proxy_conf_p;
-		con_opts.ssl_conf = &ssl_conf;
+		if ( port == TR50_MQTT_NONSECURE_PORT )
+			con_opts.ssl_conf = NULL;
+		else
+			con_opts.ssl_conf = &ssl_conf;
 		con_opts.username = data->thing_key;
 		con_opts.password = app_token;
 		con_opts.version = IOT_MQTT_VERSION_3_1_1;
