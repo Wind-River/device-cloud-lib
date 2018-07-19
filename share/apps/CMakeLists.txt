@@ -218,6 +218,7 @@ add_subdirectory( "actions" )
 add_subdirectory( "complete" )
 add_subdirectory( "location" )
 add_subdirectory( "telemetry" )
+add_subdirectory( "validate" )
 
 # Files required by all applications for building from source
 # Add base iot.make file with correct path for install

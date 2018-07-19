@@ -6,16 +6,22 @@ compiler:
 os:
   - linux
 env:
+# only add the AUTO_PREFIX to builds that will run
   matrix:
     - BUILD_TYPE=Debug     STACK_ONLY=ON    THREAD_SUPPORT=ON
     - BUILD_TYPE=Debug     STACK_ONLY=ON    THREAD_SUPPORT=OFF
     - BUILD_TYPE=Release   STACK_ONLY=ON    THREAD_SUPPORT=ON
     - BUILD_TYPE=Release   STACK_ONLY=ON    THREAD_SUPPORT=OFF
-    - BUILD_TYPE=Debug     STACK_ONLY=OFF   THREAD_SUPPORT=ON
+    - BUILD_TYPE=Debug     STACK_ONLY=OFF   THREAD_SUPPORT=ON env:AUTO_PREFIX=auto-travisci-session-clib-5
     - BUILD_TYPE=Debug     STACK_ONLY=OFF   THREAD_SUPPORT=OFF
-    - BUILD_TYPE=Release   STACK_ONLY=OFF   THREAD_SUPPORT=ON
+    - BUILD_TYPE=Release   STACK_ONLY=OFF   THREAD_SUPPORT=ON env:AUTO_PREFIX=auto-travisci-session-clib-7
     - BUILD_TYPE=Release   STACK_ONLY=OFF   THREAD_SUPPORT=OFF
 
+  global:
+    - secure: C9yuNtW/bDfsbys8WmwRloJ+I/JUsHVQcCtLtohJp27jyY5RgOXc/i6RPCwfgzR928GFxcH6C9DZqn6YUr9LpNDd6ZKlG3x+VEmio890W7eNuZmNovUNS6uPHCWXlMHFlzfL9BoxnLC6nHT7M99nUSjNC6nOeIhKihF2bO6nFMtpZI7+BGVp9VCduN+iYpjsU0+NtHeQYHnGjsqkRDZ7ucv+GHMGPnzf63UZqbZIn0CmByXkE1AyLyRfUQEZhWI3dMfK79jm4Lnia0qBMaFVc5d3ewGMXP2U6LHTz7wOSnW5xjc1nYpQi66iBVsOBCg47gl/JYfK82u4+8TgPX+LB1JDXl6uUdcckI9Xlya01R67sW4ZXITf8cpdzPdbtb660tHVZizjnyOien8/DVkQkmKQGUoIHokc7iQ46m73XC5qZfsftwXZ5X6cZ8ROrF9KRfN7O6+7Ta3iYvokvlTMmdtYCIpJTeWhDwP0XuuqD7WG/WW+7fWKg7oheKKjLLlAZ5Nch+uNmSCDDZxWGk+WAjbRGyr0WRfZxL+Fo/ZSoUUhtSJLWD9+oezd7OpzLrtbnfKNCQZdYP3kHIABo23wQV9AB7xKS9C2mK6/h6IzXMT1+omUMe5S7h+reWtp3pl03j9UGlymy//yJuKDvptiP76Lfbg8rkwjnAzKuXAk5uU=
+    - secure: e56gCGBYpW2qGPtYgqAGftxkHOXemieRKhr51Un12MB66SRJX58CcAsM3FSkjohz5JZ9qJkn7QxPbIdV91ktBk0tyGrQGyYNY2Dh++J4quBM2pSctK/BTaG2UQnohwbD4AGWVZwC4DVZVJO7NcSpderiXTnX+BfWJ1unVRRuMx1dfJmOqj4dWdtAqHrL1Bxoxa6xBSYzz2Y41HJQUOu9A5IUOff/xMQFoyOZGplDYynk2VUYYlk8cpuk+uvPwGBc8P+LpsI9z73Kp1HOJZecpFQBp6nR6oFnFGKhIfwcp4ci3sM+kMlOXm5iXBSVDFWtYZd5O0B19AlRTNVX+TKvGLMDciLSPnNoSukeVc17EdUd2Y8m7Qa+zKY/8pMFw0jJpkEuaDvv7vxkAQacyXmKnRYbZszjwkGu1sJ/pum0qw3vfwoza7MNf/IGU6uCOHdsYNa1f4SmRpONlBra7sJJSn1YHhKeRv/sIkWJKBnM3TlR7T+dI5+qLun9Tazz6dyHiltKBY48ttJqg3EoP6m8G8p7D41i5DXOs3clB4K+0a0LB16LlQDSu+uaKDy+fnIohoLCYdl5rN1+F1Ahoa1GsL0eYaDaZEW1JLE2g/sovqThT9lrDPBZN9VV2tNkLgBP7xfNjj2MS8x4Qd+AHhJugcxQg8arQuJLNW2kaS38Imk=
+    - secure: HJuaRFXoEbY7uv/ArCs8awEkUP10WHyAzc0oJdJrq5y/eU18BtTH4QkHiyq+rdq7GrFrE14K0Z+eNG9Jth4mgStPdtz4hDIRYEKYh02XU04vO41oWNq9H1OdVoQqNYyb7rfwQOVhubFrykxE3rmKa8AgtXtAivnKn92w/NxOSBLRWRUbA8d1KW/MfrFgmEULegMLeJx7Emy+Fnr8oIk7HOESBeMiCu5d87/jNxD+Mzh+e28eCudgaGzt/0tA1l/fdHCvINWwesmcayysQl/bPjX710yYVkXtvr3b4oWPW62bGz+IWxD28G/RYxKcxQjaJ2UPA0M/h3wzVDQqZ1URdSO0eNaa1rJAVFv7wbRTAOs9trsgDQvAr9m3twCb+iXzAVi/3nzQF+tAqVWxIKEk7bDsdGOmOujDOdFI+X+wvWkVs4mZHwWZch553GgFJTDrcmGnnQVtEBUYXhC/bhfsjKXeEsO0tVgWS5TYar+KB7vyeG54m0Yngutu42JBJRishPYjtqWOJwk3WFdeTokEEWSn9gWwBHY5N/HxaK0CYNTxNXcpbNa/ZOjiPoL6l/qrApPnm4ZQc1lDE9YdP7QW+3M73nSLi8cJQPnFvozXHxEHcZpXrLXlsXl8IOX6URN0OSORKmFkTWAbd46UrLjUzmw84ydoVYM9a7lihtiSD/c=
+    - secure: PuBKmzuFJWwIbgiwQT9Sd/rtBRpidiS5aBIvVit2QbsK25yW57MvVs8l3sVFhk2DL/CRqHTdzDPiff3EFllEh8HlBmtq9isnqC6EocJ17rleWihNegFVdVY24l1frnRCS2HCG0Muo7gzd9vJxV9NZ8m6TSBePQOdXR7X0fhAp+37v+vAgaLnxaG8R2XEGlN7WCfmVggjtWIETUWl2843qJeAFwApzh5dLrT8wdCbSD1Dt5SEWymwAAyqmgdBMhE8VQZJhHhe9Ne4SadWim3oSA+HhCShW0TukwWwjgESj6P8s2zY/bXMifjafVp7MEHXYVMV8MZj3ftsjVtGIPivRP9/W1H1QmWazyVr5wU9X7B1GVwOzwAxexYjAHavh/HUon2JSpKkYUjxjhbnwHcBb2b6E6zY9AI/6M+dxscWaO5bMniZ6qMTcjkTTVcbl5pctuftaGdIJPaIJBlnwuqzRWzMZet24M3ES7FsOtgz+h1j5SmyB/7Gql+ODIyaPPtKvC7r4WDuXTK8LhsTIGV4uHrmPtmn9umzmWKY8m4iXp9PI8cSmSM3JN0BM4ab2Q7uOzUyWBPoWIU5wKR1f9zGoqRq4C3ZYmN12sJutTS+JPI7r1yr0yC4jGpdbX23Ve99fCvGiuPXrLiYWyeyunMqFvap+SkV50VLrZIHcBTr1fo=
 addons:
   apt:
     packages:
@@ -28,8 +34,10 @@ addons:
 
 install:
   - mkdir build
+  - sed -i "s|\(IOT_DEFAULT_DIR_CONFIG:\).*|\1 \"${PWD}/build/bin\"|" build.yml
+  - sed -i "s|\(IOT_DEFAULT_DIR_RUNTIME:\).*|\1 \"${PWD}/build/bin\"|" build.yml
   - cd build
-  - ../build.sh
+  - "../build.sh"
 
 before_script:
   - cmake --version
@@ -38,4 +46,7 @@ script:
   - make
   - make check
   - make package
-
+  - cd bin
+  - ls
+  - cp ../../share/apps/validate/*.py .
+  - test "${AUTO_PREF}x" == "x"|| python validate_script.py -a iot-app-validate -c validate-app.cfg
