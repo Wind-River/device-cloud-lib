@@ -114,6 +114,12 @@
 /** @brief Update appication long description */
 #define IOT_UPDATE_DESCRIPTION         "@IOT_UPDATE_DESCRIPTION@"
 
+/** @brief Websocket target name (executable name) */
+#define IOT_TARGET_TUNNELSRV               "@IOT_TARGET_TUNNELSRV@"
+/** @brief Websocket name (short description) */
+#define IOT_TUNNELSRV_NAME                 "@IOT_TUNNELSRV_NAME@"
+/** @brief Websocket long description */
+#define IOT_TUNNELSRV_DESCRIPTION          "@IOT_TUNNELSRV_DESCRIPTION@"
 
 /** @brief Websocket target name (executable name) */
 #define IOT_TARGET_RELAY               "@IOT_TARGET_RELAY@"
@@ -148,6 +154,9 @@
 
 /** @brief Default state of remote login related action */
 #define IOT_DEFAULT_ENABLE_REMOTE_LOGIN                   @IOT_DEFAULT_ENABLE_REMOTE_LOGIN@
+
+/** @brief Default state of remote login related action */
+#define IOT_DEFAULT_ENABLE_TUNNEL_OPEN                    @IOT_DEFAULT_ENABLE_TUNNEL_OPEN@
 
 /** @brief Default state of restore factory images action */
 #define IOT_DEFAULT_ENABLE_RESTORE_FACTORY_IMAGES         @IOT_DEFAULT_ENABLE_RESTORE_FACTORY_IMAGES@

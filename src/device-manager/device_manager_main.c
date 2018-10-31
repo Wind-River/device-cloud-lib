@@ -37,6 +37,27 @@
 /** @brief Name of "debug" parameter for remote login action */
 #define REMOTE_LOGIN_PARAM_DEBUG               "debug-mode"
 
+/** @brief Name of "opened_by" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_OPENEDBY                "openedBy"
+/** @brief Name of "router_address" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_ROUTERADDR            "routerAddress"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_ROUTERKEY                 "routerKey"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_THINGKEY                 "thingKey"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_TUNACTUALHOST                 "tunActualHost"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_TUNID                 "tunId"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_TUNKEY                 "tunKey"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_TUNNAME                "tunName"
+/** @brief Name of "routher_key" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_TUNPORT                 "tunPort"
+/** @brief Name of "host" parameter for tunnel action */
+#define TUNNEL_OPEN_PARAM_DEBUG               "debug-mode"
+
 /** @brief Name of action to update the list of supported remote login protocols */
 #define REMOTE_LOGIN_UPDATE_ACTION            "get_remote_access_info"
 
@@ -308,6 +329,19 @@ static iot_status_t on_action_device_shutdown(
 	void *user_data );
 
 /**
+ * @brief Callback function to return the tunnel open
+ *
+ * @param[in,out]  request             request invoked by the cloud
+ * @param[in]      user_data           not used
+ *
+ * @retval IOT_STATUS_BAD_PARAMETER    invalid parameter passed to function
+ * @retval IOT_STATUS_SUCCESS          on success
+ */
+static	iot_status_t on_action_tunnel_open(
+	iot_action_request_t* request,
+	void *user_data );
+
+	/**
  * @brief Callback function to return the remote login
  *
  * @param[in,out]  request             request invoked by the cloud
@@ -377,6 +411,7 @@ iot_status_t device_manager_actions_deregister(
 		iot_action_t *const decommission_device = device_manager->decommission_device;
 		iot_action_t *const device_shutdown = device_manager->device_shutdown;
 		iot_action_t *const remote_login = device_manager->remote_login;
+		iot_action_t *const tunnel_open = device_manager->tunnel_open;
 		iot_action_t *file_upload = NULL;
 		iot_action_t *file_download = device_manager->file_download;
 		iot_action_t *const device_reboot = device_manager->device_reboot;
@@ -431,6 +466,14 @@ iot_status_t device_manager_actions_deregister(
 			iot_action_deregister( dump_log_files, NULL, 0u );
 			iot_action_free( dump_log_files, 0u );
 			device_manager->dump_log_files = NULL;
+		}
+
+		/* tunnel open */
+		if ( tunnel_open )
+		{
+			iot_action_deregister( tunnel_open, NULL, 0u );
+			iot_action_free( tunnel_open, 0u );
+			device_manager->tunnel_open = NULL;
 		}
 
 		/* remote login */
@@ -757,6 +800,70 @@ iot_status_t device_manager_actions_register(
 					iot_action_free( ra_update, 0u );
 				}
 			}
+		}
+
+		/* tunnel.open cb */
+		action = &device_manager->actions[DEVICE_MANAGER_IDX_TUNNEL_OPEN];
+		if ( action->enabled != IOT_FALSE )
+		{
+			action->ptr = iot_action_allocate( iot_lib,
+				action->action_name );
+
+			/* param to call set on  */
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_OPENEDBY,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_ROUTERADDR,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_ROUTERKEY,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_THINGKEY,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_TUNACTUALHOST,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_TUNID,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_TUNKEY,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_TUNNAME,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_STRING, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_TUNPORT,
+				IOT_PARAMETER_IN_REQUIRED,
+				IOT_TYPE_INT32, 0u );
+			iot_action_parameter_add( action->ptr,
+				TUNNEL_OPEN_PARAM_DEBUG,
+				IOT_PARAMETER_IN,
+				IOT_TYPE_BOOL, 0u );
+
+			result = iot_action_register_callback(
+				action->ptr, &on_action_tunnel_open,
+				(void*)device_manager, NULL, 0u );
+			if ( result != IOT_STATUS_SUCCESS )
+			{
+				IOT_LOG( iot_lib, IOT_LOG_ERROR,
+					"Failed to register %s action. Reason: %s",
+					action->action_name,
+					iot_error( result ) );
+				iot_action_free( action->ptr, 0u );
+				action->ptr = NULL;
+			}
+
 		}
 
 		/* device reboot */
@@ -1303,6 +1410,9 @@ int device_manager_main( int argc, char *argv[] )
 		device_manager_action_initialize( &APP_DATA, idx++,
 			"software_update", "software_update",
 			IOT_DEFAULT_ENABLE_SOFTWARE_UPDATE );
+		device_manager_action_initialize( &APP_DATA, idx++,
+			"tunnel.open", "tunnel_open",
+			IOT_DEFAULT_ENABLE_TUNNEL_OPEN );
 
 		if ( idx != DEVICE_MANAGER_IDX_LAST )
 		{
@@ -1776,6 +1886,151 @@ iot_status_t on_action_device_shutdown(
 		if ( result == IOT_STATUS_SUCCESS )
 			result = device_manager_run_os_command( cmd, IOT_FALSE );
 #endif /* else if defined( __VXWORKS__ ) */
+	}
+	return result;
+}
+
+iot_status_t on_action_tunnel_open( iot_action_request_t* request,
+	void *user_data )
+{
+	iot_status_t result = IOT_STATUS_BAD_PARAMETER;
+	struct device_manager_info * const device_manager =
+		(struct device_manager_info *) user_data;
+	iot_t *const iot_lib = device_manager->iot_lib;
+
+	if ( device_manager && request )
+	{
+		const char *opened_by_in = NULL;
+		const char *router_address_in = NULL;
+		const char *router_key_in = NULL;
+		const char *thing_key_in = NULL;
+		const char *tun_actual_host_in = NULL;
+		const char *tun_id_in = NULL;
+		const char *tun_key_in = NULL;
+		const char *tun_name_in = NULL;
+		int 		tun_port_in = 0;
+		const iot_bool_t debug_mode = IOT_FALSE;
+		os_file_t out_files[2] = { NULL, NULL };
+
+		/* Support a debug option that supports logging */
+		char log_file[256];
+
+		/* read parameters */
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_OPENEDBY, IOT_TRUE, IOT_TYPE_STRING,
+			&opened_by_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_ROUTERADDR, IOT_TRUE, IOT_TYPE_STRING,
+			&router_address_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_ROUTERKEY, IOT_TRUE, IOT_TYPE_STRING,
+			&router_key_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_THINGKEY, IOT_TRUE, IOT_TYPE_STRING,
+			&thing_key_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_TUNACTUALHOST, IOT_TRUE, IOT_TYPE_STRING,
+			&tun_actual_host_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_TUNID, IOT_TRUE, IOT_TYPE_STRING,
+			&tun_id_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_TUNKEY, IOT_TRUE, IOT_TYPE_STRING,
+			&tun_key_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_TUNNAME, IOT_TRUE, IOT_TYPE_STRING,
+			&tun_name_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_TUNPORT, IOT_FALSE, IOT_TYPE_INT32,
+			&tun_port_in );
+		iot_action_parameter_get( request,
+			TUNNEL_OPEN_PARAM_DEBUG, IOT_TRUE, IOT_TYPE_BOOL,
+			&debug_mode);
+
+		/* for debugging, create two file handles */
+		if ( debug_mode != IOT_FALSE )
+		{
+			os_snprintf( log_file, PATH_MAX, "%s%c%s-%s",
+				device_manager->runtime_dir, OS_DIR_SEP,
+				IOT_TARGET_TUNNELSRV, "tunnel.stdout.log" );
+			out_files[0] = os_file_open(log_file,OS_CREATE | OS_WRITE);
+
+			os_snprintf( log_file, PATH_MAX, "%s%c%s-%s",
+				device_manager->runtime_dir, OS_DIR_SEP,
+				IOT_TARGET_TUNNELSRV, "tunnel.stderr.log" );
+			out_files[1] = os_file_open(log_file,OS_CREATE | OS_WRITE);
+		}
+
+		IOT_LOG( iot_lib, IOT_LOG_DEBUG,
+			"Tunnel Open: OpenedBy=%s, routerAddress=%s, routerKey=%s, thingKey=%s, tunActualHost=%s, tunId=%s, tunKey=%s, tunName=%s, tunPort=%d, debug=%d",
+			opened_by_in, router_address_in, router_key_in, thing_key_in, tun_actual_host_in, tun_id_in, tun_key_in, tun_name_in, tun_port_in, debug_mode );
+
+		if ( opened_by_in && *opened_by_in != '\0'
+		     && router_address_in && *router_address_in != '\0'
+		     && router_key_in && *router_key_in != '\0'
+			 	 && thing_key_in && *thing_key_in != '\0'
+			   && tun_actual_host_in && *tun_actual_host_in != '\0'
+			 	 && tun_id_in && *tun_id_in != '\0'
+			   && tun_key_in && *tun_key_in != '\0'
+			   && tun_name_in && *tun_name_in != '\0' )
+		{
+			os_system_run_args_t args = OS_SYSTEM_RUN_ARGS_INIT;
+
+			char tunnel_cmd[ PATH_MAX + 1u ];
+			size_t tunnel_cmd_len = 0u;
+			int char_count;
+			os_status_t run_status;
+
+
+			/* obtain path to tunnels application */
+#if defined( __VXWORKS__ )
+			os_snprintf( tunnel_cmd, PATH_MAX, "%s%c",
+				device_manager->app_path, OS_DIR_SEP );
+			tunnel_cmd_len = os_strlen( tunnel_cmd );
+#else /* if defined( __VXWORKS__ ) */
+			if ( app_path_executable_directory_get(
+				tunnel_cmd, PATH_MAX ) == IOT_STATUS_SUCCESS )
+			{
+				tunnel_cmd_len = os_strlen( tunnel_cmd );
+				tunnel_cmd[ tunnel_cmd_len++ ] = OS_DIR_SEP;
+			}
+#endif /* defined( __VXWORKS__ ) */
+
+			/* add name of tunnel application */
+			if ((char_count = os_snprintf( &tunnel_cmd[tunnel_cmd_len],
+				PATH_MAX - tunnel_cmd_len,
+				IOT_TARGET_TUNNELSRV )) > 0)
+				tunnel_cmd_len += (size_t)char_count;
+
+			/* add all the params needed to open a tunnel */
+			if ((char_count = os_snprintf( &tunnel_cmd[ tunnel_cmd_len ],
+					PATH_MAX - tunnel_cmd_len,
+					" -routerAddress=%s -routerKey=%s -tunId=%s -targetAddress=%s:%d",
+					router_address_in, router_key_in, tun_id_in, tun_actual_host_in,tun_port_in )) > 0)
+					tunnel_cmd_len += (size_t)char_count;
+
+			tunnel_cmd[tunnel_cmd_len] = '\0';
+			IOT_LOG( iot_lib, IOT_LOG_TRACE,
+				"Tunnel cmd: %s", tunnel_cmd );
+
+			args.cmd = tunnel_cmd;
+			args.opts.nonblock.std_out = out_files[0];
+			args.opts.nonblock.std_err = out_files[1];
+
+			run_status = os_system_run( &args );
+			IOT_LOG( iot_lib, IOT_LOG_TRACE,
+				"System Run returned: %d", run_status );
+			os_time_sleep( 10, IOT_FALSE );
+
+			/* remote login protocol requires us to return
+			 * success, or it will not open the cloud side relay
+			 * connection.  So, check for invoked here and return
+			 * success */
+			result = IOT_STATUS_FAILURE;
+			if ( run_status == OS_STATUS_SUCCESS ||
+			     run_status == OS_STATUS_INVOKED )
+				result = IOT_STATUS_SUCCESS;
+		}
 	}
 	return result;
 }

@@ -46,6 +46,9 @@
 #define DEVICE_MANAGER_ENABLE_AGENT_RESET             0x0080
 /** @brief Flag to enable remote login related actions */
 #define DEVICE_MANAGER_ENABLE_REMOTE_LOGIN            0x0100
+/** @brief Flag to enable tunnel open related actions */
+#define DEVICE_MANAGER_ENABLE_TUNNEL_OPEN	          0x0200
+
 
 /**
  * @brief Index of various default device manager functions in the global
@@ -66,6 +69,7 @@ enum device_manager_config_idx
 	DEVICE_MANAGER_IDX_REMOTE_LOGIN,
 	DEVICE_MANAGER_IDX_RESTORE_FACTORY_IMAGES,
 	DEVICE_MANAGER_IDX_SOFTWARE_UPDATE,
+	DEVICE_MANAGER_IDX_TUNNEL_OPEN,
 
 	/* note: must be the last item */
 	DEVICE_MANAGER_IDX_LAST

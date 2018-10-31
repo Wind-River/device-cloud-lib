@@ -2150,13 +2150,16 @@ void tr50_on_message(
 						{
 							const iot_json_item_t *j_params;
 							const iot_json_item_t *j_messages;
+							const iot_json_item_t *j_command;
+							iot_bool_t is_tunnel_command = IOT_FALSE;
+
 							j_params = iot_json_decode_object_find(
 								json, j_obj, "params" );
 
 							j_messages = iot_json_decode_object_find( json,
 								j_params, "messages" );
 
-							/* actions (aka methods) parsing */
+							/* actions (aka methods) parsing or also command parsing, because can receive commands other than methods */
 							if ( j_messages && iot_json_decode_type( json, j_messages )
 								== IOT_JSON_TYPE_ARRAY )
 							{
@@ -2177,6 +2180,21 @@ void tr50_on_message(
 											IOT_LOG( data->lib, IOT_LOG_WARNING,
 												"\"%s\" not found!", "id" );
 
+										j_command = iot_json_decode_object_find(
+											json, j_cmd_item, "command" );
+
+										iot_json_decode_string( json, j_command,
+																		&v, &v_len );
+
+										/* check if cmd is tunnel.open */
+										if ( os_strncmp( v, "tunnel.open", v_len ) == 0 ){
+											IOT_LOG( data->lib, IOT_LOG_DEBUG,
+												"\"%s\" command received!", "tunnel.open" );
+											is_tunnel_command = IOT_TRUE;
+                      os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
+                      name[ IOT_NAME_MAX_LEN ] = '\0';
+                    }
+
 										j_params = iot_json_decode_object_find(
 											json, j_cmd_item, "params" );
 										if ( !j_params )
@@ -2188,129 +2206,137 @@ void tr50_on_message(
 											const iot_json_item_t *j_method;
 											const iot_json_object_iterator_t *iter;
 											iot_action_request_t *req = NULL;
+											char id[ IOT_ID_MAX_LEN + 1u ];
+											*id = '\0';
 
-											j_method = iot_json_decode_object_find(
-												json, j_params, "method" );
+											iot_json_decode_string( json, j_id, &v, &v_len );
+											os_snprintf( id, IOT_ID_MAX_LEN, "%.*s", (int)v_len, v );
+											id[ IOT_ID_MAX_LEN ] = '\0';
+
+                      j_method = iot_json_decode_object_find(
+                        json, j_params, "method" );
+
 											if ( j_method )
 											{
-												char id[ IOT_ID_MAX_LEN + 1u ];
-												*id = '\0';
-
-												iot_json_decode_string( json, j_id, &v, &v_len );
-												os_snprintf( id, IOT_ID_MAX_LEN, "%.*s", (int)v_len, v );
-												id[ IOT_ID_MAX_LEN ] = '\0';
-
 												iot_json_decode_string( json, j_method, &v, &v_len );
 												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
 												name[ IOT_NAME_MAX_LEN ] = '\0';
 												req = iot_action_request_allocate( data->lib, name, "tr50" );
-
-												/* check mailbox for more actions if queue is available */
-												tr50_check_mailbox( data, NULL );
-												if ( req )
-													iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
-												else
-												{
-													/* send response that message can't be handled */
-													const char *out_msg;
-													char out_msg_id[6u];
-													char out_msg_buf[ 512u ];
-													iot_json_encoder_t *out_json;
-													out_json = iot_json_encode_initialize( out_msg_buf, 512u, 0 );
-													os_snprintf( out_msg_id, sizeof(out_msg_id), "cmd" );
-													iot_json_encode_object_start( out_json, out_msg_id );
-													iot_json_encode_string( out_json, "command", "mailbox.ack" );
-													iot_json_encode_object_start( out_json, "params" );
-													iot_json_encode_string( out_json, "id", id );
-													iot_json_encode_integer( out_json, "errorCode", (int)IOT_STATUS_FULL );
-													iot_json_encode_string( out_json, "errorMessage", "maximum inbound requests reached" );
-													iot_json_encode_object_end( out_json );
-													iot_json_encode_object_end( out_json );
-
-													out_msg = iot_json_encode_dump( out_json );
-													tr50_mqtt_publish(
-														data, "api", out_msg,
-														os_strlen( out_msg ), NULL );
-													iot_json_encode_terminate( out_json );
-												}
+											} else if ( is_tunnel_command ){
+                        IOT_LOG( data->lib, IOT_LOG_DEBUG,
+                          "\"%s\" action requested!", "tunnel.open" );
+												req = iot_action_request_allocate( data->lib, name, "tr50" );
 											}
 
-											/* for each parameter */
-											j_params = iot_json_decode_object_find(
-												json, j_params, "params" );
-											iter = iot_json_decode_object_iterator(
-												json, j_params );
-											while ( iter )
-											{
-												const iot_json_item_t *j_value = NULL;
-												iot_json_decode_object_iterator_key(
-													json, j_params, iter,
-													&v, &v_len );
-												iot_json_decode_object_iterator_value(
-													json, j_params, iter,
-													&j_value );
-												os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
-												name[ IOT_NAME_MAX_LEN ] = '\0';
-												iter = iot_json_decode_object_iterator_next(
-													json, j_params, iter );
-												switch ( iot_json_decode_type( json,
-													j_value ) )
-												{
-												case IOT_JSON_TYPE_BOOL:
-													{
-													iot_bool_t value;
-													iot_json_decode_bool( json, j_value, &value );
-													iot_action_request_parameter_set( req, name, IOT_TYPE_BOOL, value );
-													}
-													break;
-												case IOT_JSON_TYPE_INTEGER:
-													{
-													iot_int64_t value;
-													iot_json_decode_integer( json, j_value, &value );
-													iot_action_request_parameter_set( req, name, IOT_TYPE_INT64, value );
-													}
-													break;
-												case IOT_JSON_TYPE_REAL:
-													{
-													iot_float64_t value;
-													iot_json_decode_real( json, j_value, &value );
-													iot_action_request_parameter_set( req, name, IOT_TYPE_FLOAT64, value );
-													}
-													break;
-												case IOT_JSON_TYPE_STRING:
-													{
-													char *value;
-													iot_json_decode_string( json, j_value, &v, &v_len );
-													value = os_malloc( v_len + 1u );
-													if( value )
-													{
-														size_t j;
-														char *p = value;
-														for ( j = 0u; j < v_len; ++j )
-														{
-															if ( *v != '\\' || *(v+1) != '"' )
-																*p++ = *v;
-															++v;
-														}
-														*p = '\0';
-														iot_action_request_parameter_set( req, name, IOT_TYPE_STRING, value );
-														os_free( value );
-													}
-													}
-												case IOT_JSON_TYPE_ARRAY:
-												case IOT_JSON_TYPE_OBJECT:
-												case IOT_JSON_TYPE_NULL:
-												default:
-													break;
-												}
-											}
-
+											/* check mailbox for more actions if queue is available */
+											tr50_check_mailbox( data, NULL );
 											if ( req )
-												iot_action_request_execute( req, 0u );
-										}
-									}
-								}
-							}
+												iot_action_request_option_set( req, "id", IOT_TYPE_STRING, id );
+											else
+											{
+												/* send response that message can't be handled */
+												const char *out_msg;
+												char out_msg_id[6u];
+												char out_msg_buf[ 512u ];
+												iot_json_encoder_t *out_json;
+												out_json = iot_json_encode_initialize( out_msg_buf, 512u, 0 );
+												os_snprintf( out_msg_id, sizeof(out_msg_id), "cmd" );
+												iot_json_encode_object_start( out_json, out_msg_id );
+												iot_json_encode_string( out_json, "command", "mailbox.ack" );
+												iot_json_encode_object_start( out_json, "params" );
+												iot_json_encode_string( out_json, "id", id );
+												iot_json_encode_integer( out_json, "errorCode", (int)IOT_STATUS_FULL );
+												iot_json_encode_string( out_json, "errorMessage", "maximum inbound requests reached" );
+												iot_json_encode_object_end( out_json );
+												iot_json_encode_object_end( out_json );
+
+												out_msg = iot_json_encode_dump( out_json );
+												tr50_mqtt_publish(
+													data, "api", out_msg,
+													os_strlen( out_msg ), NULL );
+												iot_json_encode_terminate( out_json );
+											}
+
+										  /* for each parameter */
+										  if( !is_tunnel_command )
+									  	{
+										  	j_params = iot_json_decode_object_find(
+										  	json, j_params, "params" );
+										  }
+
+  										iter = iot_json_decode_object_iterator(
+  											json, j_params );
+  										while ( iter )
+  										{
+  											const iot_json_item_t *j_value = NULL;
+  											iot_json_decode_object_iterator_key(
+  												json, j_params, iter,
+  												&v, &v_len );
+  											iot_json_decode_object_iterator_value(
+  												json, j_params, iter,
+  												&j_value );
+  											os_snprintf( name, IOT_NAME_MAX_LEN, "%.*s", (int)v_len, v );
+  											name[ IOT_NAME_MAX_LEN ] = '\0';
+  										  iter = iot_json_decode_object_iterator_next(
+  												json, j_params, iter );
+  											switch ( iot_json_decode_type( json,
+  												j_value ) )
+  											{
+  											case IOT_JSON_TYPE_BOOL:
+  												{
+  												iot_bool_t value;
+  												iot_json_decode_bool( json, j_value, &value );
+  												iot_action_request_parameter_set( req, name, IOT_TYPE_BOOL, value );
+  												}
+  												break;
+  											case IOT_JSON_TYPE_INTEGER:
+  												{
+  												iot_int64_t value;
+  												iot_json_decode_integer( json, j_value, &value );
+  												iot_action_request_parameter_set( req, name, IOT_TYPE_INT64, value );
+  												}
+  												break;
+  											case IOT_JSON_TYPE_REAL:
+  												{
+  												iot_float64_t value;
+  												iot_json_decode_real( json, j_value, &value );
+  												iot_action_request_parameter_set( req, name, IOT_TYPE_FLOAT64, value );
+  												}
+  												break;
+  											case IOT_JSON_TYPE_STRING:
+  												{
+  												char *value;
+  												iot_json_decode_string( json, j_value, &v, &v_len );
+  												value = os_malloc( v_len + 1u );
+  												if( value )
+  												{
+  													size_t j;
+  													char *p = value;
+  													for ( j = 0u; j < v_len; ++j )
+  													{
+  														if ( *v != '\\' || *(v+1) != '"' )
+  															*p++ = *v;
+  														++v;
+  													}
+  													*p = '\0';
+  													iot_action_request_parameter_set( req, name, IOT_TYPE_STRING, value );
+  													os_free( value );
+  												}
+  												}
+  											case IOT_JSON_TYPE_ARRAY:
+  											case IOT_JSON_TYPE_OBJECT:
+  											case IOT_JSON_TYPE_NULL:
+  											default:
+  												break;
+  											}
+                      }
+
+  										if ( req )
+  											iot_action_request_execute( req, 0u );
+									  }
+								  }
+							  }
+              }
 							else
 							{
 								j_obj = iot_json_decode_object_find( json,
