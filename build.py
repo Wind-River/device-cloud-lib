@@ -561,6 +561,31 @@ def main():
     parser.add_argument("--websockets", choices=['civetweb', 'libwebsockets'], help="Websocket library to use", action=EnsureOnce)
     args = parser.parse_args(sys.argv[1:])
 
+    # override user args with environment args (for use with build.sh script)
+    if 'BUILD_TYPE' in os.environ:
+        args.type = os.environ['BUILD_TYPE']
+
+    if 'STACK_ONLY' in os.environ:
+        args.stack_only = True
+
+    if 'THREAD_SUPPORT' in os.environ:
+        args.thread_support = True
+
+    if 'USE_JANSSON' in os.environ:
+        args.json = "jansson"
+    else:
+        args.json = "jsmn"
+
+    if 'USE_MOSQUITTO' in os.environ:
+        args.mqtt = "mosquitto"
+    else:
+        args.json = "paho"
+
+    if 'USE_CIVETWEB' in os.environ:
+        args.websockets = "civetweb"
+    else:
+        args.websockets = "libwebsockets"
+
     # Required system dependencies:
     #    See README.md for list of dependencies from the build host
 
