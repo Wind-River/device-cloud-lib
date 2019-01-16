@@ -169,6 +169,22 @@ else
 	rm -rf paho
 fi
 
+if [ "$USE_DWUTIL" != "" ]; then
+	#export DWUTIL_GIT_TAG="tags/"	
+	git clone https://github.com/deviceWISE/dwutil.git dwutil
+	cd dwutil
+	#git checkout -b build_version $DWUTIL_GIT_TAG 
+	if [ ! -e cmake_build ]; then
+		mkdir cmake_build
+	fi
+	cd cmake_build
+	cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH="$DEPS_DIR" ..
+	make
+	make install
+	cd ../../
+	rm -fr dwutil
+fi
+
 cmake  $CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DIOT_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DIOT_STACK_ONLY:BOOL=$STACK_ONLY -DDEPENDS_ROOT_DIR:PATH="$DEPS_DIR" "$SCRIPT_PATH"
 
 echo
