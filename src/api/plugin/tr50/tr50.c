@@ -144,6 +144,8 @@ struct tr50_data
 	iot_timestamp_t time_last_msg_received;
 	/** @brief transaction status based on id */
 	iot_uint32_t transactions[16u];
+	/** @brief flag to indicate tunnel latency check occurred on first tr50 connect */
+	iot_uint8_t first_connect_latency_check;
 };
 
 /** @brief transaction status values */

@@ -35,6 +35,7 @@ rm -rf build
 mkdir build
 cd build
 export BUILD_TYPE=Release #for additional debug logging, use 'BUILD_TYPE=Debug'
+export DWTUNSVR_ENABLED=1 #to use devicewise tunneling feature
 ../build.sh
 # if you have build issues, it is typically caused by missing build dependencies
 make

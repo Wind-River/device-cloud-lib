@@ -35,7 +35,7 @@ mkdir -p "$DEPS_DIR"
 mkdir -p "$DEPS_DIR/include"
 mkdir -p "$DEPS_DIR/lib"
 
-CMAKE_ARGS=""
+CMAKE_ARGS="-v"
 
 # Get the name of current branch
 if [ ! -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
@@ -91,6 +91,7 @@ else
 	# jsmn
 	git clone https://github.com/zserge/jsmn.git jsmn
 	cd jsmn
+        git checkout v1.0.0
 	make clean
 	make "CFLAGS=-DJSMN_PARENT_LINKS=1 -DJSMN_STRICT=1 -fPIC"
 	make test
@@ -169,10 +170,11 @@ else
 	rm -rf paho
 fi
 
-if [ "$USE_DWUTIL" != "" ]; then
+if [ "${DWTUNSVR_ENABLED}" != "" ]; then
 	#export DWUTIL_GIT_TAG="tags/"	
-	git clone https://github.com/deviceWISE/dwutil.git dwutil
-	cd dwutil
+	git clone https://github.com/deviceWISE/dwtunsvr.git dwtunsvr
+	cd dwtunsvr
+	sh build.sh
 	#git checkout -b build_version $DWUTIL_GIT_TAG 
 	if [ ! -e cmake_build ]; then
 		mkdir cmake_build
@@ -182,10 +184,10 @@ if [ "$USE_DWUTIL" != "" ]; then
 	make
 	make install
 	cd ../../
-	rm -fr dwutil
+	rm -fr dwtunsvr
 fi
 
-cmake  $CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DIOT_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DIOT_STACK_ONLY:BOOL=$STACK_ONLY -DDEPENDS_ROOT_DIR:PATH="$DEPS_DIR" "$SCRIPT_PATH"
+cmake  $CMAKE_ARGS -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DIOT_DWTUNSVR_ENABLED:BOOL=${DWTUNSVR_ENABLED} -DIOT_THREAD_SUPPORT:BOOL=$THREAD_SUPPORT -DIOT_STACK_ONLY:BOOL=$STACK_ONLY -DDEPENDS_ROOT_DIR:PATH="$DEPS_DIR" "$SCRIPT_PATH"
 
 echo
 echo "device-cloud-lib is ready to build."

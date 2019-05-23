@@ -171,6 +171,11 @@ add_subdirectory( "share" )
 # Packaging support
 add_subdirectory( "build-sys/cpack" )
 
+#install third party executable
+if( ${IOT_DWTUNSVR_ENABLED} ) 
+	install(PROGRAMS "${DEPENDS_ROOT_DIR}/bin/${IOT_TARGET_DWTUNSVR}"  DESTINATION "${CMAKE_INSTALL_BINDIR}" )
+endif( ${IOT_DWTUNSVR_ENABLED} )
+
 include( TestSupport )
 include( CPack )
 

@@ -1952,12 +1952,12 @@ iot_status_t on_action_tunnel_open( iot_action_request_t* request,
 		{
 			os_snprintf( log_file, PATH_MAX, "%s%c%s-%s",
 				device_manager->runtime_dir, OS_DIR_SEP,
-				IOT_TARGET_TUNNELSRV, "tunnel.stdout.log" );
+				IOT_TARGET_DWTUNSVR, "tunnel.stdout.log" );
 			out_files[0] = os_file_open(log_file,OS_CREATE | OS_WRITE);
 
 			os_snprintf( log_file, PATH_MAX, "%s%c%s-%s",
 				device_manager->runtime_dir, OS_DIR_SEP,
-				IOT_TARGET_TUNNELSRV, "tunnel.stderr.log" );
+				IOT_TARGET_DWTUNSVR, "tunnel.stderr.log" );
 			out_files[1] = os_file_open(log_file,OS_CREATE | OS_WRITE);
 		}
 
@@ -1982,31 +1982,17 @@ iot_status_t on_action_tunnel_open( iot_action_request_t* request,
 			os_status_t run_status;
 
 
-			/* obtain path to tunnels application */
-#if defined( __VXWORKS__ )
-			os_snprintf( tunnel_cmd, PATH_MAX, "%s%c",
-				device_manager->app_path, OS_DIR_SEP );
-			tunnel_cmd_len = os_strlen( tunnel_cmd );
-#else /* if defined( __VXWORKS__ ) */
-			if ( app_path_executable_directory_get(
-				tunnel_cmd, PATH_MAX ) == IOT_STATUS_SUCCESS )
-			{
-				tunnel_cmd_len = os_strlen( tunnel_cmd );
-				tunnel_cmd[ tunnel_cmd_len++ ] = OS_DIR_SEP;
-			}
-#endif /* defined( __VXWORKS__ ) */
-
 			/* add name of tunnel application */
 			if ((char_count = os_snprintf( &tunnel_cmd[tunnel_cmd_len],
 				PATH_MAX - tunnel_cmd_len,
-				IOT_TARGET_TUNNELSRV )) > 0)
+				IOT_TARGET_DWTUNSVR )) > 0)
 				tunnel_cmd_len += (size_t)char_count;
 
 			/* add all the params needed to open a tunnel */
 			if ((char_count = os_snprintf( &tunnel_cmd[ tunnel_cmd_len ],
 					PATH_MAX - tunnel_cmd_len,
-					" -routerAddress=%s -routerKey=%s -tunId=%s -targetAddress=%s:%d",
-					router_address_in, router_key_in, tun_id_in, tun_actual_host_in,tun_port_in )) > 0)
+					" -r %s -k %s -t %s:%d -i %s",
+					router_address_in, router_key_in, tun_actual_host_in,tun_port_in, tun_id_in )) > 0)
 					tunnel_cmd_len += (size_t)char_count;
 
 			tunnel_cmd[tunnel_cmd_len] = '\0';
